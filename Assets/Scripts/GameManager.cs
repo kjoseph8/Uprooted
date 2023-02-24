@@ -58,12 +58,14 @@ public class GameManager : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             int[] coord = MouseToCoord();
-            int index = CoordToIndex(coord[0], coord[1]);
-            if (index != -1 && state[index] != 0 && state[index] != 1 && state[index] != 2)
+            int x = coord[0];
+            int y = coord[1];
+            int index = CoordToIndex(x, y);
+            if (index != -1 && state[index] != '0' && state[index] != '1' && state[index] != '2' && state[index] != '!' && state[index] != '@')
             {
                 if (player == 1)
                 {
-                    if (AStar(coord[0], coord[1], '1', '!'))
+                    if (HasNeighbor(x, y, '1') || HasNeighbor(x, y, '!'))
                     {
                         state[index] = '1';
                         roots1Map.SetTile(new Vector3Int(coord[0], coord[1]), rootTile);
@@ -72,7 +74,7 @@ public class GameManager : MonoBehaviour
                 }
                 else
                 {
-                    if (AStar(coord[0], coord[1], '2', '@'))
+                    if (HasNeighbor(x, y, '2') || HasNeighbor(x, y, '@'))
                     {
                         state[index] = '2';
                         roots2Map.SetTile(new Vector3Int(coord[0], coord[1]), rootTile);
@@ -147,12 +149,23 @@ public class GameManager : MonoBehaviour
         return GetCoordState(coord[0], coord[1]);
     }
 
+    // Check if any of the neighboring tiles for (x,y) is a specific element
+    bool HasNeighbor(int x, int y, char neighbor)
+    {
+        return GetCoordState(x - 1, y) == neighbor || GetCoordState(x + 1, y) == neighbor || GetCoordState(x, y - 1) == neighbor || GetCoordState(x, y + 1) == neighbor;
+    }
+
+    // Checks if path along an element exisits from (x,y) to a goal
     bool AStar(int x, int y, char path, char goal)
     {
         Queue<int> queue = new Queue<int>();
         ArrayList visited = new ArrayList();
         int i = CoordToIndex(x, y);
-        if (i != -1 && state[i] == goal)
+        if (i == -1)
+        {
+            return false;
+        }
+        if (state[i] == goal)
         {
             return true;
         }

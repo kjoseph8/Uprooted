@@ -8,6 +8,7 @@ TagManager:
   - Water
   - Roots1
   - Roots2
+  - Points
   layers:
   - Default
   - TransparentFX

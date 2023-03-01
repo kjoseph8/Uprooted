@@ -1,198 +1,67 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private RuleTile rootTile;
-    [HideInInspector] public char[] state = new char[31*31];
-    private Plane _tilePlane;
-    private Tilemap waterMap;
-    private Tilemap roots1Map;
-    private Tilemap roots2Map;
-    private int player = 1;
+    [SerializeField] private TextMeshProUGUI[] waterDisps;
+    [SerializeField] private TextMeshProUGUI[] pointDisps;
+    [SerializeField] private TextMeshProUGUI turnDisp;
+    [SerializeField] private TextMeshProUGUI winnerDisp;
 
     // Start is called before the first frame update
     void Start()
     {
-        _tilePlane = new Plane(Vector3.back, Vector3.zero);
-        waterMap = GameObject.FindGameObjectWithTag("Water").GetComponent<Tilemap>();
-        roots1Map = GameObject.FindGameObjectWithTag("Roots1").GetComponent<Tilemap>();
-        roots2Map = GameObject.FindGameObjectWithTag("Roots2").GetComponent<Tilemap>();
-        Tilemap outlineMap = GameObject.FindGameObjectWithTag("Outline").GetComponent<Tilemap>();
-        
-        BoundsInt bounds = outlineMap.cellBounds;
-        TileBase[] outlineTiles = outlineMap.GetTilesBlock(bounds);
-        TileBase[] waterTiles = waterMap.GetTilesBlock(bounds);
-        TileBase[] roots1Tiles = roots1Map.GetTilesBlock(bounds);
-        TileBase[] roots2Tiles = roots2Map.GetTilesBlock(bounds);
-        for (int i = 0; i < 31*31; i++)
-        {
-            if (waterTiles[i] != null)
-            {
-                state[i] = 'W';
-            }
-            else if (roots1Tiles[i] != null)
-            {
-                state[i] = '!';
-            }
-            else if (roots2Tiles[i] != null)
-            {
-                state[i] = '@';
-            }
-            else if (outlineTiles[i] != null)
-            {
-                state[i] = '-';
-            }
-            else
-            {
-                state[i] = '0';
-            }
-        }
+        State.InitState(rootTile, waterDisps, pointDisps);
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        turnDisp.text = $"Turn {State.turn} / 30";
+        int[] coord = State.MouseToCoord();
+        if (State.turn <= 30)
         {
-            int[] coord = MouseToCoord();
-            int x = coord[0];
-            int y = coord[1];
-            int index = CoordToIndex(x, y);
-            if (index != -1 && state[index] != '0' && state[index] != '1' && state[index] != '2' && state[index] != '!' && state[index] != '@')
+            if (Input.GetMouseButtonDown(0) && RootCard.Validation(coord[0], coord[1]))
             {
-                if (player == 1)
+                RootCard.Action(coord[0], coord[1]);
+                if (State.player == 1)
                 {
-                    if (HasNeighbor(x, y, '1') || HasNeighbor(x, y, '!'))
-                    {
-                        state[index] = '1';
-                        roots1Map.SetTile(new Vector3Int(coord[0], coord[1]), rootTile);
-                        player = 2;
-                    }
+                    State.turn++;
                 }
-                else
-                {
-                    if (HasNeighbor(x, y, '2') || HasNeighbor(x, y, '@'))
-                    {
-                        state[index] = '2';
-                        roots2Map.SetTile(new Vector3Int(coord[0], coord[1]), rootTile);
-                        player = 1;
-                    }
-                }
+                State.player = (State.player + 1) % 2;
             }
         }
-    }
-
-    // For Debug Purposes: Get a String Representation of Game State
-    string StateToString()
-    {
-        string output = "";
-        for (int y = 30; y >= 0; y--)
+        else
         {
-            for (int x = 0; x < 31; x++)
+            turnDisp.text = "Turn 30 / 30";
+            int winner = 0;
+            if (State.players[0].points > State.players[1].points)
             {
-                output += state[CoordToIndex(x, y)];
+                winner = 1;
             }
-            output += '\n';
-        }
-        return output;
-    }
-
-    // Get Mouse Position as Index of state array
-    int[] MouseToCoord()
-    {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        float distance;
-        _tilePlane.Raycast(ray, out distance);
-        Vector3 worldPosition = ray.GetPoint(distance);
-        int x = Mathf.FloorToInt(worldPosition.x + 15.5f);
-        int y = Mathf.FloorToInt(worldPosition.y + 15.5f);
-        int[] coord = { x, y };
-        return coord;
-    }
-
-    // 2D to 1D index
-    int CoordToIndex(int x, int y)
-    {
-        if (x < 0 || x > 30 || y < 0 || y > 30)
-        {
-            return -1;
-        }
-        return x + y * 31;
-    }
-
-    int[] IndexToCoord(int i)
-    {
-        int[] coord = new int[2];
-        coord[0] = i % 31;
-        coord[1] = i / 31;
-        return coord;
-    }
-
-    // Get state at specific coordinate
-    char GetCoordState(int x, int y)
-    {
-        int i = CoordToIndex(x, y);
-        if (i == -1)
-        {
-            return '0';
-        }
-        return state[i];
-    }
-
-    // Get state of element at mouse position
-    char GetMouseState()
-    {
-        int[] coord = MouseToCoord();
-        return GetCoordState(coord[0], coord[1]);
-    }
-
-    // Check if any of the neighboring tiles for (x,y) is a specific element
-    bool HasNeighbor(int x, int y, char neighbor)
-    {
-        return GetCoordState(x - 1, y) == neighbor || GetCoordState(x + 1, y) == neighbor || GetCoordState(x, y - 1) == neighbor || GetCoordState(x, y + 1) == neighbor;
-    }
-
-    // Checks if path along an element exisits from (x,y) to a goal
-    bool AStar(int x, int y, char path, char goal)
-    {
-        Queue<int> queue = new Queue<int>();
-        ArrayList visited = new ArrayList();
-        int i = CoordToIndex(x, y);
-        if (i == -1)
-        {
-            return false;
-        }
-        if (state[i] == goal)
-        {
-            return true;
-        }
-        queue.Enqueue(i);
-        while (queue.Count != 0)
-        {
-            i = queue.Dequeue();
-            visited.Add(i);
-            int[] coords = IndexToCoord(i);
-            x = coords[0];
-            y = coords[1];
-            int[,] dirs = { { x-1, y }, { x+1, y }, { x, y-1 }, { x, y+1 } };
-            for (int j = 0; j < 4; j++)
+            else if (State.players[0].points < State.players[1].points)
             {
-                x = dirs[j, 0];
-                y = dirs[j, 1];
-                if (GetCoordState(x, y) == goal)
-                {
-                    return true;
-                }
-                int index = CoordToIndex(x, y);
-                if (index != -1 && state[index] == path && !visited.Contains(index))
-                {
-                    queue.Enqueue(index);
-                }
+                winner = 2;
             }
+            if (winner == 0)
+            {
+                winnerDisp.text = "It's a Draw.";
+            }
+            else
+            {
+                winnerDisp.text = $"Player {winner} wins!";
+            }
+            winnerDisp.enabled = true;
         }
-        return false;
+        foreach (Player player in State.players)
+        {
+            player.waterDisp.text = $"{player.water}";
+            player.pointsDisp.text = $"{player.points}";
+        }
     }
 }

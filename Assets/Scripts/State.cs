@@ -9,16 +9,19 @@ public class State
     public static char[] state = new char[31 * 31];
     public static int player = 0;
     public static int turn = 1;
+    public static Card card = null;
     public static Player[] players;
     public static Tilemap waterMap;
     public static Tilemap pointsMap;
     public static RuleTile rootTile;
+    public static RuleTile deadRootTile;
     private static Plane _tilePlane;
 
-    public static void InitState(RuleTile rt, TextMeshProUGUI[] waterDisps, TextMeshProUGUI[] pointDisps)
+    public static void InitState(RuleTile rt, RuleTile drt, TextMeshProUGUI[] waterDisps, TextMeshProUGUI[] pointDisps)
     {
         _tilePlane = new Plane(Vector3.back, Vector3.zero);
         rootTile = rt;
+        deadRootTile = drt;
         players = new Player[2] {
             new Player('1', '!', 'I', "Roots1", waterDisps[0], pointDisps[0]),
             new Player('2', '@', 'Z', "Roots2", waterDisps[1], pointDisps[1]),

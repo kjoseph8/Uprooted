@@ -8,6 +8,7 @@ public class Player
 {
     public int water = 2;
     public int points = 0;
+    public int rootMoves = 1;
     public char root;
     public char baseRoot;
     public char deadRoot;

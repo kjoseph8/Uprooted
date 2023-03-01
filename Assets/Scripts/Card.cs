@@ -2,18 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Card
+public interface Card
 {
+    public bool isInstant();
 
-    public static string type = "click";
+    public bool Validation(int x, int y);
 
-    public static bool Validation(int x, int y)
-    {
-        return false;
-    }
-
-    public static void Action(int x, int y)
-    {
-
-    }
+    public void Action(int x, int y);
 }

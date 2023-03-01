@@ -8,6 +8,7 @@ using TMPro;
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private RuleTile rootTile;
+    [SerializeField] private RuleTile deadRootTile;
     [SerializeField] private TextMeshProUGUI[] waterDisps;
     [SerializeField] private TextMeshProUGUI[] pointDisps;
     [SerializeField] private TextMeshProUGUI turnDisp;
@@ -16,7 +17,7 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        State.InitState(rootTile, waterDisps, pointDisps);
+        State.InitState(rootTile, deadRootTile, waterDisps, pointDisps);
     }
 
     // Update is called once per frame
@@ -26,14 +27,19 @@ public class GameManager : MonoBehaviour
         int[] coord = State.MouseToCoord();
         if (State.turn <= 30)
         {
-            if (Input.GetMouseButtonDown(0) && RootCard.Validation(coord[0], coord[1]))
+            if (State.card != null)
             {
-                RootCard.Action(coord[0], coord[1]);
-                if (State.player == 1)
+                if (State.card.isInstant())
                 {
-                    State.turn++;
+                    State.card.Action(coord[0], coord[1]);
                 }
-                State.player = (State.player + 1) % 2;
+                else if (State.card.Validation(coord[0], coord[1]))
+                {
+                    if (Input.GetMouseButtonDown(0))
+                    {
+                        State.card.Action(coord[0], coord[1]);
+                    }
+                }
             }
         }
         else
@@ -62,6 +68,22 @@ public class GameManager : MonoBehaviour
         {
             player.waterDisp.text = $"{player.water}";
             player.pointsDisp.text = $"{player.points}";
+        }
+    }
+
+    public void SetCard(string name)
+    {
+        if (name == "root")
+        {
+            State.card = new RootCard();
+        }
+        else if (name == "fertilizer")
+        {
+            State.card = new FertilizerCard();
+        }
+        else if (name == "aphid")
+        {
+            State.card = new AphidCard();
         }
     }
 }

@@ -6,19 +6,24 @@ public class AphidCard: Card
 {
     private int moves = 2;
 
-    public bool isInstant()
+    public override string GetName()
+    {
+        return "aphid";
+    }
+
+    public override bool IsInstant()
     {
         return false;
     }
 
-    public bool Validation(int x, int y)
+    public override bool Validation(int x, int y)
     {
         int index = State.CoordToIndex(x, y);
 
         return index != -1 && (State.state[index] == State.players[(State.player + 1) % 2].root || State.state[index] == State.players[(State.player + 1) % 2].deadRoot);
     }
 
-    public void Action(int x, int y)
+    public override void Action(int x, int y)
     {
         if (moves == 2)
         {
@@ -38,7 +43,7 @@ public class AphidCard: Card
             if (dirI != -1 && State.state[dirI] == State.players[(State.player + 1) % 2].root && 
                 !State.AStar(dirX, dirY, State.players[(State.player + 1) % 2].root, State.players[(State.player + 1) % 2].baseRoot))
             {
-                killBranch(dirX, dirY);
+                KillBranch(dirX, dirY);
             }
         }
 
@@ -46,10 +51,11 @@ public class AphidCard: Card
         {
             State.card = new RootCard();
         }
+
         moves--;
     }
 
-    private void killBranch(int x, int y)
+    private void KillBranch(int x, int y)
     {
         int index = State.CoordToIndex(x, y);
         State.state[index] = State.players[(State.player + 1) % 2].deadRoot;
@@ -62,7 +68,7 @@ public class AphidCard: Card
             int dirI = State.CoordToIndex(dirX, dirY);
             if (dirI != -1 && State.state[dirI] == State.players[(State.player + 1) % 2].root)
             {
-                killBranch(dirX, dirY);
+                KillBranch(dirX, dirY);
             }
         }
     }

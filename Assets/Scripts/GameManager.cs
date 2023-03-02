@@ -12,12 +12,15 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI[] waterDisps;
     [SerializeField] private TextMeshProUGUI[] pointDisps;
     [SerializeField] private TextMeshProUGUI turnDisp;
+    [SerializeField] private GameObject turnChange;
+    [SerializeField] private GameObject phaseChange;
     [SerializeField] private TextMeshProUGUI winnerDisp;
 
     // Start is called before the first frame update
     void Start()
     {
         State.InitState(rootTile, deadRootTile, waterDisps, pointDisps);
+        turnChange.GetComponent<Animator>().Play("Sweep");
     }
 
     // Update is called once per frame
@@ -29,15 +32,38 @@ public class GameManager : MonoBehaviour
         {
             if (State.card != null)
             {
-                if (State.card.isInstant())
+                if (State.card.IsInstant())
                 {
+                    string oldName = State.card.GetName();
                     State.card.Action(coord[0], coord[1]);
+                    if (oldName != "root" && State.card.GetName() == "root")
+                    {
+                        phaseChange.GetComponent<Animator>().Play("Sweep");
+                    }
                 }
                 else if (State.card.Validation(coord[0], coord[1]))
                 {
                     if (Input.GetMouseButtonDown(0))
                     {
+                        string oldName = State.card.GetName();
                         State.card.Action(coord[0], coord[1]);
+                        if (State.card == null)
+                        {
+                            if (State.player == 1)
+                            {
+                                State.turn++;
+                            }
+                            State.player = (State.player + 1) % 2;
+                            if (State.turn <= 30)
+                            {
+                                turnChange.GetComponent<TextMeshProUGUI>().text = $"Player {State.player + 1}'s Turn";
+                                turnChange.GetComponent<Animator>().Play("Sweep");
+                            }
+                        }
+                        else if (oldName != "root" && State.card.GetName() == "root")
+                        {
+                            phaseChange.GetComponent<Animator>().Play("Sweep");
+                        }
                     }
                 }
             }
@@ -75,7 +101,25 @@ public class GameManager : MonoBehaviour
     {
         if (name == "root")
         {
-            State.card = new RootCard();
+            if (State.card != null && State.card.GetName() == "root")
+            {
+                if (State.player == 1)
+                {
+                    State.turn++;
+                }
+                State.player = (State.player + 1) % 2;
+                State.card = null;
+                if (State.turn <= 30)
+                {
+                    turnChange.GetComponent<TextMeshProUGUI>().text = $"Player {State.player + 1}'s Turn";
+                    turnChange.GetComponent<Animator>().Play("Sweep");
+                }
+            }
+            else
+            {
+                State.card = new RootCard();
+                phaseChange.GetComponent<Animator>().Play("Sweep");
+            }
         }
         else if (name == "fertilizer")
         {

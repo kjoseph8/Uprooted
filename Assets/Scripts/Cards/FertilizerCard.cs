@@ -4,17 +4,22 @@ using UnityEngine;
 
 public class FertilizerCard: Card
 {
-    public bool isInstant()
+    public override string GetName()
+    {
+        return "fertilizer";
+    }
+
+    public override bool IsInstant()
     {
         return true;
     }
 
-    public bool Validation(int x, int y)
+    public override bool Validation(int x, int y)
     {
         return true;
     }
 
-    public void Action(int x, int y)
+    public override void Action(int x, int y)
     {
         State.players[State.player].water--;
         State.players[State.player].rootMoves++;

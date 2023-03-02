@@ -7,12 +7,17 @@ public class RootCard: Card
 {
     private char[] block = { '0', '1', '!', 'I', '2', '@', 'Z' };
 
-    public bool isInstant()
+    public override string GetName()
+    {
+        return "root";
+    }
+
+    public override bool IsInstant()
     {
         return false;
     }
 
-    public bool Validation(int x, int y)
+    public override bool Validation(int x, int y)
     {
         int index = State.CoordToIndex(x, y);
 
@@ -26,7 +31,7 @@ public class RootCard: Card
         return false;
     }
 
-    public void Action(int x, int y)
+    public override void Action(int x, int y)
     {
         int index = State.CoordToIndex(x, y);
 
@@ -40,23 +45,18 @@ public class RootCard: Card
             State.players[State.player].points++;
             State.pointsMap.SetTile(new Vector3Int(x, y), null);
         }
-        reviveBranch(x, y);
+        ReviveBranch(x, y);
         if (State.players[State.player].rootMoves > 1)
         {
             State.players[State.player].rootMoves--;
         }
         else
         {
-            if (State.player == 1)
-            {
-                State.turn++;
-            }
-            State.player = (State.player + 1) % 2;
             State.card = null;
         }
     }
 
-    private void reviveBranch(int x, int y)
+    private void ReviveBranch(int x, int y)
     {
         int index = State.CoordToIndex(x, y);
         State.state[index] = State.players[State.player].root;
@@ -69,7 +69,7 @@ public class RootCard: Card
             int dirI = State.CoordToIndex(dirX, dirY);
             if (dirI != -1 && State.state[dirI] == State.players[State.player].deadRoot)
             {
-                reviveBranch(dirX, dirY);
+                ReviveBranch(dirX, dirY);
             }
         }
     }

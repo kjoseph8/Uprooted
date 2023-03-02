@@ -2,11 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface Card
+public abstract class Card
 {
-    public bool isInstant();
+    public abstract string GetName();
 
-    public bool Validation(int x, int y);
+    public abstract bool IsInstant();
 
-    public void Action(int x, int y);
+    public abstract bool Validation(int x, int y);
+
+    public abstract void Action(int x, int y);
 }

@@ -104,6 +104,11 @@ public class State
         return coord;
     }
 
+    public static Vector3 CoordToWorld(int x, int y)
+    {
+        return new Vector3(x - 15, y +- 15, 0);
+    }
+
     // 2D to 1D index
     public static int CoordToIndex(int x, int y)
     {

@@ -8,7 +8,7 @@ public class AphidCard: Card
 
     public override string GetName()
     {
-        return "aphid";
+        return "Aphid Infestation";
     }
 
     public override bool IsInstant()

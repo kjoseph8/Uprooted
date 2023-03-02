@@ -6,7 +6,7 @@ public class SunshineCard : Card
 {
     public override string GetName()
     {
-        return "sunshine";
+        return "Ray of Sunshine";
     }
 
     public override bool IsInstant()

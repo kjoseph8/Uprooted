@@ -6,7 +6,7 @@ public class FertilizerCard: Card
 {
     public override string GetName()
     {
-        return "fertilizer";
+        return "Fertilizer";
     }
 
     public override bool IsInstant()

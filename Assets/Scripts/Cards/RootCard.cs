@@ -7,7 +7,7 @@ public class RootCard: Card
 {
     public override string GetName()
     {
-        return "root";
+        return "Root Phase";
     }
 
     public override bool IsInstant()

@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TileBase weakFireTile;
     [SerializeField] private TextMeshProUGUI[] waterDisps;
     [SerializeField] private TextMeshProUGUI[] pointDisps;
+    [SerializeField] private TextMeshProUGUI phaseDisp;
     [SerializeField] private TextMeshProUGUI turnDisp;
     [SerializeField] private GameObject turnChange;
     [SerializeField] private GameObject phaseChange;
@@ -22,6 +23,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button[] player2CardButtons;
     [SerializeField] private int[] costs;
     [SerializeField] private Button[] skipButtons;
+    [SerializeField] private GameObject validCursor;
+    [SerializeField] private GameObject invalidCursor;
     [SerializeField] private TextMeshProUGUI winnerDisp;
 
     // Start is called before the first frame update
@@ -34,17 +37,20 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        validCursor.transform.position = new Vector3(-40, 0, 0);
+        invalidCursor.transform.position = new Vector3(-40, 0, 0);
         turnDisp.text = $"Turn {State.turn} / {State.maxTurns}";
         int[] coord = State.MouseToCoord();
         if (State.turn <= State.maxTurns)
         {
             if (State.card != null)
             {
+                phaseDisp.text = State.card.GetName();
                 if (State.card.IsInstant())
                 {
                     string oldName = State.card.GetName();
                     State.card.Action(coord[0], coord[1]);
-                    if (oldName != "root" && State.card.GetName() == "root")
+                    if (oldName != "Root Phase" && State.card.GetName() == "Root Phase")
                     {
                         ChangePhase();
                         phaseChange.GetComponent<Animator>().Play("Sweep");
@@ -52,6 +58,7 @@ public class GameManager : MonoBehaviour
                 }
                 else if (State.card.Validation(coord[0], coord[1]))
                 {
+                    validCursor.transform.position = State.CoordToWorld(coord[0], coord[1]);
                     if (Input.GetMouseButtonDown(0))
                     {
                         string oldName = State.card.GetName();
@@ -63,13 +70,21 @@ public class GameManager : MonoBehaviour
                         else
                         {
                             ChangePhase();
-                            if (oldName != "root" && State.card.GetName() == "root")
+                            if (oldName != "Root Phase" && State.card.GetName() == "Root Phase")
                             {
                                 phaseChange.GetComponent<Animator>().Play("Sweep");
                             }
                         }
                     }
                 }
+                else
+                {
+                    invalidCursor.transform.position = State.CoordToWorld(coord[0], coord[1]);
+                }
+            }
+            else
+            {
+                phaseDisp.text = "Choose a Card";
             }
         }
         else
@@ -105,7 +120,7 @@ public class GameManager : MonoBehaviour
     {
         if (name == "root")
         {
-            if (State.card != null && State.card.GetName() == "root")
+            if (State.card != null && State.card.GetName() == "Root Phase")
             {
                 ChangeTurn();
             }

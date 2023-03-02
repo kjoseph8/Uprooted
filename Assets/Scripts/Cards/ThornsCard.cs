@@ -6,7 +6,7 @@ public class ThornsCard : Card
 {
     public override string GetName()
     {
-        return "thorns";
+        return "Every Rose has its Thorn";
     }
 
     public override bool IsInstant()

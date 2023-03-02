@@ -8,8 +8,11 @@ using TMPro;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] private RuleTile rootTile;
-    [SerializeField] private RuleTile deadRootTile;
+    [SerializeField] private TileBase rootTile;
+    [SerializeField] private TileBase deadRootTile;
+    [SerializeField] private TileBase thornTile;
+    [SerializeField] private TileBase strongFireTile;
+    [SerializeField] private TileBase weakFireTile;
     [SerializeField] private TextMeshProUGUI[] waterDisps;
     [SerializeField] private TextMeshProUGUI[] pointDisps;
     [SerializeField] private TextMeshProUGUI turnDisp;
@@ -24,16 +27,16 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        State.InitState(rootTile, deadRootTile, waterDisps, pointDisps);
+        State.InitState(rootTile, deadRootTile, thornTile, strongFireTile, weakFireTile, waterDisps, pointDisps);
         turnChange.GetComponent<Animator>().Play("Sweep");
     }
 
     // Update is called once per frame
     void Update()
     {
-        turnDisp.text = $"Turn {State.turn} / 30";
+        turnDisp.text = $"Turn {State.turn} / {State.maxTurns}";
         int[] coord = State.MouseToCoord();
-        if (State.turn <= 30)
+        if (State.turn <= State.maxTurns)
         {
             if (State.card != null)
             {
@@ -43,20 +46,8 @@ public class GameManager : MonoBehaviour
                     State.card.Action(coord[0], coord[1]);
                     if (oldName != "root" && State.card.GetName() == "root")
                     {
+                        ChangePhase();
                         phaseChange.GetComponent<Animator>().Play("Sweep");
-                        Button[] cardButtons;
-                        if (State.player == 0)
-                        {
-                            cardButtons = player1CardButtons;
-                        }
-                        else
-                        {
-                            cardButtons = player2CardButtons;
-                        }
-                        foreach (Button button in cardButtons)
-                        {
-                            button.interactable = false;
-                        }
                     }
                 }
                 else if (State.card.Validation(coord[0], coord[1]))
@@ -67,50 +58,14 @@ public class GameManager : MonoBehaviour
                         State.card.Action(coord[0], coord[1]);
                         if (State.card == null)
                         {
-                            if (State.player == 1)
-                            {
-                                State.turn++;
-                            }
-                            skipButtons[State.player].interactable = false;
-                            State.player = (State.player + 1) % 2;
-                            if (State.turn <= 30)
-                            {
-                                turnChange.GetComponent<TextMeshProUGUI>().text = $"Player {State.player + 1}'s Turn";
-                                turnChange.GetComponent<Animator>().Play("Sweep");
-                                Button[] cardButtons;
-                                if (State.player == 0)
-                                {
-                                    cardButtons = player1CardButtons;
-                                }
-                                else
-                                {
-                                    cardButtons = player2CardButtons;
-                                }
-                                for (int i = 0; i < 4; i++)
-                                {
-                                    if (State.players[State.player].water >= costs[i])
-                                    {
-                                        cardButtons[i].interactable = true;
-                                    }
-                                }
-                                skipButtons[State.player].interactable = true;
-                            }
+                            ChangeTurn();
                         }
-                        else if (oldName != "root" && State.card.GetName() == "root")
+                        else
                         {
-                            phaseChange.GetComponent<Animator>().Play("Sweep");
-                            Button[] cardButtons;
-                            if (State.player == 0)
+                            ChangePhase();
+                            if (oldName != "root" && State.card.GetName() == "root")
                             {
-                                cardButtons = player1CardButtons;
-                            }
-                            else
-                            {
-                                cardButtons = player2CardButtons;
-                            }
-                            foreach (Button button in cardButtons)
-                            {
-                                button.interactable = false;
+                                phaseChange.GetComponent<Animator>().Play("Sweep");
                             }
                         }
                     }
@@ -119,7 +74,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            turnDisp.text = "Turn 30 / 30";
+            turnDisp.text = $"Turn {State.maxTurns} / {State.maxTurns}";
             int winner = 0;
             if (State.players[0].points > State.players[1].points)
             {
@@ -152,53 +107,13 @@ public class GameManager : MonoBehaviour
         {
             if (State.card != null && State.card.GetName() == "root")
             {
-                if (State.player == 1)
-                {
-                    State.turn++;
-                }
-                skipButtons[State.player].interactable = false;
-                State.player = (State.player + 1) % 2;
-                State.card = null;
-                if (State.turn <= 30)
-                {
-                    turnChange.GetComponent<TextMeshProUGUI>().text = $"Player {State.player + 1}'s Turn";
-                    turnChange.GetComponent<Animator>().Play("Sweep");
-                    Button[] cardButtons;
-                    if (State.player == 0)
-                    {
-                        cardButtons = player1CardButtons;
-                    }
-                    else
-                    {
-                        cardButtons = player2CardButtons;
-                    }
-                    for (int i = 0; i < 4; i++)
-                    {
-                        if (State.players[State.player].water >= costs[i])
-                        {
-                            cardButtons[i].interactable = true;
-                        }
-                    }
-                    skipButtons[State.player].interactable = true;
-                }
+                ChangeTurn();
             }
             else
             {
                 State.card = new RootCard();
+                ChangePhase();
                 phaseChange.GetComponent<Animator>().Play("Sweep");
-                Button[] cardButtons;
-                if (State.player == 0)
-                {
-                    cardButtons = player1CardButtons;
-                }
-                else
-                {
-                    cardButtons = player2CardButtons;
-                }
-                foreach (Button button in cardButtons)
-                {
-                    button.interactable = false;
-                }
             }
         }
         else if (name == "fertilizer")
@@ -208,6 +123,76 @@ public class GameManager : MonoBehaviour
         else if (name == "aphid")
         {
             State.card = new AphidCard();
+        }
+        else if (name == "thorns")
+        {
+            State.card = new ThornsCard();
+        }
+        else if (name == "sunshine")
+        {
+            State.card = new SunshineCard();
+        }
+    }
+
+    private void ChangeTurn()
+    {
+        if (State.player == 1)
+        {
+            State.turn++;
+        }
+
+        for (int i = State.players[State.player].weakFireIndex.Count - 1; i >= 0; i--)
+        {
+            State.SpreadFire(State.players[State.player].weakFireIndex[i], '-', null);
+            State.players[State.player].weakFireIndex.RemoveAt(i);
+        }
+        for (int i = State.players[State.player].strongFireIndex.Count - 1; i >= 0; i--)
+        {
+            State.SpreadFire(State.players[State.player].strongFireIndex[i], State.players[State.player].weakFire, State.weakFireTile);
+            State.players[State.player].strongFireIndex.RemoveAt(i);
+        }
+
+        skipButtons[State.player].interactable = false;
+        State.player = (State.player + 1) % 2;
+        State.card = null;
+        if (State.turn <= State.maxTurns)
+        {
+            turnChange.GetComponent<TextMeshProUGUI>().text = $"Player {State.player + 1}'s Turn";
+            turnChange.GetComponent<Animator>().Play("Sweep");
+            Button[] cardButtons;
+            if (State.player == 0)
+            {
+                cardButtons = player1CardButtons;
+            }
+            else
+            {
+                cardButtons = player2CardButtons;
+            }
+            for (int i = 0; i < 4; i++)
+            {
+                if (State.players[State.player].water >= costs[i])
+                {
+                    cardButtons[i].interactable = true;
+                }
+            }
+            skipButtons[State.player].interactable = true;
+        }
+    }
+
+    private void ChangePhase(bool sweep = true)
+    {
+        Button[] cardButtons;
+        if (State.player == 0)
+        {
+            cardButtons = player1CardButtons;
+        }
+        else
+        {
+            cardButtons = player2CardButtons;
+        }
+        foreach (Button button in cardButtons)
+        {
+            button.interactable = false;
         }
     }
 }

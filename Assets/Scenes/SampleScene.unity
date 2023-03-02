@@ -17656,7 +17656,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1383137251}
   m_OnClick:
     m_PersistentCalls:
@@ -19185,6 +19185,20 @@ MonoBehaviour:
   turnDisp: {fileID: 87550887}
   turnChange: {fileID: 979596941}
   phaseChange: {fileID: 1865090278}
+  player1CardButtons:
+  - {fileID: 1495969041}
+  - {fileID: 781934324}
+  - {fileID: 1383137250}
+  - {fileID: 1017147383}
+  player2CardButtons:
+  - {fileID: 325868686}
+  - {fileID: 2113163329}
+  - {fileID: 1650654883}
+  - {fileID: 1236652489}
+  costs: 01000000020000000500000001000000
+  skipButtons:
+  - {fileID: 1629708935}
+  - {fileID: 373187258}
   winnerDisp: {fileID: 1472973722}
 --- !u!4 &1684000007
 Transform:

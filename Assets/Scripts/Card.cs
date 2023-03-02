@@ -11,4 +11,9 @@ public abstract class Card
     public abstract bool Validation(int x, int y);
 
     public abstract void Action(int x, int y);
+
+    public void SetCard()
+    {
+        State.card = this;
+    }
 }

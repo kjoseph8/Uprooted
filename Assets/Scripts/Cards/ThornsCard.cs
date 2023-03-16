@@ -16,17 +16,24 @@ public class ThornsCard : Card
 
     public override bool Validation(int x, int y)
     {
-        int index = State.CoordToIndex(x, y);
+        State state = base.manager.state;
+        int index = state.CoordToIndex(x, y);
 
-        return index != -1 && State.state[index] == '-';
+        return index != -1 && state.board[index] == '-';
     }
 
     public override void Action(int x, int y)
     {
-        State.players[State.player].water--;
-        int index = State.CoordToIndex(x, y);
-        State.state[index] = 'T';
+        State state = base.manager.state;
+        state.players[state.thisPlayer].water--;
+        int index = state.CoordToIndex(x, y);
+        state.board[index] = 'T';
         State.otherMap.SetTile(new Vector3Int(x, y), State.thornTile);
-        State.card = new RootCard();
+        state.card = GameObject.FindGameObjectWithTag("RootCard").GetComponent<RootCard>();
+    }
+
+    public override void SetCard()
+    {
+        base.manager.state.card = this;
     }
 }

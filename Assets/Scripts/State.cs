@@ -6,12 +6,16 @@ using TMPro;
 
 public class State
 {
-    public static char[] state = new char[31 * 31];
-    public static int player = 0;
-    public static int turn = 1;
-    public static int maxTurns = 50;
-    public static Card card = null;
-    public static Player[] players;
+    public char[] board;
+    public int boardHeight;
+    public int boardWidth;
+    public int thisPlayer = 0;
+    public int otherPlayer = 1;
+    public int turn = 1;
+    public int maxTurns = 50;
+    public Card card = null;
+    public Player[] players;
+    public static Tilemap outlineMap;
     public static Tilemap waterMap;
     public static Tilemap pointsMap;
     public static Tilemap otherMap;
@@ -20,11 +24,9 @@ public class State
     public static TileBase thornTile;
     public static TileBase strongFireTile;
     public static TileBase weakFireTile;
-    private static Plane _tilePlane;
 
-    public static void InitState(TileBase rt, TileBase drt, TileBase tt, TileBase sft, TileBase wft, TextMeshProUGUI[] waterDisps, TextMeshProUGUI[] pointDisps)
+    public void InitState(TileBase rt, TileBase drt, TileBase tt, TileBase sft, TileBase wft, TextMeshProUGUI[] waterDisps, TextMeshProUGUI[] pointDisps)
     {
-        _tilePlane = new Plane(Vector3.back, Vector3.zero);
         rootTile = rt;
         deadRootTile = drt;
         thornTile = tt;
@@ -34,125 +36,151 @@ public class State
             new Player('1', '!', 'I', 'M', 'm', "Roots1", waterDisps[0], pointDisps[0]),
             new Player('2', '@', 'Z', 'F', 'f', "Roots2", waterDisps[1], pointDisps[1]),
         };
+        outlineMap = GameObject.FindGameObjectWithTag("Outline").GetComponent<Tilemap>();
         waterMap = GameObject.FindGameObjectWithTag("Water").GetComponent<Tilemap>();
         pointsMap = GameObject.FindGameObjectWithTag("Points").GetComponent<Tilemap>();
         otherMap = GameObject.FindGameObjectWithTag("Other").GetComponent<Tilemap>();
         Tilemap roots1Map = GameObject.FindGameObjectWithTag("Roots1").GetComponent<Tilemap>();
         Tilemap roots2Map = GameObject.FindGameObjectWithTag("Roots2").GetComponent<Tilemap>();
-        Tilemap outlineMap = GameObject.FindGameObjectWithTag("Outline").GetComponent<Tilemap>();
 
         BoundsInt bounds = outlineMap.cellBounds;
+        boardHeight = bounds.size.y;
+        boardWidth = bounds.size.x;
+        board = new char[boardHeight * boardWidth];
+
         TileBase[] outlineTiles = outlineMap.GetTilesBlock(bounds);
         TileBase[] waterTiles = waterMap.GetTilesBlock(bounds);
         TileBase[] pointsTiles = pointsMap.GetTilesBlock(bounds);
         TileBase[] roots1Tiles = roots1Map.GetTilesBlock(bounds);
         TileBase[] roots2Tiles = roots2Map.GetTilesBlock(bounds);
-        for (int i = 0; i < 31 * 31; i++)
+        for (int i = 0; i < boardHeight * boardWidth; i++)
         {
             if (waterTiles[i] != null)
             {
-                state[i] = 'W';
+                board[i] = 'W';
             }
             else if (pointsTiles[i] != null)
             {
-                state[i] = 'P';
+                board[i] = 'P';
             }
             else if (roots1Tiles[i] != null)
             {
-                state[i] = '!';
+                board[i] = '!';
             }
             else if (roots2Tiles[i] != null)
             {
-                state[i] = '@';
+                board[i] = '@';
             }
             else if (outlineTiles[i] != null)
             {
-                state[i] = '-';
+                board[i] = '-';
             }
             else
             {
-                state[i] = '0';
+                board[i] = '0';
             }
         }
     }
 
-    // For Debug Purposes: Get a String Representation of Game State
-    public static string StateToString()
+    // For Debug Purposes: Get a String Representation of Game Board
+    public string StateToString()
     {
         string output = "";
-        for (int y = 30; y >= 0; y--)
+        for (int y = boardHeight - 1; y >= 0; y--)
         {
-            for (int x = 0; x < 31; x++)
+            for (int x = 0; x < boardWidth; x++)
             {
-                output += state[CoordToIndex(x, y)];
+                output += board[CoordToIndex(x, y)];
             }
             output += '\n';
         }
         return output;
     }
 
-    // Get Mouse Position as Index of state array
-    public static int[] MouseToCoord()
+    // Get Mouse Position as Index of board array
+    public int[] MouseToCoord()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        float distance;
-        _tilePlane.Raycast(ray, out distance);
-        Vector3 worldPosition = ray.GetPoint(distance);
-        int x = Mathf.FloorToInt(worldPosition.x + 15.5f);
-        int y = Mathf.FloorToInt(worldPosition.y + 15.5f);
-        int[] coord = { x, y };
+        var mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        var cellPosition = outlineMap.WorldToCell(mousePosition);
+        int[] coord = { cellPosition.x, cellPosition.y };
         return coord;
     }
 
-    public static Vector3 CoordToWorld(int x, int y)
+    public Vector3 CoordToWorld(int x, int y)
     {
-        return new Vector3(x - 15, y +- 15, 0);
+        Vector3 worldPosition = outlineMap.CellToWorld(new Vector3Int(x, y, 0));
+        worldPosition.x += 0.5f;
+        worldPosition.y += 0.5f;
+        return worldPosition;
     }
 
     // 2D to 1D index
-    public static int CoordToIndex(int x, int y)
+    public int CoordToIndex(int x, int y)
     {
-        if (x < 0 || x > 30 || y < 0 || y > 30)
+        if (x < 0 || x > boardWidth - 1 || y < 0 || y > boardHeight - 1)
         {
             return -1;
         }
-        return x + y * 31;
+        return x + y * boardWidth;
     }
 
-    public static int[] IndexToCoord(int i)
+    public int[] IndexToCoord(int i)
     {
         int[] coord = new int[2];
-        coord[0] = i % 31;
-        coord[1] = i / 31;
+        coord[0] = i % boardWidth;
+        coord[1] = i / boardWidth;
         return coord;
     }
 
     // Get state at specific coordinate
-    public static char GetCoordState(int x, int y)
+    public char GetCoordState(int x, int y)
     {
         int i = CoordToIndex(x, y);
         if (i == -1)
         {
             return '0';
         }
-        return state[i];
+        return board[i];
     }
 
     // Get state of element at mouse position
-    public static char GetMouseState()
+    public char GetMouseState()
     {
         int[] coord = MouseToCoord();
         return GetCoordState(coord[0], coord[1]);
     }
 
-    // Check if any of the neighboring tiles for (x,y) is a specific element
-    public static bool HasNeighbor(int x, int y, char neighbor)
+    // Count number of neighboring tiles for (x,y) that is a specific element
+    public int CountNeighbors(int x, int y, char neighbor)
     {
-        return GetCoordState(x - 1, y) == neighbor || GetCoordState(x + 1, y) == neighbor || GetCoordState(x, y - 1) == neighbor || GetCoordState(x, y + 1) == neighbor;
+        int count = 0;
+        if (GetCoordState(x - 1, y) == neighbor)
+        {
+            count++;
+        }
+        if (GetCoordState(x + 1, y) == neighbor)
+        {
+            count++;
+        }
+        if (GetCoordState(x, y - 1) == neighbor)
+        {
+            count++;
+        }
+        if (GetCoordState(x, y + 1) == neighbor)
+        {
+            count++;
+        }
+        return count;
+    }
+
+    // Check if any of the neighboring tiles for (x,y) is a specific element
+    public bool HasNeighbor(int x, int y, char neighbor)
+    {
+        return CountNeighbors(x, y, neighbor) != 0;
     }
 
     // Checks if path along an element exisits from (x,y) to a goal
-    public static bool AStar(int x, int y, char path, char goal)
+    public bool AStar(int x, int y, char path, char goal)
     {
         Queue<int> queue = new Queue<int>();
         ArrayList visited = new ArrayList();
@@ -161,7 +189,7 @@ public class State
         {
             return false;
         }
-        if (state[i] == goal)
+        if (board[i] == goal)
         {
             return true;
         }
@@ -183,7 +211,7 @@ public class State
                     return true;
                 }
                 int index = CoordToIndex(x, y);
-                if (index != -1 && state[index] == path && !visited.Contains(index))
+                if (index != -1 && board[index] == path && !visited.Contains(index))
                 {
                     queue.Enqueue(index);
                 }
@@ -192,10 +220,10 @@ public class State
         return false;
     }
 
-    public static void Spread(int x, int y, char oldState, char newState, TileBase tile, Tilemap rootMap)
+    public void Spread(int x, int y, char oldState, char newState, TileBase tile, Tilemap rootMap)
     {
         int index = CoordToIndex(x, y);
-        state[index] = newState;
+        board[index] = newState;
         rootMap.SetTile(new Vector3Int(x, y), tile);
         int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
         for (int i = 0; i < 4; i++)
@@ -203,19 +231,19 @@ public class State
             int dirX = dirs[i, 0];
             int dirY = dirs[i, 1];
             int dirI = CoordToIndex(dirX, dirY);
-            if (dirI != -1 && state[dirI] == oldState)
+            if (dirI != -1 && board[dirI] == oldState)
             {
                 Spread(dirX, dirY, oldState, newState, tile, rootMap);
             }
         }
     }
 
-    public static void SpreadFire(int index, char fire, TileBase tile)
+    public void SpreadFire(int index, char fire, TileBase tile)
     {
-        int[] coord = State.IndexToCoord(index);
+        int[] coord = IndexToCoord(index);
         int x = coord[0];
         int y = coord[1];
-        state[index] = '-';
+        board[index] = '-';
         otherMap.SetTile(new Vector3Int(x, y), null);
         int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
         for (int i = 0; i < 4; i++)
@@ -223,34 +251,34 @@ public class State
             int dirX = dirs[i, 0];
             int dirY = dirs[i, 1];
             int dirI = CoordToIndex(dirX, dirY);
-            if (dirI != -1 && (state[dirI] == players[0].root || state[dirI] == players[0].deadRoot || state[dirI] == players[1].root || state[dirI] == players[1].deadRoot || state[dirI] == 'T'))
+            if (dirI != -1 && (board[dirI] == players[0].root || board[dirI] == players[0].deadRoot || board[dirI] == players[1].root || board[dirI] == players[1].deadRoot || board[dirI] == 'T'))
             {
                 SpreadFireHelper(dirI, fire, tile);
             }
         }
     }
 
-    private static void SpreadFireHelper(int index, char fire, TileBase tile)
+    private void SpreadFireHelper(int index, char fire, TileBase tile)
     {
         int target = -1;
-        if (state[index] == players[0].root)
+        if (board[index] == players[0].root)
         {
             target = 0;
         }
-        else if (state[index] == players[1].root)
+        else if (board[index] == players[1].root)
         {
             target = 1;
         }
-        int[] coord = State.IndexToCoord(index);
+        int[] coord = IndexToCoord(index);
         int x = coord[0];
         int y = coord[1];
-        state[index] = fire;
+        board[index] = fire;
         players[0].rootMap.SetTile(new Vector3Int(x, y), null);
         players[1].rootMap.SetTile(new Vector3Int(x, y), null);
         otherMap.SetTile(new Vector3Int(x, y), tile);
         if (tile != null)
         {
-            players[player].weakFireIndex.Add(index);
+            players[thisPlayer].weakFireIndex.Add(index);
         }
         if (target != -1)
         {
@@ -260,15 +288,15 @@ public class State
                 int dirX = dirs[i, 0];
                 int dirY = dirs[i, 1];
                 int dirI = CoordToIndex(dirX, dirY);
-                if (dirI != -1 && target == 0 && State.state[dirI] == State.players[0].root &&
-                !State.AStar(dirX, dirY, State.players[0].root, State.players[0].baseRoot))
+                if (dirI != -1 && target == 0 && board[dirI] == players[0].root &&
+                !AStar(dirX, dirY, players[0].root, players[0].baseRoot))
                 {
-                    Spread(dirX, dirY, State.players[0].root, State.players[0].deadRoot, State.deadRootTile, State.players[0].rootMap);
+                    Spread(dirX, dirY, players[0].root, players[0].deadRoot, State.deadRootTile, players[0].rootMap);
                 }
-                else if (dirI != -1 && target == 1 && State.state[dirI] == State.players[1].root &&
-                !State.AStar(dirX, dirY, State.players[1].root, State.players[1].baseRoot))
+                else if (dirI != -1 && target == 1 && board[dirI] == players[1].root &&
+                !AStar(dirX, dirY, players[1].root, players[1].baseRoot))
                 {
-                    Spread(dirX, dirY, State.players[1].root, State.players[1].deadRoot, State.deadRootTile, State.players[1].rootMap);
+                    Spread(dirX, dirY, players[1].root, players[1].deadRoot, State.deadRootTile, players[1].rootMap);
                 }
             }
         }

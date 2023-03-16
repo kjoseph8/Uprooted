@@ -2,8 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class Card
+public abstract class Card: MonoBehaviour
 {
+    [HideInInspector] public GameManager manager;
+
+    public void Start()
+    {
+        manager = GameObject.FindGameObjectWithTag("GameController").GetComponent<GameManager>();
+    }
+
     public abstract string GetName();
 
     public abstract bool IsInstant();
@@ -12,8 +19,5 @@ public abstract class Card
 
     public abstract void Action(int x, int y);
 
-    public void SetCard()
-    {
-        State.card = this;
-    }
+    public abstract void SetCard();
 }

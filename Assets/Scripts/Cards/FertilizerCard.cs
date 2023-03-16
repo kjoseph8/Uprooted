@@ -21,8 +21,14 @@ public class FertilizerCard: Card
 
     public override void Action(int x, int y)
     {
-        State.players[State.player].water--;
-        State.players[State.player].rootMoves++;
-        State.card = new RootCard();
+        State state = base.manager.state;
+        state.players[state.thisPlayer].water--;
+        state.players[state.thisPlayer].rootMoves++;
+        state.card = GameObject.FindGameObjectWithTag("RootCard").GetComponent<RootCard>();
+    }
+
+    public override void SetCard()
+    {
+        base.manager.state.card = this;
     }
 }

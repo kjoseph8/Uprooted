@@ -16,17 +16,19 @@ public class SunshineCard : Card
 
     public override bool Validation(int x, int y)
     {
-        int index = State.CoordToIndex(x, y);
+        State state = base.manager.state;
+        int index = state.CoordToIndex(x, y);
 
-        return index != -1 && (State.state[index] == State.players[(State.player + 1) % 2].root || State.state[index] == State.players[(State.player + 1) % 2].deadRoot || State.state[index] == 'T');
+        return index != -1 && (state.board[index] == state.players[state.otherPlayer].root || state.board[index] == state.players[state.otherPlayer].deadRoot || state.board[index] == 'T');
     }
     public override void Action(int x, int y)
     {
-        State.players[State.player].water -= 5;
-        int index = State.CoordToIndex(x, y);
-        State.state[index] = State.players[(State.player + 1) % 2].strongFire;
-        State.players[(State.player + 1) % 2].strongFireIndex.Add(index);
-        State.players[(State.player + 1) % 2].rootMap.SetTile(new Vector3Int(x, y), null);
+        State state = base.manager.state;
+        state.players[state.thisPlayer].water -= 5;
+        int index = state.CoordToIndex(x, y);
+        state.board[index] = state.players[state.otherPlayer].strongFire;
+        state.players[state.otherPlayer].strongFireIndex.Add(index);
+        state.players[state.otherPlayer].rootMap.SetTile(new Vector3Int(x, y), null);
         State.otherMap.SetTile(new Vector3Int(x, y), State.strongFireTile);
 
         int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
@@ -34,14 +36,19 @@ public class SunshineCard : Card
         {
             int dirX = dirs[i, 0];
             int dirY = dirs[i, 1];
-            int dirI = State.CoordToIndex(dirX, dirY);
-            if (dirI != -1 && State.state[dirI] == State.players[(State.player + 1) % 2].root &&
-                !State.AStar(dirX, dirY, State.players[(State.player + 1) % 2].root, State.players[(State.player + 1) % 2].baseRoot))
+            int dirI = state.CoordToIndex(dirX, dirY);
+            if (dirI != -1 && state.board[dirI] == state.players[state.otherPlayer].root &&
+                !state.AStar(dirX, dirY, state.players[state.otherPlayer].root, state.players[state.otherPlayer].baseRoot))
             {
-                State.Spread(dirX, dirY, State.players[(State.player + 1) % 2].root, State.players[(State.player + 1) % 2].deadRoot, State.deadRootTile, State.players[(State.player + 1) % 2].rootMap);
+                state.Spread(dirX, dirY, state.players[state.otherPlayer].root, state.players[state.otherPlayer].deadRoot, State.deadRootTile, state.players[state.otherPlayer].rootMap);
             }
         }
 
-        State.card = new RootCard();
+        state.card = GameObject.FindGameObjectWithTag("RootCard").GetComponent<RootCard>();
+    }
+
+    public override void SetCard()
+    {
+        base.manager.state.card = this;
     }
 }

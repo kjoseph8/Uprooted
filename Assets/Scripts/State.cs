@@ -14,6 +14,7 @@ public class State
     public int turn = 1;
     public int maxTurns = 50;
     public Card card = null;
+    public int numActions = 0;
     public Player[] players;
     public static Tilemap outlineMap;
     public static Tilemap waterMap;
@@ -40,8 +41,8 @@ public class State
         waterMap = GameObject.FindGameObjectWithTag("Water").GetComponent<Tilemap>();
         pointsMap = GameObject.FindGameObjectWithTag("Points").GetComponent<Tilemap>();
         otherMap = GameObject.FindGameObjectWithTag("Other").GetComponent<Tilemap>();
-        Tilemap roots1Map = GameObject.FindGameObjectWithTag("Roots1").GetComponent<Tilemap>();
-        Tilemap roots2Map = GameObject.FindGameObjectWithTag("Roots2").GetComponent<Tilemap>();
+        Tilemap roots1Map = players[0].rootMap;
+        Tilemap roots2Map = players[1].rootMap;
 
         BoundsInt bounds = outlineMap.cellBounds;
         boardHeight = bounds.size.y;

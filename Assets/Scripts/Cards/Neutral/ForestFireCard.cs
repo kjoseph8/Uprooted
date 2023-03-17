@@ -2,30 +2,56 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SunshineCard : Card
+public class ForestFireCard : Card
 {
     public override string GetName()
     {
-        return "Ray of Sunshine";
+        return "Forest Fire";
     }
 
-    public override bool IsInstant()
+    public override int GetCost()
     {
-        return false;
+        return 3;
     }
 
-    public override bool Validation(int x, int y)
+    public override int GetNumActions()
     {
-        State state = base.manager.state;
-        int index = state.CoordToIndex(x, y);
-
-        return index != -1 && (state.board[index] == state.players[state.otherPlayer].root || state.board[index] == state.players[state.otherPlayer].deadRoot || state.board[index] == 'T');
+        return 1;
     }
-    public override void Action(int x, int y)
+
+    public override bool Validation(State state, int index)
     {
-        State state = base.manager.state;
-        state.players[state.thisPlayer].water -= 5;
-        int index = state.CoordToIndex(x, y);
+        if (index == -1)
+        {
+            return false;
+        }
+
+        int[] coords = state.IndexToCoord(index);
+        int x = coords[0];
+        int y = coords[1];
+
+        if (state.board[index] == state.players[state.otherPlayer].root)
+        {
+            if (state.CountNeighbors(x, y, state.players[state.otherPlayer].root) < 2)
+            {
+                return true;
+            }
+        }
+        else if (state.board[index] == state.players[state.otherPlayer].deadRoot)
+        {
+            if (state.CountNeighbors(x, y, state.players[state.otherPlayer].deadRoot) < 2)
+            {
+                return true;
+            }
+        }
+        return state.board[index] == 'T';
+    }
+    public override void Action(State state, int index)
+    {
+        int[] coords = state.IndexToCoord(index);
+        int x = coords[0];
+        int y = coords[1];
+
         state.board[index] = state.players[state.otherPlayer].strongFire;
         state.players[state.otherPlayer].strongFireIndex.Add(index);
         state.players[state.otherPlayer].rootMap.SetTile(new Vector3Int(x, y), null);
@@ -43,12 +69,5 @@ public class SunshineCard : Card
                 state.Spread(dirX, dirY, state.players[state.otherPlayer].root, state.players[state.otherPlayer].deadRoot, State.deadRootTile, state.players[state.otherPlayer].rootMap);
             }
         }
-
-        state.card = GameObject.FindGameObjectWithTag("RootCard").GetComponent<RootCard>();
-    }
-
-    public override void SetCard()
-    {
-        base.manager.state.card = this;
     }
 }

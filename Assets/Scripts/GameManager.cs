@@ -18,10 +18,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI phaseDisp;
     [SerializeField] private TextMeshProUGUI turnDisp;
     [SerializeField] private GameObject turnChange;
-    public GameObject phaseChange;
     [SerializeField] private Button[] player1CardButtons;
     [SerializeField] private Button[] player2CardButtons;
-    [SerializeField] private int[] costs;
     [SerializeField] private Button[] skipButtons;
     [SerializeField] private GameObject validCursor;
     [SerializeField] private GameObject invalidCursor;
@@ -43,40 +41,30 @@ public class GameManager : MonoBehaviour
         invalidCursor.transform.position = new Vector3(-40, 0, 0);
         turnDisp.text = $"Turn {state.turn} / {state.maxTurns}";
         int[] coord = state.MouseToCoord();
+        int index = state.CoordToIndex(coord[0], coord[1]);
         if (state.turn <= state.maxTurns)
         {
             if (state.card != null)
             {
                 phaseDisp.text = state.card.GetName();
-                if (state.card.IsInstant())
+                if (state.card.GetNumActions() == 0)
                 {
-                    string oldName = state.card.GetName();
-                    state.card.Action(coord[0], coord[1]);
-                    if (oldName != "Root Phase" && state.card.GetName() == "Root Phase")
-                    {
-                        ChangePhase();
-                        phaseChange.GetComponent<Animator>().Play("Sweep");
-                    }
+                    state.card.Action(state, index);
+                    DisableUnplayable();
+                    state.card = null;
                 }
-                else if (state.card.Validation(coord[0], coord[1]))
+                else if (state.card.Validation(state, index))
                 {
                     validCursor.transform.position = state.CoordToWorld(coord[0], coord[1]);
                     if (Input.GetMouseButtonDown(0))
                     {
-                        string oldName = state.card.GetName();
-                        state.card.Action(coord[0], coord[1]);
-                        if (state.card == null)
+                        state.card.Action(state, index);
+                        state.numActions--;
+                        if (state.numActions == 0)
                         {
-                            ChangeTurn();
+                            state.card = null;
                         }
-                        else
-                        {
-                            ChangePhase();
-                            if (oldName != "Root Phase" && state.card.GetName() == "Root Phase")
-                            {
-                                phaseChange.GetComponent<Animator>().Play("Sweep");
-                            }
-                        }
+                        DisableUnplayable();
                     }
                 }
                 else
@@ -140,31 +128,35 @@ public class GameManager : MonoBehaviour
         state.thisPlayer = state.otherPlayer;
         state.otherPlayer = 1 - state.thisPlayer;
         state.card = null;
+        state.players[state.thisPlayer].rootMoves = 1;
         if (state.turn <= state.maxTurns)
         {
             turnChange.GetComponent<TextMeshProUGUI>().text = $"Player {state.thisPlayer + 1}'s Turn";
             turnChange.GetComponent<Animator>().Play("Sweep");
             Button[] cardButtons;
+            Button[] otherButtons;
             if (state.thisPlayer == 0)
             {
                 cardButtons = player1CardButtons;
+                otherButtons = player2CardButtons;
             }
             else
             {
                 cardButtons = player2CardButtons;
+                otherButtons = player1CardButtons;
             }
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < cardButtons.Length; i++)
             {
-                if (state.players[state.thisPlayer].water >= costs[i])
-                {
-                    cardButtons[i].interactable = true;
-                }
+                cardButtons[i].interactable = true;
+                otherButtons[i].interactable = false;
             }
+            DisableUnplayable();
             skipButtons[state.thisPlayer].interactable = true;
+            skipButtons[state.otherPlayer].interactable = false;
         }
     }
 
-    public void ChangePhase(bool sweep = true)
+    private void DisableUnplayable()
     {
         Button[] cardButtons;
         if (state.thisPlayer == 0)
@@ -175,9 +167,21 @@ public class GameManager : MonoBehaviour
         {
             cardButtons = player2CardButtons;
         }
-        foreach (Button button in cardButtons)
+        for (int i = 0; i < cardButtons.Length; i++)
         {
-            button.interactable = false;
+            Card card = cardButtons[i].GetComponent<Card>();
+            if (card.GetName() == "Root Phase")
+            {
+                cardButtons[i].interactable = state.players[state.thisPlayer].rootMoves != 0;
+            }
+            else if (state.players[state.thisPlayer].water < card.GetCost())
+            {
+                cardButtons[i].interactable = false;
+            }
+            else
+            {
+                cardButtons[i].interactable = true;
+            }
         }
     }
 }

@@ -9,12 +9,12 @@ public class ForestFireCard : Card
         return "Forest Fire";
     }
 
-    public override int GetCost()
+    public override int GetCost(State state)
     {
         return 3;
     }
 
-    public override int GetNumActions()
+    public override int GetNumActions(State state)
     {
         return 1;
     }

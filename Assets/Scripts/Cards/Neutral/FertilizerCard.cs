@@ -9,12 +9,12 @@ public class FertilizerCard: Card
         return "Fertilizer";
     }
 
-    public override int GetCost()
+    public override int GetCost(State state)
     {
         return 1;
     }
 
-    public override int GetNumActions()
+    public override int GetNumActions(State state)
     {
         return 0;
     }

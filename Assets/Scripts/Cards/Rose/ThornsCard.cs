@@ -9,12 +9,12 @@ public class ThornsCard : Card
         return "Every Rose has its Thorn";
     }
 
-    public override int GetCost()
+    public override int GetCost(State state)
     {
         return 2;
     }
 
-    public override int GetNumActions()
+    public override int GetNumActions(State state)
     {
         return 2;
     }

@@ -10,14 +10,14 @@ public class RootCard: Card
         return "Root Phase";
     }
 
-    public override int GetCost()
+    public override int GetCost(State state)
     {
         return 0;
     }
 
-    public override int GetNumActions()
+    public override int GetNumActions(State state)
     {
-        return base.manager.state.players[base.manager.state.thisPlayer].rootMoves;
+        return state.players[state.thisPlayer].rootMoves;
     }
 
     public override bool Validation(State state, int index)
@@ -53,11 +53,6 @@ public class RootCard: Card
         {
             state.players[state.thisPlayer].water++;
             State.waterMap.SetTile(new Vector3Int(x, y), null);
-        }
-        else if (state.board[index] == 'P')
-        {
-            state.players[state.thisPlayer].points++;
-            State.pointsMap.SetTile(new Vector3Int(x, y), null);
         }
 
         state.Spread(x, y, state.players[state.thisPlayer].deadRoot, state.players[state.thisPlayer].root, State.rootTile, state.players[state.thisPlayer].rootMap);

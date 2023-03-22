@@ -9,16 +9,16 @@ public class State
     public char[] board;
     public int boardHeight;
     public int boardWidth;
-    public int thisPlayer = 0;
-    public int otherPlayer = 1;
-    public int turn = 1;
-    public int maxTurns = 50;
+    public int thisPlayer = 1;
+    public int otherPlayer = 0;
+    public int turn = 0;
+    public int maxTurns = 20;
     public Card card = null;
+    public int cardIndex = -1;
     public int numActions = 0;
     public Player[] players;
     public static Tilemap outlineMap;
     public static Tilemap waterMap;
-    public static Tilemap pointsMap;
     public static Tilemap otherMap;
     public static TileBase rootTile;
     public static TileBase deadRootTile;
@@ -26,23 +26,22 @@ public class State
     public static TileBase strongFireTile;
     public static TileBase weakFireTile;
 
-    public void InitState(TileBase rt, TileBase drt, TileBase tt, TileBase sft, TileBase wft, TextMeshProUGUI[] waterDisps, TextMeshProUGUI[] pointDisps)
+    public void InitState(TileBase rt, TileBase drt, TileBase tt, TileBase sft, TileBase wft, Plant[] plants, TextMeshProUGUI[] waterDisps)
     {
         rootTile = rt;
         deadRootTile = drt;
         thornTile = tt;
         strongFireTile = sft;
         weakFireTile = wft;
+        Tilemap roots1Map = GameObject.FindGameObjectWithTag("Roots1").GetComponent<Tilemap>();
+        Tilemap roots2Map = GameObject.FindGameObjectWithTag("Roots2").GetComponent<Tilemap>();
         players = new Player[2] {
-            new Player('1', '!', 'I', 'M', 'm', "Roots1", waterDisps[0], pointDisps[0]),
-            new Player('2', '@', 'Z', 'F', 'f', "Roots2", waterDisps[1], pointDisps[1]),
+            new Player('1', '!', 'I', 'M', 'm', roots1Map, plants[0], waterDisps[0]),
+            new Player('2', '@', 'Z', 'F', 'f', roots2Map, plants[1], waterDisps[1]),
         };
         outlineMap = GameObject.FindGameObjectWithTag("Outline").GetComponent<Tilemap>();
         waterMap = GameObject.FindGameObjectWithTag("Water").GetComponent<Tilemap>();
-        pointsMap = GameObject.FindGameObjectWithTag("Points").GetComponent<Tilemap>();
         otherMap = GameObject.FindGameObjectWithTag("Other").GetComponent<Tilemap>();
-        Tilemap roots1Map = players[0].rootMap;
-        Tilemap roots2Map = players[1].rootMap;
 
         BoundsInt bounds = outlineMap.cellBounds;
         boardHeight = bounds.size.y;
@@ -51,7 +50,6 @@ public class State
 
         TileBase[] outlineTiles = outlineMap.GetTilesBlock(bounds);
         TileBase[] waterTiles = waterMap.GetTilesBlock(bounds);
-        TileBase[] pointsTiles = pointsMap.GetTilesBlock(bounds);
         TileBase[] roots1Tiles = roots1Map.GetTilesBlock(bounds);
         TileBase[] roots2Tiles = roots2Map.GetTilesBlock(bounds);
         for (int i = 0; i < boardHeight * boardWidth; i++)
@@ -59,10 +57,6 @@ public class State
             if (waterTiles[i] != null)
             {
                 board[i] = 'W';
-            }
-            else if (pointsTiles[i] != null)
-            {
-                board[i] = 'P';
             }
             else if (roots1Tiles[i] != null)
             {

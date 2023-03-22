@@ -8819,7 +8819,6 @@ GameObject:
   - component: {fileID: 325868688}
   - component: {fileID: 325868687}
   - component: {fileID: 325868686}
-  - component: {fileID: 325868689}
   m_Layer: 5
   m_Name: Fertilizer Button
   m_TagString: Untagged
@@ -8891,14 +8890,14 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 325868689}
-        m_TargetAssemblyTypeName: FertilizerCard, Assembly-CSharp
+      - m_Target: {fileID: 1684000006}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
         m_MethodName: SetCard
-        m_Mode: 1
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 1
           m_FloatArgument: 0
           m_StringArgument: fertilizer
           m_BoolArgument: 0
@@ -8941,19 +8940,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 325868684}
   m_CullTransparentMesh: 1
---- !u!114 &325868689
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 325868684}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e28684aa44bf7494c94c42b5f9148cbe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  manager: {fileID: 0}
 --- !u!1 &366771012
 GameObject:
   m_ObjectHideFlags: 0
@@ -16848,7 +16834,6 @@ GameObject:
   - component: {fileID: 781934326}
   - component: {fileID: 781934325}
   - component: {fileID: 781934324}
-  - component: {fileID: 781934327}
   m_Layer: 5
   m_Name: Aphid Infest Button
   m_TagString: Untagged
@@ -16920,14 +16905,14 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 781934327}
-        m_TargetAssemblyTypeName: AphidCard, Assembly-CSharp
+      - m_Target: {fileID: 1684000006}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
         m_MethodName: SetCard
-        m_Mode: 1
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 2
           m_FloatArgument: 0
           m_StringArgument: aphid
           m_BoolArgument: 0
@@ -16970,19 +16955,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 781934322}
   m_CullTransparentMesh: 1
---- !u!114 &781934327
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 781934322}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a84d3039daf4817429911e2cabff224a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  manager: {fileID: 0}
 --- !u!1 &784659277
 GameObject:
   m_ObjectHideFlags: 0
@@ -16995,7 +16967,6 @@ GameObject:
   - component: {fileID: 784659281}
   - component: {fileID: 784659280}
   - component: {fileID: 784659279}
-  - component: {fileID: 784659282}
   m_Layer: 5
   m_Name: Root Button
   m_TagString: Untagged
@@ -17068,10 +17039,10 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 784659282}
-        m_TargetAssemblyTypeName: Card, Assembly-CSharp
+      - m_Target: {fileID: 1684000006}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
         m_MethodName: SetCard
-        m_Mode: 1
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -17118,19 +17089,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 784659277}
   m_CullTransparentMesh: 1
---- !u!114 &784659282
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 784659277}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ecf54a43d9ee3ca4fbb70edd32489475, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  manager: {fileID: 0}
 --- !u!1 &846596640
 GameObject:
   m_ObjectHideFlags: 0
@@ -17460,6 +17418,7 @@ GameObject:
   m_Component:
   - component: {fileID: 945385044}
   - component: {fileID: 945385043}
+  - component: {fileID: 945385045}
   m_Layer: 0
   m_Name: Player 2 Rose
   m_TagString: Untagged
@@ -17534,6 +17493,27 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 180}
+--- !u!114 &945385045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 945385042}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eff15602c06ac3e4a8eeb01845dd05d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sprites:
+  - {fileID: 21300000, guid: 7429ce3abb6a9c646adb8f2d060f89b0, type: 3}
+  - {fileID: 21300000, guid: 7429ce3abb6a9c646adb8f2d060f89b0, type: 3}
+  - {fileID: 21300000, guid: cf9187b529b2379479ffd22f90216ed9, type: 3}
+  - {fileID: 21300000, guid: cf9187b529b2379479ffd22f90216ed9, type: 3}
+  - {fileID: 21300000, guid: 06175b8ea4e1ec647b21767241d41946, type: 3}
+  - {fileID: 21300000, guid: 06175b8ea4e1ec647b21767241d41946, type: 3}
+  - {fileID: 21300000, guid: c654e1e4aa923664191694fe4a9250fa, type: 3}
+  - {fileID: 21300000, guid: c654e1e4aa923664191694fe4a9250fa, type: 3}
 --- !u!1 &953785807
 GameObject:
   m_ObjectHideFlags: 0
@@ -17778,7 +17758,6 @@ GameObject:
   - component: {fileID: 1017147385}
   - component: {fileID: 1017147384}
   - component: {fileID: 1017147383}
-  - component: {fileID: 1017147386}
   m_Layer: 5
   m_Name: Thorns Button
   m_TagString: Untagged
@@ -17850,14 +17829,14 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1017147386}
-        m_TargetAssemblyTypeName: ThornsCard, Assembly-CSharp
+      - m_Target: {fileID: 1684000006}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
         m_MethodName: SetCard
-        m_Mode: 1
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 11
           m_FloatArgument: 0
           m_StringArgument: thorns
           m_BoolArgument: 0
@@ -17900,19 +17879,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1017147381}
   m_CullTransparentMesh: 1
---- !u!114 &1017147386
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1017147381}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d2d8198f3a0eded45843604751cb7727, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  manager: {fileID: 0}
 --- !u!1 &1177914985
 GameObject:
   m_ObjectHideFlags: 0
@@ -17925,7 +17891,6 @@ GameObject:
   - component: {fileID: 1177914989}
   - component: {fileID: 1177914988}
   - component: {fileID: 1177914987}
-  - component: {fileID: 1177914990}
   m_Layer: 5
   m_Name: Root Button
   m_TagString: Untagged
@@ -17998,10 +17963,10 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1177914990}
-        m_TargetAssemblyTypeName: Card, Assembly-CSharp
+      - m_Target: {fileID: 1684000006}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
         m_MethodName: SetCard
-        m_Mode: 1
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -18048,19 +18013,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1177914985}
   m_CullTransparentMesh: 1
---- !u!114 &1177914990
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1177914985}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ecf54a43d9ee3ca4fbb70edd32489475, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  manager: {fileID: 0}
 --- !u!1 &1236652487
 GameObject:
   m_ObjectHideFlags: 0
@@ -18073,7 +18025,6 @@ GameObject:
   - component: {fileID: 1236652491}
   - component: {fileID: 1236652490}
   - component: {fileID: 1236652489}
-  - component: {fileID: 1236652492}
   m_Layer: 5
   m_Name: Thorns Button
   m_TagString: Untagged
@@ -18145,14 +18096,14 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1236652492}
-        m_TargetAssemblyTypeName: ThornsCard, Assembly-CSharp
+      - m_Target: {fileID: 1684000006}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
         m_MethodName: SetCard
-        m_Mode: 1
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 11
           m_FloatArgument: 0
           m_StringArgument: thorns
           m_BoolArgument: 0
@@ -18195,19 +18146,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1236652487}
   m_CullTransparentMesh: 1
---- !u!114 &1236652492
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1236652487}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d2d8198f3a0eded45843604751cb7727, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  manager: {fileID: 0}
 --- !u!1 &1311167877
 GameObject:
   m_ObjectHideFlags: 0
@@ -18416,7 +18354,6 @@ GameObject:
   - component: {fileID: 1383137252}
   - component: {fileID: 1383137251}
   - component: {fileID: 1383137250}
-  - component: {fileID: 1383137253}
   m_Layer: 5
   m_Name: Sunshine Button
   m_TagString: Untagged
@@ -18488,14 +18425,14 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1383137253}
-        m_TargetAssemblyTypeName: SunshineCard, Assembly-CSharp
+      - m_Target: {fileID: 1684000006}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
         m_MethodName: SetCard
-        m_Mode: 1
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 8
           m_FloatArgument: 0
           m_StringArgument: sunshine
           m_BoolArgument: 0
@@ -18538,19 +18475,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1383137248}
   m_CullTransparentMesh: 1
---- !u!114 &1383137253
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1383137248}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 46b9cf53087cbde46850643c6caf5af0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  manager: {fileID: 0}
 --- !u!1 &1401092272
 GameObject:
   m_ObjectHideFlags: 0
@@ -18917,7 +18841,6 @@ GameObject:
   - component: {fileID: 1495969043}
   - component: {fileID: 1495969042}
   - component: {fileID: 1495969041}
-  - component: {fileID: 1495969044}
   m_Layer: 5
   m_Name: Fertilizer Button
   m_TagString: Untagged
@@ -18989,14 +18912,14 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1495969044}
-        m_TargetAssemblyTypeName: FertilizerCard, Assembly-CSharp
+      - m_Target: {fileID: 1684000006}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
         m_MethodName: SetCard
-        m_Mode: 1
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 1
           m_FloatArgument: 0
           m_StringArgument: fertilizer
           m_BoolArgument: 0
@@ -19039,19 +18962,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1495969039}
   m_CullTransparentMesh: 1
---- !u!114 &1495969044
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1495969039}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e28684aa44bf7494c94c42b5f9148cbe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  manager: {fileID: 0}
 --- !u!1 &1505904955
 GameObject:
   m_ObjectHideFlags: 0
@@ -19872,7 +19782,6 @@ GameObject:
   - component: {fileID: 1650654885}
   - component: {fileID: 1650654884}
   - component: {fileID: 1650654883}
-  - component: {fileID: 1650654886}
   m_Layer: 5
   m_Name: Sunshine Button
   m_TagString: Untagged
@@ -19944,14 +19853,14 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1650654886}
-        m_TargetAssemblyTypeName: SunshineCard, Assembly-CSharp
+      - m_Target: {fileID: 1684000006}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
         m_MethodName: SetCard
-        m_Mode: 1
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 8
           m_FloatArgument: 0
           m_StringArgument: sunshine
           m_BoolArgument: 0
@@ -19994,19 +19903,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1650654881}
   m_CullTransparentMesh: 1
---- !u!114 &1650654886
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1650654881}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 46b9cf53087cbde46850643c6caf5af0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  manager: {fileID: 0}
 --- !u!1 &1684000005
 GameObject:
   m_ObjectHideFlags: 0
@@ -21484,6 +21380,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2070821404}
   - component: {fileID: 2070821403}
+  - component: {fileID: 2070821405}
   m_Layer: 0
   m_Name: Player 1 Rose
   m_TagString: Untagged
@@ -21558,6 +21455,27 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2070821405
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2070821402}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eff15602c06ac3e4a8eeb01845dd05d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sprites:
+  - {fileID: 21300000, guid: 7429ce3abb6a9c646adb8f2d060f89b0, type: 3}
+  - {fileID: 21300000, guid: 7429ce3abb6a9c646adb8f2d060f89b0, type: 3}
+  - {fileID: 21300000, guid: cf9187b529b2379479ffd22f90216ed9, type: 3}
+  - {fileID: 21300000, guid: cf9187b529b2379479ffd22f90216ed9, type: 3}
+  - {fileID: 21300000, guid: 06175b8ea4e1ec647b21767241d41946, type: 3}
+  - {fileID: 21300000, guid: 06175b8ea4e1ec647b21767241d41946, type: 3}
+  - {fileID: 21300000, guid: c654e1e4aa923664191694fe4a9250fa, type: 3}
+  - {fileID: 21300000, guid: c654e1e4aa923664191694fe4a9250fa, type: 3}
 --- !u!1 &2097774434
 GameObject:
   m_ObjectHideFlags: 0
@@ -21617,7 +21535,6 @@ GameObject:
   - component: {fileID: 2113163331}
   - component: {fileID: 2113163330}
   - component: {fileID: 2113163329}
-  - component: {fileID: 2113163332}
   m_Layer: 5
   m_Name: Aphid Infest Button
   m_TagString: Untagged
@@ -21689,14 +21606,14 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2113163332}
-        m_TargetAssemblyTypeName: AphidCard, Assembly-CSharp
+      - m_Target: {fileID: 1684000006}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
         m_MethodName: SetCard
-        m_Mode: 1
+        m_Mode: 3
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
+          m_IntArgument: 2
           m_FloatArgument: 0
           m_StringArgument: aphid
           m_BoolArgument: 0
@@ -21739,19 +21656,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2113163327}
   m_CullTransparentMesh: 1
---- !u!114 &2113163332
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2113163327}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a84d3039daf4817429911e2cabff224a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  manager: {fileID: 0}
 --- !u!1 &2136452525
 GameObject:
   m_ObjectHideFlags: 0

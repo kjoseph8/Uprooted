@@ -32,19 +32,12 @@ public class ForestFireCard : Card
 
         if (state.board[index] == state.players[state.otherPlayer].root)
         {
-            if (state.CountNeighbors(x, y, state.players[state.otherPlayer].root) < 2)
+            if (state.CountNeighbors(x, y, new char[] { state.players[state.otherPlayer].root, state.players[state.otherPlayer].baseRoot }) < 2)
             {
                 return true;
             }
         }
-        else if (state.board[index] == state.players[state.otherPlayer].deadRoot)
-        {
-            if (state.CountNeighbors(x, y, state.players[state.otherPlayer].deadRoot) < 2)
-            {
-                return true;
-            }
-        }
-        return state.board[index] == 'T';
+        return false;
     }
     public override void Action(State state, int index)
     {
@@ -64,7 +57,7 @@ public class ForestFireCard : Card
             int dirY = dirs[i, 1];
             int dirI = state.CoordToIndex(dirX, dirY);
             if (dirI != -1 && state.board[dirI] == state.players[state.otherPlayer].root &&
-                !state.AStar(dirX, dirY, state.players[state.otherPlayer].root, state.players[state.otherPlayer].baseRoot))
+                !state.AStar(dirX, dirY, new char[] { state.players[state.otherPlayer].root }, state.players[state.otherPlayer].baseRoot))
             {
                 state.Spread(dirX, dirY, state.players[state.otherPlayer].root, state.players[state.otherPlayer].deadRoot, State.deadRootTile, state.players[state.otherPlayer].rootMap);
             }

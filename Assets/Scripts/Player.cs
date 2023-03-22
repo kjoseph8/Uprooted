@@ -10,9 +10,10 @@ public class Player
     public List<int> draw = new List<int>();
     public List<int> hand = new List<int>();
     public List<int> discard = new List<int>();
-    public int water = 2;
-    public int points = 0;
-    public int rootMoves = 1;
+    public int water = 1;
+    public int rockCount = 0;
+    public int rootCount = 0;
+    public int rootMoves = 0;
     public char root;
     public char baseRoot;
     public char deadRoot;
@@ -21,9 +22,8 @@ public class Player
     public List<int> strongFireIndex = new List<int>();
     public List<int> weakFireIndex = new List<int>();
     public Tilemap rootMap;
-    public TextMeshProUGUI waterDisp;
 
-    public Player(char root, char baseRoot, char deadRoot, char strongFire, char weakFire, Tilemap rootMap, Plant plant, TextMeshProUGUI waterDisp)
+    public Player(char root, char baseRoot, char deadRoot, char strongFire, char weakFire, Tilemap rootMap, Plant plant)
     {
         this.root = root;
         this.baseRoot = baseRoot;
@@ -31,7 +31,6 @@ public class Player
         this.strongFire = strongFire;
         this.weakFire = weakFire;
         this.rootMap = rootMap;
-        this.waterDisp = waterDisp;
         this.plant = plant;
         for (int i = 0; i < plant.GetCards().Length; i++)
         {

@@ -12,5 +12,18 @@ public abstract class Card
 
     public abstract bool Validation(State state, int index);
 
+    public List<int> GetValidMoves(State state)
+    {
+        List<int> validMoves = new List<int>();
+        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
+        {
+            if (Validation(state, i))
+            {
+                validMoves.Add(i);
+            }
+        }
+        return validMoves;
+    }
+
     public abstract void Action(State state, int index);
 }

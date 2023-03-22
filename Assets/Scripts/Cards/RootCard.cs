@@ -7,7 +7,7 @@ public class RootCard: Card
 {
     public override string GetName()
     {
-        return "Root Phase";
+        return "Place a Root";
     }
 
     public override int GetCost(State state)
@@ -33,7 +33,7 @@ public class RootCard: Card
 
         if (state.board[index] == '-' || state.board[index] == 'W' || state.board[index] == 'P')
         {
-            if (state.HasNeighbor(x, y, state.players[state.thisPlayer].root) || state.HasNeighbor(x, y, state.players[state.thisPlayer].baseRoot))
+            if (state.HasNeighbor(x, y, new char[] { state.players[state.thisPlayer].root, state.players[state.thisPlayer].baseRoot }))
             {
                 return true;
             }

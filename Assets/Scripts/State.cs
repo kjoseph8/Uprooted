@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -26,7 +27,7 @@ public class State
     public static TileBase strongFireTile;
     public static TileBase weakFireTile;
 
-    public void InitState(TileBase rt, TileBase drt, TileBase tt, TileBase sft, TileBase wft, Plant[] plants, TextMeshProUGUI[] waterDisps)
+    public void InitState(TileBase rt, TileBase drt, TileBase tt, TileBase sft, TileBase wft, Plant[] plants)
     {
         rootTile = rt;
         deadRootTile = drt;
@@ -36,11 +37,12 @@ public class State
         Tilemap roots1Map = GameObject.FindGameObjectWithTag("Roots1").GetComponent<Tilemap>();
         Tilemap roots2Map = GameObject.FindGameObjectWithTag("Roots2").GetComponent<Tilemap>();
         players = new Player[2] {
-            new Player('1', '!', 'I', 'M', 'm', roots1Map, plants[0], waterDisps[0]),
-            new Player('2', '@', 'Z', 'F', 'f', roots2Map, plants[1], waterDisps[1]),
+            new Player('1', '!', 'I', 'M', 'm', roots1Map, plants[0]),
+            new Player('2', '@', 'Z', 'F', 'f', roots2Map, plants[1]),
         };
         outlineMap = GameObject.FindGameObjectWithTag("Outline").GetComponent<Tilemap>();
         waterMap = GameObject.FindGameObjectWithTag("Water").GetComponent<Tilemap>();
+        Tilemap rockMap = GameObject.FindGameObjectWithTag("Rocks").GetComponent<Tilemap>();
         otherMap = GameObject.FindGameObjectWithTag("Other").GetComponent<Tilemap>();
 
         BoundsInt bounds = outlineMap.cellBounds;
@@ -50,6 +52,7 @@ public class State
 
         TileBase[] outlineTiles = outlineMap.GetTilesBlock(bounds);
         TileBase[] waterTiles = waterMap.GetTilesBlock(bounds);
+        TileBase[] rockTiles = rockMap.GetTilesBlock(bounds);
         TileBase[] roots1Tiles = roots1Map.GetTilesBlock(bounds);
         TileBase[] roots2Tiles = roots2Map.GetTilesBlock(bounds);
         for (int i = 0; i < boardHeight * boardWidth; i++)
@@ -57,6 +60,10 @@ public class State
             if (waterTiles[i] != null)
             {
                 board[i] = 'W';
+            }
+            else if (rockTiles[i] != null)
+            {
+                board[i] = 'R';
             }
             else if (roots1Tiles[i] != null)
             {
@@ -146,36 +153,54 @@ public class State
     }
 
     // Count number of neighboring tiles for (x,y) that is a specific element
-    public int CountNeighbors(int x, int y, char neighbor)
+    public int CountNeighbors(int x, int y, char[] neighbors)
     {
         int count = 0;
-        if (GetCoordState(x - 1, y) == neighbor)
+        if (Array.IndexOf(neighbors, GetCoordState(x - 1, y)) != -1)
         {
             count++;
         }
-        if (GetCoordState(x + 1, y) == neighbor)
+        if (Array.IndexOf(neighbors, GetCoordState(x + 1, y)) != -1)
         {
             count++;
         }
-        if (GetCoordState(x, y - 1) == neighbor)
+        if (Array.IndexOf(neighbors, GetCoordState(x, y - 1)) != -1)
         {
             count++;
         }
-        if (GetCoordState(x, y + 1) == neighbor)
+        if (Array.IndexOf(neighbors, GetCoordState(x, y + 1)) != -1)
         {
             count++;
         }
         return count;
     }
 
-    // Check if any of the neighboring tiles for (x,y) is a specific element
-    public bool HasNeighbor(int x, int y, char neighbor)
+    public bool CheckRock(int index, Player player)
     {
-        return CountNeighbors(x, y, neighbor) != 0;
+        int count = 0;
+        int[] coords = IndexToCoord(index);
+        for (int x = coords[0] - 1; x <= coords[0] + 1; x++)
+        {
+            for (int y = coords[1] - 1; y <= coords[1] + 1; y++)
+            {
+                char coordState = GetCoordState(x, y);
+                if (coordState == player.root || coordState == player.baseRoot)
+                {
+                    count++;
+                }
+            }
+        }
+        return count == 8;
+    }
+
+    // Check if any of the neighboring tiles for (x,y) is a specific element
+    public bool HasNeighbor(int x, int y, char[] neighbors)
+    {
+        return CountNeighbors(x, y, neighbors) != 0;
     }
 
     // Checks if path along an element exisits from (x,y) to a goal
-    public bool AStar(int x, int y, char path, char goal)
+    public bool AStar(int x, int y, char[] path, char goal)
     {
         Queue<int> queue = new Queue<int>();
         ArrayList visited = new ArrayList();
@@ -206,7 +231,7 @@ public class State
                     return true;
                 }
                 int index = CoordToIndex(x, y);
-                if (index != -1 && board[index] == path && !visited.Contains(index))
+                if (index != -1 && Array.IndexOf(path, board[index]) != -1 && !visited.Contains(index))
                 {
                     queue.Enqueue(index);
                 }
@@ -284,12 +309,12 @@ public class State
                 int dirY = dirs[i, 1];
                 int dirI = CoordToIndex(dirX, dirY);
                 if (dirI != -1 && target == 0 && board[dirI] == players[0].root &&
-                !AStar(dirX, dirY, players[0].root, players[0].baseRoot))
+                !AStar(dirX, dirY, new char[] { players[0].root }, players[0].baseRoot))
                 {
                     Spread(dirX, dirY, players[0].root, players[0].deadRoot, State.deadRootTile, players[0].rootMap);
                 }
                 else if (dirI != -1 && target == 1 && board[dirI] == players[1].root &&
-                !AStar(dirX, dirY, players[1].root, players[1].baseRoot))
+                !AStar(dirX, dirY, new char[] { players[1].root }, players[1].baseRoot))
                 {
                     Spread(dirX, dirY, players[1].root, players[1].deadRoot, State.deadRootTile, players[1].rootMap);
                 }

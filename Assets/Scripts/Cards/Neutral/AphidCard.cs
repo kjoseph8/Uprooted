@@ -41,7 +41,7 @@ public class AphidCard: Card
             int dirY = dirs[i, 1];
             int dirI = state.CoordToIndex(dirX, dirY);
             if (dirI != -1 && state.board[dirI] == state.players[state.otherPlayer].root && 
-                !state.AStar(dirX, dirY, state.players[state.otherPlayer].root, state.players[state.otherPlayer].baseRoot))
+                !state.AStar(dirX, dirY, new char[] { state.players[state.otherPlayer].root }, state.players[state.otherPlayer].baseRoot))
             {
                 state.Spread(dirX, dirY, state.players[state.otherPlayer].root, state.players[state.otherPlayer].deadRoot, State.deadRootTile, state.players[state.otherPlayer].rootMap);
             }

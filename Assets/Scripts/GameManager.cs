@@ -15,6 +15,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TileBase weakFireTile;
     [SerializeField] private Plant[] plants;
     [SerializeField] private TextMeshProUGUI[] waterDisps;
+    [SerializeField] private TextMeshProUGUI[] rootCountDisps;
+    [SerializeField] private TextMeshProUGUI[] rockCountDisps;
+    [SerializeField] private TextMeshProUGUI[] rootMoveDisps;
     [SerializeField] private TextMeshProUGUI phaseDisp;
     [SerializeField] private TextMeshProUGUI turnDisp;
     [SerializeField] private GameObject turnChange;
@@ -27,6 +30,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject validCursor;
     [SerializeField] private GameObject invalidCursor;
     [SerializeField] private TextMeshProUGUI winnerDisp;
+    [SerializeField] private Tilemap highlightMap;
+    [SerializeField] private Tile highlightTile;
     [HideInInspector] public State state;
     private string phase;
     private int[] hoveredIndexes = new int[] { -1, -1 };
@@ -35,7 +40,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         state = new State();
-        state.InitState(rootTile, deadRootTile, thornTile, strongFireTile, weakFireTile, plants, waterDisps);
+        state.InitState(rootTile, deadRootTile, thornTile, strongFireTile, weakFireTile, plants);
         ChangeTurn();
     }
 
@@ -45,8 +50,8 @@ public class GameManager : MonoBehaviour
         validCursor.transform.position = new Vector3(-40, 0, 0);
         invalidCursor.transform.position = new Vector3(-40, 0, 0);
         turnDisp.text = $"Turn {state.turn} / {state.maxTurns}";
-        playButtons[state.thisPlayer].gameObject.SetActive(false);
         UpdateCards();
+        UpdateHighlights();
         int[] coord = state.MouseToCoord();
         int index = state.CoordToIndex(coord[0], coord[1]);
         if (state.turn <= state.maxTurns)
@@ -57,13 +62,21 @@ public class GameManager : MonoBehaviour
                 if (state.card.GetNumActions(state) == 0)
                 {
                     playButtons[state.thisPlayer].gameObject.SetActive(true);
+                    if (state.card.Validation(state, 0))
+                    {
+                        playButtons[state.thisPlayer].interactable = true;
+                    }
+                    else
+                    {
+                        playButtons[state.thisPlayer].interactable = false;
+                    }
                 }
                 else if (state.card.Validation(state, index))
                 {
                     validCursor.transform.position = state.CoordToWorld(coord[0], coord[1]);
                     if (Input.GetMouseButtonDown(0))
                     {
-                        if (state.numActions == state.card.GetNumActions(state))
+                        if (state.cardIndex != -1 && state.numActions == state.card.GetNumActions(state))
                         {
                             Player player = state.players[state.thisPlayer];
                             player.water -= state.card.GetCost(state);
@@ -91,29 +104,29 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            turnDisp.text = $"Turn {state.maxTurns} / {state.maxTurns}";
-            int winner = 0;
-            if (state.players[0].points > state.players[1].points)
-            {
-                winner = 1;
-            }
-            else if (state.players[0].points < state.players[1].points)
-            {
-                winner = 2;
-            }
-            if (winner == 0)
-            {
-                winnerDisp.text = "It's a Draw.";
-            }
-            else
-            {
-                winnerDisp.text = $"Player {winner} wins!";
-            }
-            winnerDisp.enabled = true;
+            EndGame();
         }
-        foreach (Player player in state.players)
+
+        for (int playerIndex = 0; playerIndex < 2; playerIndex++)
         {
-            player.waterDisp.text = $"{player.water}";
+            Player player = state.players[playerIndex];
+            player.rootCount = 0;
+            player.rockCount = 0;
+            for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
+            {
+                if (state.board[i] == player.root || state.board[i] == player.baseRoot)
+                {
+                    player.rootCount++;
+                }
+                else if (state.board[i] == 'R' && state.CheckRock(i, player))
+                {
+                    player.rockCount++;
+                }
+            }
+            waterDisps[playerIndex].text = $"{player.water}";
+            rootCountDisps[playerIndex].text = $"{player.rootCount}";
+            rockCountDisps[playerIndex].text = $"{player.rockCount}";
+            rootMoveDisps[playerIndex].text = $"{player.rootMoves}";
         }
     }
 
@@ -143,6 +156,7 @@ public class GameManager : MonoBehaviour
         state.card = null;
         state.cardIndex = -1;
         state.players[state.thisPlayer].rootMoves = 1;
+        state.players[state.thisPlayer].water++;
         if (state.turn <= state.maxTurns)
         {
             turnChange.GetComponent<TextMeshProUGUI>().text = $"Player {state.thisPlayer + 1}'s Turn";
@@ -214,6 +228,8 @@ public class GameManager : MonoBehaviour
                 cardButtons[i].gameObject.SetActive(false);
             }
         }
+
+        rootButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].rootMoves > 0;
 
         if (hoveredIndexes[state.thisPlayer] != -1)
         {
@@ -292,5 +308,47 @@ public class GameManager : MonoBehaviour
         {
             hoveredIndexes[1] = -1;
         }
+    }
+
+    private void UpdateHighlights()
+    {
+        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
+        {
+            int[] coords = state.IndexToCoord(i);
+            int x = coords[0];
+            int y = coords[1];
+
+            if (state.card != null && state.card.GetNumActions(state) > 0 && state.card.Validation(state, i))
+            {
+                highlightMap.SetTile(new Vector3Int(x, y), highlightTile);
+            }
+            else
+            {
+                highlightMap.SetTile(new Vector3Int(x, y), null);
+            }
+        }
+    }
+
+    private void EndGame()
+    {
+        turnDisp.text = $"Turn {state.maxTurns} / {state.maxTurns}";
+        int winner = 0;
+        if (state.players[0].rockCount > state.players[1].rockCount)
+        {
+            winner = 1;
+        }
+        else if (state.players[0].rockCount < state.players[1].rockCount)
+        {
+            winner = 2;
+        }
+        if (winner == 0)
+        {
+            winnerDisp.text = "It's a Draw.";
+        }
+        else
+        {
+            winnerDisp.text = $"Player {winner} wins!";
+        }
+        winnerDisp.enabled = true;
     }
 }

@@ -31,7 +31,7 @@ public class RootCard: Card
         int x = coords[0];
         int y = coords[1];
 
-        if (state.board[index] == '-' || state.board[index] == 'W' || state.board[index] == 'P')
+        if (state.board[index] == '-' || state.board[index] == 'W')
         {
             if (state.HasNeighbor(x, y, new char[] { state.players[state.thisPlayer].root, state.players[state.thisPlayer].fortifiedRoot, state.players[state.thisPlayer].baseRoot }))
             {

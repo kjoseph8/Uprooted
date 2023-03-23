@@ -20,8 +20,16 @@ public class Rose : Plant
             new ThickRootCard(),
             new ForestFireCard(),
             new ForestFireCard(),
+            new BeeCard(),
+            new BeeCard(),
+            new LoveCard(),
+            new LoveCard(),
             new ThornsCard(),
-            new ThornsCard()
+            new ThornsCard(),
+            new ScentCard(),
+            new ScentCard(),
+            new RoseWarCard(),
+            new RoseWarCard()
         };
     }
 

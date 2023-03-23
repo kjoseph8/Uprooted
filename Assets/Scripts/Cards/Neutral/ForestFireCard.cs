@@ -91,7 +91,7 @@ public class ForestFireCard : Card
         }
     }
 
-    private static void SpreadFire(State state, int index, char fire, TileBase tile)
+    public static void SpreadFire(State state, int index, char fire, TileBase tile)
     {
         int[] coord = state.IndexToCoord(index);
         int x = coord[0];
@@ -113,7 +113,7 @@ public class ForestFireCard : Card
         }
     }
 
-    private static void SpreadFireHelper(State state, int index, char fire, TileBase tile)
+    public static void SpreadFireHelper(State state, int index, char fire, TileBase tile)
     {
         int target = -1;
         if (state.board[index] == state.players[0].root)

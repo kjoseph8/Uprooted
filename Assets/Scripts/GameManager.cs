@@ -27,6 +27,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button[] rootButtons;
     [SerializeField] private Button[] endButtons;
     [SerializeField] private Button[] playButtons;
+    [SerializeField] private Button[] discardButtons;
     [SerializeField] private Image[] selectedImages;
     [SerializeField] private GameObject validCursor;
     [SerializeField] private GameObject invalidCursor;
@@ -57,7 +58,23 @@ public class GameManager : MonoBehaviour
         int index = state.CoordToIndex(coord[0], coord[1]);
         if (state.turn <= state.maxTurns)
         {
-            if (state.card != null)
+            if (discardPhase)
+            {
+                int num = state.players[state.thisPlayer].hand.Count - 5;
+                if (num == 1)
+                {
+                    phaseDisp.text = "Discard A Card";
+                }
+                else
+                {
+                    phaseDisp.text = "Discard ${num} Cards";
+                }
+                if (state.card != null)
+                {
+                    discardButtons[state.thisPlayer].gameObject.SetActive(true);
+                }
+            }
+            else if (state.card != null)
             {
                 phaseDisp.text = state.card.GetName();
                 if (state.card.GetNumActions(state) == 0)
@@ -152,8 +169,21 @@ public class GameManager : MonoBehaviour
         playButtons[state.otherPlayer].gameObject.SetActive(false);
         state.card = null;
         state.cardIndex = -1;
-        state.players[state.thisPlayer].rootMoves = 1;
-        state.players[state.thisPlayer].water++;
+        if (state.turn > 10)
+        {
+            state.players[state.thisPlayer].rootMoves = 2;
+            state.players[state.thisPlayer].water += 2;
+        }
+        else
+        {
+            state.players[state.thisPlayer].rootMoves = 1;
+            state.players[state.thisPlayer].water++;
+        }
+        if (state.players[state.thisPlayer].scentTurns > 0)
+        {
+            state.players[state.thisPlayer].water++;
+            state.players[state.thisPlayer].scentTurns--;
+        }
 
         if (state.turn == state.maxTurns && state.thisPlayer == 0)
         {
@@ -243,7 +273,7 @@ public class GameManager : MonoBehaviour
                 }
                 float angle = (defaultI - rotI) * Mathf.PI / 24;
                 cardButtons[i].transform.rotation = new Quaternion(0, 0, Mathf.Sin(angle / 2), Mathf.Cos(angle / 2));
-                if (state.players[state.thisPlayer].water < state.players[state.thisPlayer].plant.GetCards()[hand[i]].GetCost(state))
+                if (!discardPhase && state.players[state.thisPlayer].water < state.players[state.thisPlayer].plant.GetCards()[hand[i]].GetCost(state))
                 {
                     cardButtons[i].interactable = false;
                 }
@@ -258,7 +288,16 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        rootButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].rootMoves > 0;
+        if (discardPhase)
+        {
+            rootButtons[state.thisPlayer].interactable = false;
+            endButtons[state.thisPlayer].interactable = false;
+        }
+        else
+        {
+            rootButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].rootMoves > 0;
+            endButtons[state.thisPlayer].interactable = true;
+        }
 
         if (hoveredIndexes[state.thisPlayer] != -1)
         {
@@ -310,9 +349,27 @@ public class GameManager : MonoBehaviour
         player.water -= state.card.GetCost(state);
         player.hand.Remove(state.cardIndex);
         player.discard.Add(state.cardIndex);
+        state.numActions = 0;
         state.card.Action(state, 0);
+        if (state.numActions == 0)
+        {
+            state.card = null;
+            state.cardIndex = -1;
+        }
+    }
+
+    public void DiscardCard()
+    {
+        discardButtons[state.thisPlayer].gameObject.SetActive(false);
+        Player player = state.players[state.thisPlayer];
+        player.hand.Remove(state.cardIndex);
+        player.discard.Add(state.cardIndex);
         state.card = null;
         state.cardIndex = -1;
+        if (state.players[state.thisPlayer].hand.Count <= 5)
+        {
+            discardPhase = false;
+        }
     }
 
     public void SetP1HoverIndex(int index)
@@ -347,7 +404,7 @@ public class GameManager : MonoBehaviour
             int x = coords[0];
             int y = coords[1];
 
-            if (state.card != null && state.card.GetNumActions(state) > 0 && state.card.Validation(state, i))
+            if (!discardPhase && state.card != null && state.card.GetNumActions(state) > 0 && state.card.Validation(state, i))
             {
                 highlightMap.SetTile(new Vector3Int(x, y), highlightTile);
             }

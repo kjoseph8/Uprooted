@@ -14,6 +14,7 @@ public class Player
     public int rockCount = 0;
     public int rootCount = 0;
     public int rootMoves = 0;
+    public int scentTurns = 0;
     public char root;
     public char fortifiedRoot;
     public char baseRoot;

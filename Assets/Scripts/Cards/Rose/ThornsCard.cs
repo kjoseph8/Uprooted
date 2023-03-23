@@ -16,7 +16,7 @@ public class ThornsCard : Card
 
     public override int GetNumActions(State state)
     {
-        return 2;
+        return 1;
     }
 
     public override bool Validation(State state, int index)
@@ -26,6 +26,11 @@ public class ThornsCard : Card
 
     public override void Action(State state, int index)
     {
+        if (state.players[state.thisPlayer].plant.GetCards()[state.cardIndex].GetName() != GetName() && state.numActions == GetNumActions(state))
+        {
+            state.players[state.thisPlayer].water += GetCost(state);
+        }
+
         int[] coords = state.IndexToCoord(index);
         int x = coords[0];
         int y = coords[1];

@@ -21,7 +21,7 @@ public class AphidCard: Card
 
     public override bool Validation(State state, int index)
     {
-        return index != -1 && (state.board[index] == state.players[state.otherPlayer].root || state.board[index] == state.players[state.otherPlayer].deadRoot || state.board[index] == 'T');
+        return index != -1 && (state.board[index] == state.players[state.otherPlayer].root || state.board[index] == state.players[state.otherPlayer].deadRoot || state.board[index] == state.players[state.otherPlayer].thorn);
     }
 
     public override void Action(State state, int index)
@@ -32,7 +32,6 @@ public class AphidCard: Card
 
         state.board[index] = '-';
         state.players[state.otherPlayer].rootMap.SetTile(new Vector3Int(x, y), null);
-        State.otherMap.SetTile(new Vector3Int(x, y), null);
 
         int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
         for (int i = 0; i < 4; i++)
@@ -40,10 +39,19 @@ public class AphidCard: Card
             int dirX = dirs[i, 0];
             int dirY = dirs[i, 1];
             int dirI = state.CoordToIndex(dirX, dirY);
-            if (dirI != -1 && state.board[dirI] == state.players[state.otherPlayer].root && 
-                !state.AStar(dirX, dirY, new char[] { state.players[state.otherPlayer].root }, state.players[state.otherPlayer].baseRoot))
+            if (dirI != -1 && (state.board[dirI] == state.players[state.otherPlayer].root || state.board[dirI] == state.players[state.otherPlayer].fortifiedRoot) && 
+                !state.AStar(dirX, dirY, new char[] { state.players[state.otherPlayer].root, state.players[state.otherPlayer].fortifiedRoot }, state.players[state.otherPlayer].baseRoot))
             {
-                state.Spread(dirX, dirY, state.players[state.otherPlayer].root, state.players[state.otherPlayer].deadRoot, State.deadRootTile, state.players[state.otherPlayer].rootMap);
+                if (state.board[dirI] == state.players[state.otherPlayer].root)
+                {
+                    state.board[dirI] = state.players[state.otherPlayer].deadRoot;
+                }
+                else
+                {
+                    state.board[dirI] = state.players[state.otherPlayer].deadFortifiedRoot;
+                }
+                state.players[state.otherPlayer].rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                state.KillRoots(dirX, dirY, state.players[state.otherPlayer]);
             }
         }
     }

@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] private TileBase rootTile;
     [SerializeField] private TileBase deadRootTile;
+    [SerializeField] private TileBase shieldTile;
     [SerializeField] private TileBase thornTile;
     [SerializeField] private TileBase strongFireTile;
     [SerializeField] private TileBase weakFireTile;
@@ -33,14 +34,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Tilemap highlightMap;
     [SerializeField] private Tile highlightTile;
     [HideInInspector] public State state;
-    private string phase;
+    private bool discardPhase = false;
     private int[] hoveredIndexes = new int[] { -1, -1 };
 
     // Start is called before the first frame update
     void Start()
     {
         state = new State();
-        state.InitState(rootTile, deadRootTile, thornTile, strongFireTile, weakFireTile, plants);
+        state.InitState(rootTile, deadRootTile, shieldTile, thornTile, strongFireTile, weakFireTile, plants);
         ChangeTurn();
     }
 
@@ -114,7 +115,7 @@ public class GameManager : MonoBehaviour
             player.rockCount = 0;
             for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
             {
-                if (state.board[i] == player.root || state.board[i] == player.baseRoot)
+                if (state.board[i] == player.root || state.board[i] == player.fortifiedRoot || state.board[i] == player.baseRoot)
                 {
                     player.rootCount++;
                 }
@@ -130,6 +131,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void PrintDebug()
+    {
+        Debug.Log(state.StateToString());
+    }
+
     public void ChangeTurn()
     {
         if (state.thisPlayer == 1)
@@ -137,16 +143,7 @@ public class GameManager : MonoBehaviour
             state.turn++;
         }
 
-        for (int i = state.players[state.thisPlayer].weakFireIndex.Count - 1; i >= 0; i--)
-        {
-            state.SpreadFire(state.players[state.thisPlayer].weakFireIndex[i], '-', null);
-            state.players[state.thisPlayer].weakFireIndex.RemoveAt(i);
-        }
-        for (int i = state.players[state.thisPlayer].strongFireIndex.Count - 1; i >= 0; i--)
-        {
-            state.SpreadFire(state.players[state.thisPlayer].strongFireIndex[i], state.players[state.thisPlayer].weakFire, State.weakFireTile);
-            state.players[state.thisPlayer].strongFireIndex.RemoveAt(i);
-        }
+        ForestFireCard.UpdateFire(state);
 
         state.thisPlayer = state.otherPlayer;
         state.otherPlayer = 1 - state.thisPlayer;
@@ -157,6 +154,38 @@ public class GameManager : MonoBehaviour
         state.cardIndex = -1;
         state.players[state.thisPlayer].rootMoves = 1;
         state.players[state.thisPlayer].water++;
+
+        if (state.turn == state.maxTurns && state.thisPlayer == 0)
+        {
+            for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
+            {
+                int[] coords = state.IndexToCoord(i);
+                int x = coords[0];
+                int y = coords[1];
+
+                if (state.board[i] == state.players[0].root)
+                {
+                    state.board[i] = state.players[0].fortifiedRoot;
+                    State.otherMap.SetTile(new Vector3Int(x, y), shieldTile);
+                }
+                else if (state.board[i] == state.players[1].root)
+                {
+                    state.board[i] = state.players[1].fortifiedRoot;
+                    State.otherMap.SetTile(new Vector3Int(x, y), shieldTile);
+                }
+                else if (state.board[i] == state.players[0].deadRoot)
+                {
+                    state.board[i] = state.players[0].deadFortifiedRoot;
+                    State.otherMap.SetTile(new Vector3Int(x, y), shieldTile);
+                }
+                else if (state.board[i] == state.players[1].deadRoot)
+                {
+                    state.board[i] = state.players[1].deadFortifiedRoot;
+                    State.otherMap.SetTile(new Vector3Int(x, y), shieldTile);
+                }
+            }
+        }
+
         if (state.turn <= state.maxTurns)
         {
             turnChange.GetComponent<TextMeshProUGUI>().text = $"Player {state.thisPlayer + 1}'s Turn";
@@ -172,7 +201,7 @@ public class GameManager : MonoBehaviour
             else
             {
                 player.DrawCard();
-                phase = "Discard";
+                discardPhase = true;
             }
             rootButtons[state.thisPlayer].interactable = true;
             endButtons[state.thisPlayer].interactable = true;
@@ -212,8 +241,8 @@ public class GameManager : MonoBehaviour
                 {
                     rotI = 4;
                 }
-                float angle = (defaultI - rotI) * Mathf.PI / 48;
-                cardButtons[i].transform.rotation = new Quaternion(0, 0, Mathf.Sin(angle), Mathf.Cos(angle));
+                float angle = (defaultI - rotI) * Mathf.PI / 24;
+                cardButtons[i].transform.rotation = new Quaternion(0, 0, Mathf.Sin(angle / 2), Mathf.Cos(angle / 2));
                 if (state.players[state.thisPlayer].water < state.players[state.thisPlayer].plant.GetCards()[hand[i]].GetCost(state))
                 {
                     cardButtons[i].interactable = false;
@@ -332,15 +361,38 @@ public class GameManager : MonoBehaviour
     private void EndGame()
     {
         turnDisp.text = $"Turn {state.maxTurns} / {state.maxTurns}";
+
+        int p1Points = state.players[0].rockCount;
+        int p2Points = state.players[1].rockCount;
+
+        if (state.players[0].rootCount > state.players[1].rootCount)
+        {
+            p1Points += 3;
+        }
+        else if (state.players[0].rootCount < state.players[1].rootCount)
+        {
+            p2Points += 3;
+        }
+
+        if (state.players[0].water > state.players[1].water)
+        {
+            p1Points += 2;
+        }
+        else if (state.players[0].water < state.players[1].water)
+        {
+            p2Points += 2;
+        }
+
         int winner = 0;
-        if (state.players[0].rockCount > state.players[1].rockCount)
+        if (p1Points > p2Points)
         {
             winner = 1;
         }
-        else if (state.players[0].rockCount < state.players[1].rockCount)
+        else if (p1Points < p2Points)
         {
             winner = 2;
         }
+
         if (winner == 0)
         {
             winnerDisp.text = "It's a Draw.";

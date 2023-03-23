@@ -15,19 +15,23 @@ public class Player
     public int rootCount = 0;
     public int rootMoves = 0;
     public char root;
+    public char fortifiedRoot;
     public char baseRoot;
     public char deadRoot;
+    public char deadFortifiedRoot;
+    public char thorn;
     public char strongFire;
     public char weakFire;
-    public List<int> strongFireIndex = new List<int>();
-    public List<int> weakFireIndex = new List<int>();
     public Tilemap rootMap;
 
-    public Player(char root, char baseRoot, char deadRoot, char strongFire, char weakFire, Tilemap rootMap, Plant plant)
+    public Player(char root, char fortifiedRoot, char baseRoot, char deadRoot, char deadFortifiedRoot, char thorn, char strongFire, char weakFire, Tilemap rootMap, Plant plant)
     {
         this.root = root;
+        this.fortifiedRoot = fortifiedRoot;
         this.baseRoot = baseRoot;
         this.deadRoot = deadRoot;
+        this.deadFortifiedRoot = deadFortifiedRoot;
+        this.thorn = thorn;
         this.strongFire = strongFire;
         this.weakFire = weakFire;
         this.rootMap = rootMap;

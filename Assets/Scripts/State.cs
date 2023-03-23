@@ -23,22 +23,24 @@ public class State
     public static Tilemap otherMap;
     public static TileBase rootTile;
     public static TileBase deadRootTile;
+    public static TileBase shieldTile;
     public static TileBase thornTile;
     public static TileBase strongFireTile;
     public static TileBase weakFireTile;
 
-    public void InitState(TileBase rt, TileBase drt, TileBase tt, TileBase sft, TileBase wft, Plant[] plants)
+    public void InitState(TileBase rootTile, TileBase deadRootTile, TileBase shieldTile, TileBase thornTile, TileBase strongFireTile, TileBase weakFireTile, Plant[] plants)
     {
-        rootTile = rt;
-        deadRootTile = drt;
-        thornTile = tt;
-        strongFireTile = sft;
-        weakFireTile = wft;
+        State.rootTile = rootTile;
+        State.deadRootTile = deadRootTile;
+        State.shieldTile = shieldTile;
+        State.thornTile = thornTile;
+        State.strongFireTile = strongFireTile;
+        State.weakFireTile = weakFireTile;
         Tilemap roots1Map = GameObject.FindGameObjectWithTag("Roots1").GetComponent<Tilemap>();
         Tilemap roots2Map = GameObject.FindGameObjectWithTag("Roots2").GetComponent<Tilemap>();
         players = new Player[2] {
-            new Player('1', '!', 'I', 'M', 'm', roots1Map, plants[0]),
-            new Player('2', '@', 'Z', 'F', 'f', roots2Map, plants[1]),
+            new Player('1', ',', '!', 'i', 'I', 'T', 'B', 'S', roots1Map, plants[0]),
+            new Player('2', '.', '@', 'z', 'Z', 't', 'b', 's', roots2Map, plants[1]),
         };
         outlineMap = GameObject.FindGameObjectWithTag("Outline").GetComponent<Tilemap>();
         waterMap = GameObject.FindGameObjectWithTag("Water").GetComponent<Tilemap>();
@@ -55,6 +57,7 @@ public class State
         TileBase[] rockTiles = rockMap.GetTilesBlock(bounds);
         TileBase[] roots1Tiles = roots1Map.GetTilesBlock(bounds);
         TileBase[] roots2Tiles = roots2Map.GetTilesBlock(bounds);
+        TileBase[] otherTiles = otherMap.GetTilesBlock(bounds);
         for (int i = 0; i < boardHeight * boardWidth; i++)
         {
             if (waterTiles[i] != null)
@@ -67,11 +70,25 @@ public class State
             }
             else if (roots1Tiles[i] != null)
             {
-                board[i] = '!';
+                if (otherTiles[i] != null)
+                {
+                    board[i] = '!';
+                }
+                else
+                {
+                    board[i] = '1';
+                }
             }
             else if (roots2Tiles[i] != null)
             {
-                board[i] = '@';
+                if (otherTiles[i] != null)
+                {
+                    board[i] = '@';
+                }
+                else
+                {
+                    board[i] = '2';
+                }
             }
             else if (outlineTiles[i] != null)
             {
@@ -184,7 +201,7 @@ public class State
             for (int y = coords[1] - 1; y <= coords[1] + 1; y++)
             {
                 char coordState = GetCoordState(x, y);
-                if (coordState == player.root || coordState == player.baseRoot)
+                if (coordState == player.root || coordState == player.fortifiedRoot || coordState == player.baseRoot)
                 {
                     count++;
                 }
@@ -240,83 +257,53 @@ public class State
         return false;
     }
 
-    public void Spread(int x, int y, char oldState, char newState, TileBase tile, Tilemap rootMap)
+    public void KillRoots(int x, int y, Player player)
     {
-        int index = CoordToIndex(x, y);
-        board[index] = newState;
-        rootMap.SetTile(new Vector3Int(x, y), tile);
         int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
         for (int i = 0; i < 4; i++)
         {
             int dirX = dirs[i, 0];
             int dirY = dirs[i, 1];
             int dirI = CoordToIndex(dirX, dirY);
-            if (dirI != -1 && board[dirI] == oldState)
+            if (dirI != -1)
             {
-                Spread(dirX, dirY, oldState, newState, tile, rootMap);
-            }
-        }
-    }
-
-    public void SpreadFire(int index, char fire, TileBase tile)
-    {
-        int[] coord = IndexToCoord(index);
-        int x = coord[0];
-        int y = coord[1];
-        board[index] = '-';
-        otherMap.SetTile(new Vector3Int(x, y), null);
-        int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
-        for (int i = 0; i < 4; i++)
-        {
-            int dirX = dirs[i, 0];
-            int dirY = dirs[i, 1];
-            int dirI = CoordToIndex(dirX, dirY);
-            if (dirI != -1 && (board[dirI] == players[0].root || board[dirI] == players[0].deadRoot || board[dirI] == players[1].root || board[dirI] == players[1].deadRoot || board[dirI] == 'T'))
-            {
-                SpreadFireHelper(dirI, fire, tile);
-            }
-        }
-    }
-
-    private void SpreadFireHelper(int index, char fire, TileBase tile)
-    {
-        int target = -1;
-        if (board[index] == players[0].root)
-        {
-            target = 0;
-        }
-        else if (board[index] == players[1].root)
-        {
-            target = 1;
-        }
-        int[] coord = IndexToCoord(index);
-        int x = coord[0];
-        int y = coord[1];
-        board[index] = fire;
-        players[0].rootMap.SetTile(new Vector3Int(x, y), null);
-        players[1].rootMap.SetTile(new Vector3Int(x, y), null);
-        otherMap.SetTile(new Vector3Int(x, y), tile);
-        if (tile != null)
-        {
-            players[thisPlayer].weakFireIndex.Add(index);
-        }
-        if (target != -1)
-        {
-            int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
-            for (int i = 0; i < 4; i++)
-            {
-                int dirX = dirs[i, 0];
-                int dirY = dirs[i, 1];
-                int dirI = CoordToIndex(dirX, dirY);
-                if (dirI != -1 && target == 0 && board[dirI] == players[0].root &&
-                !AStar(dirX, dirY, new char[] { players[0].root }, players[0].baseRoot))
+                if (board[dirI] == player.root)
                 {
-                    Spread(dirX, dirY, players[0].root, players[0].deadRoot, State.deadRootTile, players[0].rootMap);
+                    board[dirI] = player.deadRoot;
+                    player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                    KillRoots(dirX, dirY, player);
                 }
-                else if (dirI != -1 && target == 1 && board[dirI] == players[1].root &&
-                !AStar(dirX, dirY, new char[] { players[1].root }, players[1].baseRoot))
+                else if (board[dirI] == player.fortifiedRoot)
                 {
-                    Spread(dirX, dirY, players[1].root, players[1].deadRoot, State.deadRootTile, players[1].rootMap);
+                    board[dirI] = player.deadFortifiedRoot;
+                    player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                    KillRoots(dirX, dirY, player);
+                }
+            }
+        }
+    }
+
+    public void ResurrectRoots(int x, int y, Player player)
+    {
+        int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
+        for (int i = 0; i < 4; i++)
+        {
+            int dirX = dirs[i, 0];
+            int dirY = dirs[i, 1];
+            int dirI = CoordToIndex(dirX, dirY);
+            if (dirI != -1)
+            {
+                if (board[dirI] == player.deadRoot)
+                {
+                    board[dirI] = player.root;
+                    player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.rootTile);
+                    ResurrectRoots(dirX, dirY, player);
+                }
+                else if (board[dirI] == player.deadFortifiedRoot)
+                {
+                    board[dirI] = player.fortifiedRoot;
+                    player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.rootTile);
+                    ResurrectRoots(dirX, dirY, player);
                 }
             }
         }

@@ -33,7 +33,7 @@ public class RootCard: Card
 
         if (state.board[index] == '-' || state.board[index] == 'W' || state.board[index] == 'P')
         {
-            if (state.HasNeighbor(x, y, new char[] { state.players[state.thisPlayer].root, state.players[state.thisPlayer].baseRoot }))
+            if (state.HasNeighbor(x, y, new char[] { state.players[state.thisPlayer].root, state.players[state.thisPlayer].fortifiedRoot, state.players[state.thisPlayer].baseRoot }))
             {
                 return true;
             }
@@ -55,6 +55,16 @@ public class RootCard: Card
             State.waterMap.SetTile(new Vector3Int(x, y), null);
         }
 
-        state.Spread(x, y, state.players[state.thisPlayer].deadRoot, state.players[state.thisPlayer].root, State.rootTile, state.players[state.thisPlayer].rootMap);
+        if (state.turn == state.maxTurns)
+        {
+            state.board[index] = state.players[state.thisPlayer].fortifiedRoot;
+            State.otherMap.SetTile(new Vector3Int(x, y), State.shieldTile);
+        }
+        else
+        {
+            state.board[index] = state.players[state.thisPlayer].root;
+        }
+        state.players[state.thisPlayer].rootMap.SetTile(new Vector3Int(x, y), State.rootTile);
+        state.ResurrectRoots(x, y, state.players[state.thisPlayer]);
     }
 }

@@ -10,7 +10,8 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] private TileBase rootTile;
     [SerializeField] private TileBase deadRootTile;
-    [SerializeField] private TileBase shieldTile;
+    [SerializeField] private TileBase woodShieldTile;
+    [SerializeField] private TileBase metalShieldTile;
     [SerializeField] private TileBase thornTile;
     [SerializeField] private TileBase strongFireTile;
     [SerializeField] private TileBase weakFireTile;
@@ -45,7 +46,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         state = new State();
-        state.InitState(rootTile, deadRootTile, shieldTile, thornTile, strongFireTile, weakFireTile, plants);
+        state.InitState(rootTile, deadRootTile, woodShieldTile, metalShieldTile, thornTile, strongFireTile, weakFireTile, plants);
         ChangeTurn();
     }
 
@@ -96,7 +97,7 @@ public class GameManager : MonoBehaviour
             player.rockCount = 0;
             for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
             {
-                if (state.board[i] == player.root || state.board[i] == player.fortifiedRoot || state.board[i] == player.baseRoot)
+                if (state.board[i] == player.root || state.board[i] == player.fortifiedRoot || state.board[i] == player.invincibleRoot || state.board[i] == player.baseRoot)
                 {
                     player.rootCount++;
                 }
@@ -125,7 +126,7 @@ public class GameManager : MonoBehaviour
         }
 
         ForestFireCard.UpdateFire(state);
-
+        tilePhase = false;
         state.thisPlayer = state.otherPlayer;
         state.otherPlayer = 1 - state.thisPlayer;
         rootButtons[state.otherPlayer].interactable = false;
@@ -144,25 +145,25 @@ public class GameManager : MonoBehaviour
                 int x = coords[0];
                 int y = coords[1];
 
-                if (state.board[i] == state.players[0].root)
+                if (state.board[i] == state.players[0].root || state.board[i] == state.players[0].fortifiedRoot)
                 {
-                    state.board[i] = state.players[0].fortifiedRoot;
-                    State.otherMap.SetTile(new Vector3Int(x, y), shieldTile);
+                    state.board[i] = state.players[0].invincibleRoot;
+                    State.otherMap.SetTile(new Vector3Int(x, y), metalShieldTile);
                 }
-                else if (state.board[i] == state.players[1].root)
+                else if (state.board[i] == state.players[1].root || state.board[i] == state.players[1].fortifiedRoot)
                 {
-                    state.board[i] = state.players[1].fortifiedRoot;
-                    State.otherMap.SetTile(new Vector3Int(x, y), shieldTile);
+                    state.board[i] = state.players[1].invincibleRoot;
+                    State.otherMap.SetTile(new Vector3Int(x, y), metalShieldTile);
                 }
-                else if (state.board[i] == state.players[0].deadRoot)
+                else if (state.board[i] == state.players[0].deadRoot || state.board[i] == state.players[0].deadFortifiedRoot)
                 {
-                    state.board[i] = state.players[0].deadFortifiedRoot;
-                    State.otherMap.SetTile(new Vector3Int(x, y), shieldTile);
+                    state.board[i] = state.players[0].deadInvincibleRoot;
+                    State.otherMap.SetTile(new Vector3Int(x, y), metalShieldTile);
                 }
-                else if (state.board[i] == state.players[1].deadRoot)
+                else if (state.board[i] == state.players[1].deadRoot || state.board[i] == state.players[1].deadFortifiedRoot)
                 {
-                    state.board[i] = state.players[1].deadFortifiedRoot;
-                    State.otherMap.SetTile(new Vector3Int(x, y), shieldTile);
+                    state.board[i] = state.players[1].deadInvincibleRoot;
+                    State.otherMap.SetTile(new Vector3Int(x, y), metalShieldTile);
                 }
             }
         }
@@ -237,7 +238,14 @@ public class GameManager : MonoBehaviour
         }
         else if (tilePhase)
         {
-            phaseDisp.text = state.card.GetName();
+            if (state.card != null)
+            {
+                phaseDisp.text = state.card.GetName();
+            }
+            else
+            {
+                phaseDisp.text = "Select a Tile";
+            }
             rootButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].rootMoves > 0;
             endButtons[state.thisPlayer].interactable = true;
             playButtons[state.thisPlayer].gameObject.SetActive(false);
@@ -308,6 +316,7 @@ public class GameManager : MonoBehaviour
             Player player = state.players[state.thisPlayer];
             state.card = player.plant.GetCards()[player.hand[i]];
             state.cardIndex = player.hand[i];
+            tilePhase = false;
         }
         else
         {

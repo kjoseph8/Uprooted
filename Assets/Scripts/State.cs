@@ -23,24 +23,26 @@ public class State
     public static Tilemap otherMap;
     public static TileBase rootTile;
     public static TileBase deadRootTile;
-    public static TileBase shieldTile;
+    public static TileBase woodShieldTile;
+    public static TileBase metalShieldTile;
     public static TileBase thornTile;
     public static TileBase strongFireTile;
     public static TileBase weakFireTile;
 
-    public void InitState(TileBase rootTile, TileBase deadRootTile, TileBase shieldTile, TileBase thornTile, TileBase strongFireTile, TileBase weakFireTile, Plant[] plants)
+    public void InitState(TileBase rootTile, TileBase deadRootTile, TileBase woodShieldTile, TileBase metalShieldTile, TileBase thornTile, TileBase strongFireTile, TileBase weakFireTile, Plant[] plants)
     {
         State.rootTile = rootTile;
         State.deadRootTile = deadRootTile;
-        State.shieldTile = shieldTile;
+        State.woodShieldTile = woodShieldTile;
+        State.metalShieldTile = metalShieldTile;
         State.thornTile = thornTile;
         State.strongFireTile = strongFireTile;
         State.weakFireTile = weakFireTile;
         Tilemap roots1Map = GameObject.FindGameObjectWithTag("Roots1").GetComponent<Tilemap>();
         Tilemap roots2Map = GameObject.FindGameObjectWithTag("Roots2").GetComponent<Tilemap>();
         players = new Player[2] {
-            new Player('1', ',', '!', 'i', 'I', 'T', 'B', 'S', roots1Map, plants[0]),
-            new Player('2', '.', '@', 'z', 'Z', 't', 'b', 's', roots2Map, plants[1]),
+            new Player('1', ',', '[', '!', 'i', 'I', '{', 'T', 'B', 'S', roots1Map, plants[0]),
+            new Player('2', '.', ']', '@', 'z', 'Z', '}', 't', 'b', 's', roots2Map, plants[1]),
         };
         outlineMap = GameObject.FindGameObjectWithTag("Outline").GetComponent<Tilemap>();
         waterMap = GameObject.FindGameObjectWithTag("Water").GetComponent<Tilemap>();
@@ -201,7 +203,7 @@ public class State
             for (int y = coords[1] - 1; y <= coords[1] + 1; y++)
             {
                 char coordState = GetCoordState(x, y);
-                if (coordState == player.root || coordState == player.fortifiedRoot || coordState == player.baseRoot)
+                if (coordState == player.root || coordState == player.fortifiedRoot || coordState == player.invincibleRoot || coordState == player.baseRoot)
                 {
                     count++;
                 }
@@ -279,6 +281,12 @@ public class State
                     player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
                     KillRoots(dirX, dirY, player);
                 }
+                else if (board[dirI] == player.invincibleRoot)
+                {
+                    board[dirI] = player.deadInvincibleRoot;
+                    player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                    KillRoots(dirX, dirY, player);
+                }
             }
         }
     }
@@ -302,6 +310,12 @@ public class State
                 else if (board[dirI] == player.deadFortifiedRoot)
                 {
                     board[dirI] = player.fortifiedRoot;
+                    player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.rootTile);
+                    ResurrectRoots(dirX, dirY, player);
+                }
+                else if (board[dirI] == player.deadInvincibleRoot)
+                {
+                    board[dirI] = player.invincibleRoot;
                     player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.rootTile);
                     ResurrectRoots(dirX, dirY, player);
                 }

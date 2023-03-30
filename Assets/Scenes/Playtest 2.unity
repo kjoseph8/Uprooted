@@ -13534,7 +13534,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rootTile: {fileID: 11400000, guid: 7e715f368fe373945a1961abcf5a6846, type: 2}
   deadRootTile: {fileID: 11400000, guid: 3a8e11d224fc32a4983391fbbdffe704, type: 2}
-  shieldTile: {fileID: 11400000, guid: f05c5b7c000ebd542ad7ec09f358146c, type: 2}
+  woodShieldTile: {fileID: 11400000, guid: 3998d257bd3eb7c4bbfb4efd02993f19, type: 2}
+  metalShieldTile: {fileID: 11400000, guid: 5ccfb0187a0d9ae43b9fcd462a4d703f, type: 2}
   thornTile: {fileID: 11400000, guid: fc02b69755633df469a430cb772fc99f, type: 2}
   strongFireTile: {fileID: 11400000, guid: 28d094a07695ace4ba558dbf718ab3f1, type: 2}
   weakFireTile: {fileID: 11400000, guid: 031940160397eaa49a0493f43b6944a9, type: 2}

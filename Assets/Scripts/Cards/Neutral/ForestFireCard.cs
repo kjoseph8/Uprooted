@@ -106,7 +106,7 @@ public class ForestFireCard : Card
             int dirX = dirs[i, 0];
             int dirY = dirs[i, 1];
             int dirI = state.CoordToIndex(dirX, dirY);
-            if (dirI != -1 && Array.IndexOf(new char[] { state.players[0].root, state.players[1].root, state.players[0].deadRoot, state.players[1].deadRoot, state.players[0].thorn, state.players[1].thorn }, state.board[dirI]) != -1)
+            if (dirI != -1 && Array.IndexOf(new char[] { state.players[0].root, state.players[1].root, state.players[0].fortifiedRoot, state.players[1].fortifiedRoot, state.players[0].deadRoot, state.players[1].deadRoot, state.players[0].deadFortifiedRoot, state.players[1].deadFortifiedRoot, state.players[0].thorn, state.players[1].thorn }, state.board[dirI]) != -1)
             {
                 SpreadFireHelper(state, dirI, fire, tile);
             }
@@ -127,6 +127,32 @@ public class ForestFireCard : Card
         int[] coord = state.IndexToCoord(index);
         int x = coord[0];
         int y = coord[1];
+
+        if (state.board[index] == state.players[0].fortifiedRoot)
+        {
+            state.board[index] = state.players[0].root;
+            State.otherMap.SetTile(new Vector3Int(x, y), null);
+            return;
+        }
+        else if (state.board[index] == state.players[1].fortifiedRoot)
+        {
+            state.board[index] = state.players[1].root;
+            State.otherMap.SetTile(new Vector3Int(x, y), null);
+            return;
+        }
+        else if (state.board[index] == state.players[0].deadFortifiedRoot)
+        {
+            state.board[index] = state.players[0].deadRoot;
+            State.otherMap.SetTile(new Vector3Int(x, y), null);
+            return;
+        }
+        else if (state.board[index] == state.players[1].deadFortifiedRoot)
+        {
+            state.board[index] = state.players[1].deadRoot;
+            State.otherMap.SetTile(new Vector3Int(x, y), null);
+            return;
+        }
+
         state.board[index] = fire;
         State.otherMap.SetTile(new Vector3Int(x, y), tile);
         if (tile == null)
@@ -143,7 +169,7 @@ public class ForestFireCard : Card
                 int dirY = dirs[i, 1];
                 int dirI = state.CoordToIndex(dirX, dirY);
                 if (dirI != -1 && target == 0 && (state.board[dirI] == state.players[0].root || state.board[dirI] == state.players[0].fortifiedRoot) &&
-                !state.AStar(dirX, dirY, new char[] { state.players[0].root, state.players[0].fortifiedRoot }, state.players[0].baseRoot))
+                !state.AStar(dirX, dirY, new char[] { state.players[0].root, state.players[0].fortifiedRoot, state.players[0].invincibleRoot }, state.players[0].baseRoot))
                 {
                     if (state.board[dirI] == state.players[0].root)
                     {
@@ -157,7 +183,7 @@ public class ForestFireCard : Card
                     state.KillRoots(dirX, dirY, state.players[0]);
                 }
                 else if (dirI != -1 && target == 1 && (state.board[dirI] == state.players[1].root || state.board[dirI] == state.players[1].fortifiedRoot) &&
-                !state.AStar(dirX, dirY, new char[] { state.players[1].root, state.players[1].fortifiedRoot }, state.players[1].baseRoot))
+                !state.AStar(dirX, dirY, new char[] { state.players[1].root, state.players[1].fortifiedRoot, state.players[1].invincibleRoot }, state.players[1].baseRoot))
                 {
                     if (state.board[dirI] == state.players[1].root)
                     {

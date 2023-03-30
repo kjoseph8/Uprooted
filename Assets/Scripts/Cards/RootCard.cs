@@ -22,7 +22,8 @@ public class RootCard: Card
 
     public override bool Validation(State state, int index)
     {
-        if (state.players[state.thisPlayer].rootMoves == 0 || index == -1)
+        Player player = state.players[state.thisPlayer];
+        if (player.rootMoves == 0 || index == -1)
         {
             return false;
         }
@@ -33,7 +34,7 @@ public class RootCard: Card
 
         if (state.board[index] == '-' || state.board[index] == 'W')
         {
-            if (state.HasNeighbor(x, y, new char[] { state.players[state.thisPlayer].root, state.players[state.thisPlayer].fortifiedRoot, state.players[state.thisPlayer].baseRoot }))
+            if (state.HasNeighbor(x, y, new char[] { player.root, player.fortifiedRoot, player.invincibleRoot, player.baseRoot }))
             {
                 return true;
             }
@@ -57,8 +58,8 @@ public class RootCard: Card
 
         if (state.turn == state.maxTurns)
         {
-            state.board[index] = state.players[state.thisPlayer].fortifiedRoot;
-            State.otherMap.SetTile(new Vector3Int(x, y), State.shieldTile);
+            state.board[index] = state.players[state.thisPlayer].invincibleRoot;
+            State.otherMap.SetTile(new Vector3Int(x, y), State.metalShieldTile);
         }
         else
         {

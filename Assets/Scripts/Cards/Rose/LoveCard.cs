@@ -61,6 +61,6 @@ public class LoveCard : Card
         int[] coords = state.IndexToCoord(index);
         partnerX = coords[0];
         partnerY = coords[1];
-        State.otherMap.SetTile(new Vector3Int(partnerX, partnerY), State.shieldTile);
+        State.otherMap.SetTile(new Vector3Int(partnerX, partnerY), State.woodShieldTile);
     }
 }

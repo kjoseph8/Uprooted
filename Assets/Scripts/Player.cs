@@ -17,21 +17,25 @@ public class Player
     public int scentTurns = 0;
     public char root;
     public char fortifiedRoot;
+    public char invincibleRoot;
     public char baseRoot;
     public char deadRoot;
     public char deadFortifiedRoot;
+    public char deadInvincibleRoot;
     public char thorn;
     public char strongFire;
     public char weakFire;
     public Tilemap rootMap;
 
-    public Player(char root, char fortifiedRoot, char baseRoot, char deadRoot, char deadFortifiedRoot, char thorn, char strongFire, char weakFire, Tilemap rootMap, Plant plant)
+    public Player(char root, char fortifiedRoot, char invincibleRoot, char baseRoot, char deadRoot, char deadFortifiedRoot, char deadInvincibleRoot, char thorn, char strongFire, char weakFire, Tilemap rootMap, Plant plant)
     {
         this.root = root;
         this.fortifiedRoot = fortifiedRoot;
+        this.invincibleRoot = invincibleRoot;
         this.baseRoot = baseRoot;
         this.deadRoot = deadRoot;
         this.deadFortifiedRoot = deadFortifiedRoot;
+        this.deadInvincibleRoot = deadInvincibleRoot;
         this.thorn = thorn;
         this.strongFire = strongFire;
         this.weakFire = weakFire;

@@ -47,13 +47,14 @@ public class WarCard : Card
                 int[] coord = state.IndexToCoord(i);
                 int x = coord[0];
                 int y = coord[1];
+                Player player = state.players[state.otherPlayer];
                 int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
                 for (int j = 0; j < 4; j++)
                 {
                     int dirX = dirs[j, 0];
                     int dirY = dirs[j, 1];
                     int dirI = state.CoordToIndex(dirX, dirY);
-                    if (dirI != -1 && Array.IndexOf(new char[] { state.players[state.otherPlayer].root, state.players[state.otherPlayer].deadRoot, state.players[state.otherPlayer].thorn}, state.board[dirI]) != -1)
+                    if (dirI != -1 && Array.IndexOf(new char[] { player.root, player.fortifiedRoot, player.deadRoot, player.deadFortifiedRoot, player.thorn}, state.board[dirI]) != -1)
                     {
                         ForestFireCard.SpreadFireHelper(state, dirI, '-', null);
                     }

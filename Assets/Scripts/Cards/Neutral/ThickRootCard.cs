@@ -28,6 +28,6 @@ public class ThickRootCard : Card
     {
         state.board[index] = state.players[state.thisPlayer].fortifiedRoot;
         int[] coords = state.IndexToCoord(index);
-        State.otherMap.SetTile(new Vector3Int(coords[0], coords[1]), State.shieldTile);
+        State.otherMap.SetTile(new Vector3Int(coords[0], coords[1]), State.woodShieldTile);
     }
 }

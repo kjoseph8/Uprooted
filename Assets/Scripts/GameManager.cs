@@ -28,6 +28,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button[] endButtons;
     [SerializeField] private Button[] playButtons;
     [SerializeField] private Button[] discardButtons;
+    [SerializeField] private Button[] cancelButtons;
+    [SerializeField] private Button[] compostButtons;
     [SerializeField] private Image[] selectedImages;
     [SerializeField] private GameObject validCursor;
     [SerializeField] private GameObject invalidCursor;
@@ -36,6 +38,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Tile highlightTile;
     [HideInInspector] public State state;
     private bool discardPhase = false;
+    private bool tilePhase = false;
     private int[] hoveredIndexes = new int[] { -1, -1 };
 
     // Start is called before the first frame update
@@ -58,55 +61,20 @@ public class GameManager : MonoBehaviour
         int index = state.CoordToIndex(coord[0], coord[1]);
         if (state.turn <= state.maxTurns)
         {
-            if (discardPhase)
+            if (state.card != null && !discardPhase && tilePhase)
             {
-                int num = state.players[state.thisPlayer].hand.Count - 5;
-                if (num == 1)
-                {
-                    phaseDisp.text = "Discard A Card";
-                }
-                else
-                {
-                    phaseDisp.text = "Discard ${num} Cards";
-                }
-                if (state.card != null)
-                {
-                    discardButtons[state.thisPlayer].gameObject.SetActive(true);
-                }
-            }
-            else if (state.card != null)
-            {
-                phaseDisp.text = state.card.GetName();
-                if (state.card.GetNumActions(state) == 0)
-                {
-                    playButtons[state.thisPlayer].gameObject.SetActive(true);
-                    if (state.card.Validation(state, 0))
-                    {
-                        playButtons[state.thisPlayer].interactable = true;
-                    }
-                    else
-                    {
-                        playButtons[state.thisPlayer].interactable = false;
-                    }
-                }
-                else if (state.card.Validation(state, index))
+                if (state.card.Validation(state, index))
                 {
                     validCursor.transform.position = state.CoordToWorld(coord[0], coord[1]);
                     if (Input.GetMouseButtonDown(0))
                     {
-                        if (state.cardIndex != -1 && state.numActions == state.card.GetNumActions(state))
-                        {
-                            Player player = state.players[state.thisPlayer];
-                            player.water -= state.card.GetCost(state);
-                            player.hand.Remove(state.cardIndex);
-                            player.discard.Add(state.cardIndex);
-                        }
                         state.card.Action(state, index);
                         state.numActions--;
                         if (state.numActions == 0)
                         {
                             state.card = null;
                             state.cardIndex = -1;
+                            tilePhase = false;
                         }
                     }
                 }
@@ -114,10 +82,6 @@ public class GameManager : MonoBehaviour
                 {
                     invalidCursor.transform.position = state.CoordToWorld(coord[0], coord[1]);
                 }
-            }
-            else
-            {
-                phaseDisp.text = "Choose a Card";
             }
         }
         else
@@ -167,23 +131,10 @@ public class GameManager : MonoBehaviour
         rootButtons[state.otherPlayer].interactable = false;
         endButtons[state.otherPlayer].interactable = false;
         playButtons[state.otherPlayer].gameObject.SetActive(false);
+        cancelButtons[state.otherPlayer].gameObject.SetActive(false);
+        compostButtons[state.otherPlayer].gameObject.SetActive(false);
         state.card = null;
         state.cardIndex = -1;
-        if (state.turn > 10)
-        {
-            state.players[state.thisPlayer].rootMoves = 2;
-            state.players[state.thisPlayer].water += 2;
-        }
-        else
-        {
-            state.players[state.thisPlayer].rootMoves = 1;
-            state.players[state.thisPlayer].water++;
-        }
-        if (state.players[state.thisPlayer].scentTurns > 0)
-        {
-            state.players[state.thisPlayer].water++;
-            state.players[state.thisPlayer].scentTurns--;
-        }
 
         if (state.turn == state.maxTurns && state.thisPlayer == 0)
         {
@@ -218,20 +169,21 @@ public class GameManager : MonoBehaviour
 
         if (state.turn <= state.maxTurns)
         {
+            state.players[state.thisPlayer].water += (state.turn - 1) / 5 + 1;
+            state.players[state.thisPlayer].rootMoves = (state.turn - 1) / 5 + 1;
+
+            if (state.players[state.thisPlayer].scentTurns > 0)
+            {
+                state.players[state.thisPlayer].water++;
+                state.players[state.thisPlayer].scentTurns--;
+            }
+
             turnChange.GetComponent<TextMeshProUGUI>().text = $"Player {state.thisPlayer + 1}'s Turn";
             turnChange.GetComponent<Animator>().Play("Sweep");
             Player player = state.players[state.thisPlayer];
-            if (player.hand.Count < 5)
-            {
-                for (int i = player.hand.Count; i < 5; i++)
-                {
-                    player.DrawCard();
-                }
-            }
-            else
+            for (int i = player.hand.Count; i < 5; i++)
             {
                 player.DrawCard();
-                discardPhase = true;
             }
             rootButtons[state.thisPlayer].interactable = true;
             endButtons[state.thisPlayer].interactable = true;
@@ -260,27 +212,12 @@ public class GameManager : MonoBehaviour
             if (i < hand.Count)
             {
                 cardButtons[i].gameObject.SetActive(true);
+                cardButtons[i].interactable = true;
                 cardButtons[i].image.sprite = state.players[state.thisPlayer].plant.GetSprites()[hand[i]];
-                int defaultI = 2 * (i % 5);
+                int defaultI = 2 * i;
                 int rotI = hand.Count - 1;
-                if (i >= 5)
-                {
-                    rotI -= 5;
-                }
-                else if (rotI > 4)
-                {
-                    rotI = 4;
-                }
-                float angle = (defaultI - rotI) * Mathf.PI / 24;
+                float angle = (defaultI - rotI) * Mathf.PI / 36;
                 cardButtons[i].transform.rotation = new Quaternion(0, 0, Mathf.Sin(angle / 2), Mathf.Cos(angle / 2));
-                if (!discardPhase && state.players[state.thisPlayer].water < state.players[state.thisPlayer].plant.GetCards()[hand[i]].GetCost(state))
-                {
-                    cardButtons[i].interactable = false;
-                }
-                else
-                {
-                    cardButtons[i].interactable = true;
-                }
             }
             else
             {
@@ -290,13 +227,52 @@ public class GameManager : MonoBehaviour
 
         if (discardPhase)
         {
+            phaseDisp.text = "Too many cards. Discard a card";
             rootButtons[state.thisPlayer].interactable = false;
             endButtons[state.thisPlayer].interactable = false;
+            playButtons[state.thisPlayer].gameObject.SetActive(false);
+            discardButtons[state.thisPlayer].gameObject.SetActive(true);
+            cancelButtons[state.thisPlayer].gameObject.SetActive(true);
+            compostButtons[state.thisPlayer].gameObject.SetActive(false);
+        }
+        else if (tilePhase)
+        {
+            phaseDisp.text = state.card.GetName();
+            rootButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].rootMoves > 0;
+            endButtons[state.thisPlayer].interactable = true;
+            playButtons[state.thisPlayer].gameObject.SetActive(false);
+            discardButtons[state.thisPlayer].gameObject.SetActive(false);
+            cancelButtons[state.thisPlayer].gameObject.SetActive(false);
+            compostButtons[state.thisPlayer].gameObject.SetActive(false);
+        }
+        else if (state.card != null)
+        {
+            phaseDisp.text = state.card.GetName();
+            rootButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].rootMoves > 0;
+            endButtons[state.thisPlayer].interactable = true;
+            playButtons[state.thisPlayer].gameObject.SetActive(true);
+            if (state.card.GetNumActions(state) == 0)
+            {
+                playButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].water >= state.card.GetCost(state) && state.card.Validation(state, 0);
+            }
+            else
+            {
+                playButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].water >= state.card.GetCost(state);
+            }
+            discardButtons[state.thisPlayer].gameObject.SetActive(false);
+            cancelButtons[state.thisPlayer].gameObject.SetActive(true);
+            compostButtons[state.thisPlayer].gameObject.SetActive(true);
+            compostButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].water > 0;
         }
         else
         {
+            phaseDisp.text = "Select a Card or Place a Root";
             rootButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].rootMoves > 0;
             endButtons[state.thisPlayer].interactable = true;
+            playButtons[state.thisPlayer].gameObject.SetActive(false);
+            discardButtons[state.thisPlayer].gameObject.SetActive(false);
+            cancelButtons[state.thisPlayer].gameObject.SetActive(false);
+            compostButtons[state.thisPlayer].gameObject.SetActive(false);
         }
 
         if (hoveredIndexes[state.thisPlayer] != -1)
@@ -327,49 +303,72 @@ public class GameManager : MonoBehaviour
 
     public void SetCard(int i)
     {
-        if (i >= 0 && i < 10)
+        if (i >= 0)
         {
             Player player = state.players[state.thisPlayer];
             state.card = player.plant.GetCards()[player.hand[i]];
             state.cardIndex = player.hand[i];
-            state.numActions = state.card.GetNumActions(state);
         }
         else
         {
             state.card = new RootCard();
             state.cardIndex = -1;
-            state.numActions = state.card.GetNumActions(state);
+            tilePhase = true;
         }
+        state.numActions = state.card.GetNumActions(state);
     }
 
     public void PlayCard()
     {
-        playButtons[state.thisPlayer].gameObject.SetActive(false);
         Player player = state.players[state.thisPlayer];
         player.water -= state.card.GetCost(state);
         player.hand.Remove(state.cardIndex);
         player.discard.Add(state.cardIndex);
-        state.numActions = 0;
-        state.card.Action(state, 0);
-        if (state.numActions == 0)
+        if (state.card.GetNumActions(state) == 0)
         {
-            state.card = null;
-            state.cardIndex = -1;
+            state.numActions = 0;
+            state.card.Action(state, 0);
+            if (state.numActions == 0)
+            {
+                state.card = null;
+                state.cardIndex = -1;
+            }
+            else
+            {
+                tilePhase = true;
+            }
+        }
+        else
+        {
+            tilePhase = true;
         }
     }
 
     public void DiscardCard()
     {
-        discardButtons[state.thisPlayer].gameObject.SetActive(false);
         Player player = state.players[state.thisPlayer];
         player.hand.Remove(state.cardIndex);
         player.discard.Add(state.cardIndex);
         state.card = null;
         state.cardIndex = -1;
-        if (state.players[state.thisPlayer].hand.Count <= 5)
-        {
-            discardPhase = false;
-        }
+        discardPhase = false;
+    }
+
+    public void CancelCard()
+    {
+        state.card = null;
+        state.cardIndex = -1;
+    }
+
+    public void CompostCard()
+    {
+        Player player = state.players[state.thisPlayer];
+        player.water--;
+        player.hand.Remove(state.cardIndex);
+        player.discard.Add(state.cardIndex);
+        state.card = null;
+        state.cardIndex = -1;
+        player.DrawCard();
     }
 
     public void SetP1HoverIndex(int index)
@@ -424,20 +423,20 @@ public class GameManager : MonoBehaviour
 
         if (state.players[0].rootCount > state.players[1].rootCount)
         {
-            p1Points += 3;
+            p1Points += 2;
         }
         else if (state.players[0].rootCount < state.players[1].rootCount)
         {
-            p2Points += 3;
+            p2Points += 2;
         }
 
         if (state.players[0].water > state.players[1].water)
         {
-            p1Points += 2;
+            p1Points += 1;
         }
         else if (state.players[0].water < state.players[1].water)
         {
-            p2Points += 2;
+            p2Points += 1;
         }
 
         int winner = 0;

@@ -51,7 +51,7 @@ public class RootCard: Card
 
         if (state.board[index] == 'W')
         {
-            state.players[state.thisPlayer].water++;
+            state.players[state.thisPlayer].water += 2;
             State.waterMap.SetTile(new Vector3Int(x, y), null);
         }
 

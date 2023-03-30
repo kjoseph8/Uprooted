@@ -28,8 +28,8 @@ public class Rose : Plant
             new ThornsCard(),
             new ScentCard(),
             new ScentCard(),
-            new RoseWarCard(),
-            new RoseWarCard()
+            new WarCard(),
+            new WarCard()
         };
     }
 

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RoseWarCard : Card
+public class WarCard : Card
 {
     public override string GetName()
     {

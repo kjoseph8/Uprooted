@@ -7,6 +7,7 @@ using TMPro;
 
 public class State
 {
+    public bool absolute;
     public char[] board;
     public int boardHeight;
     public int boardWidth;
@@ -29,8 +30,9 @@ public class State
     public static TileBase strongFireTile;
     public static TileBase weakFireTile;
 
-    public void InitState(TileBase rootTile, TileBase deadRootTile, TileBase woodShieldTile, TileBase metalShieldTile, TileBase thornTile, TileBase strongFireTile, TileBase weakFireTile, Plant[] plants)
+    public State(TileBase rootTile, TileBase deadRootTile, TileBase woodShieldTile, TileBase metalShieldTile, TileBase thornTile, TileBase strongFireTile, TileBase weakFireTile, Plant[] plants)
     {
+        absolute = true;
         State.rootTile = rootTile;
         State.deadRootTile = deadRootTile;
         State.woodShieldTile = woodShieldTile;
@@ -100,6 +102,26 @@ public class State
             {
                 board[i] = '0';
             }
+        }
+    }
+
+    public State(State parent)
+    {
+        absolute = false;
+        boardHeight = parent.boardHeight;
+        boardWidth = parent.boardWidth;
+        thisPlayer = parent.thisPlayer;
+        otherPlayer = parent.otherPlayer;
+        turn = parent.turn;
+        maxTurns = parent.maxTurns;
+        card = parent.card;
+        cardIndex = parent.cardIndex;
+        numActions = parent.numActions;
+        players = new Player[2] { new Player(parent.players[0]), new Player(parent.players[1]) };
+        board = new char[parent.board.Length];
+        for (int i = 0; i < board.Length; i++)
+        {
+            board[i] = parent.board[i];
         }
     }
 
@@ -272,19 +294,28 @@ public class State
                 if (board[dirI] == player.root)
                 {
                     board[dirI] = player.deadRoot;
-                    player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                    if (absolute)
+                    {
+                        player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                    }
                     KillRoots(dirX, dirY, player);
                 }
                 else if (board[dirI] == player.fortifiedRoot)
                 {
                     board[dirI] = player.deadFortifiedRoot;
-                    player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                    if (absolute)
+                    {
+                        player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                    }
                     KillRoots(dirX, dirY, player);
                 }
                 else if (board[dirI] == player.invincibleRoot)
                 {
                     board[dirI] = player.deadInvincibleRoot;
-                    player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                    if (absolute)
+                    {
+                        player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                    }
                     KillRoots(dirX, dirY, player);
                 }
             }
@@ -304,19 +335,28 @@ public class State
                 if (board[dirI] == player.deadRoot)
                 {
                     board[dirI] = player.root;
-                    player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.rootTile);
+                    if (absolute)
+                    {
+                        player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.rootTile);
+                    }
                     ResurrectRoots(dirX, dirY, player);
                 }
                 else if (board[dirI] == player.deadFortifiedRoot)
                 {
                     board[dirI] = player.fortifiedRoot;
-                    player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.rootTile);
+                    if (absolute)
+                    {
+                        player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.rootTile);
+                    }
                     ResurrectRoots(dirX, dirY, player);
                 }
                 else if (board[dirI] == player.deadInvincibleRoot)
                 {
                     board[dirI] = player.invincibleRoot;
-                    player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.rootTile);
+                    if (absolute)
+                    {
+                        player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.rootTile);
+                    }
                     ResurrectRoots(dirX, dirY, player);
                 }
             }

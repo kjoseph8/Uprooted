@@ -53,19 +53,38 @@ public class RootCard: Card
         if (state.board[index] == 'W')
         {
             state.players[state.thisPlayer].water += 2;
-            State.waterMap.SetTile(new Vector3Int(x, y), null);
+            if (state.absolute)
+            {
+                State.waterMap.SetTile(new Vector3Int(x, y), null);
+            }
         }
 
         if (state.turn == state.maxTurns)
         {
             state.board[index] = state.players[state.thisPlayer].invincibleRoot;
-            State.otherMap.SetTile(new Vector3Int(x, y), State.metalShieldTile);
+            if (state.absolute)
+            {
+                State.otherMap.SetTile(new Vector3Int(x, y), State.metalShieldTile);
+            }
         }
         else
         {
             state.board[index] = state.players[state.thisPlayer].root;
         }
-        state.players[state.thisPlayer].rootMap.SetTile(new Vector3Int(x, y), State.rootTile);
+        if (state.absolute)
+        {
+            state.players[state.thisPlayer].rootMap.SetTile(new Vector3Int(x, y), State.rootTile);
+        }
         state.ResurrectRoots(x, y, state.players[state.thisPlayer]);
+    }
+
+    public override string GetDisabledMessage()
+    {
+        return "There are no possible spaces to place new roots.";
+    }
+
+    public override bool OverrideHighlight(State state, int index)
+    {
+        return false;
     }
 }

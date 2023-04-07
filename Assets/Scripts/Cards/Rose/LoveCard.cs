@@ -51,8 +51,12 @@ public class LoveCard : Card
                 return false;
             }
         }
+        else if (state.CountNeighbors(x, y, new char[] { state.players[state.thisPlayer].root }) == 0)
+        {
+            return false;
+        }
 
-        return index != -1 && state.board[index] == state.players[state.thisPlayer].root;
+        return state.board[index] == state.players[state.thisPlayer].root;
     }
 
     public override void Action(State state, int index)
@@ -61,6 +65,19 @@ public class LoveCard : Card
         int[] coords = state.IndexToCoord(index);
         partnerX = coords[0];
         partnerY = coords[1];
-        State.otherMap.SetTile(new Vector3Int(partnerX, partnerY), State.woodShieldTile);
+        if (state.absolute)
+        {
+            State.otherMap.SetTile(new Vector3Int(partnerX, partnerY), State.woodShieldTile);
+        }
+    }
+
+    public override string GetDisabledMessage()
+    {
+        return "You have no pairs of unfortified roots to fortify.";
+    }
+
+    public override bool OverrideHighlight(State state, int index)
+    {
+        return false;
     }
 }

@@ -42,24 +42,36 @@ public class AphidCard: Card
         if (state.board[index] == player.fortifiedRoot)
         {
             state.board[index] = player.root;
-            State.otherMap.SetTile(new Vector3Int(x, y), null);
+            if (state.absolute)
+            {
+                State.otherMap.SetTile(new Vector3Int(x, y), null);
+            }
             return;
         }
         else if (state.board[index] == player.deadFortifiedRoot)
         {
             state.board[index] = player.deadRoot;
-            State.otherMap.SetTile(new Vector3Int(x, y), null);
+            if (state.absolute)
+            {
+                State.otherMap.SetTile(new Vector3Int(x, y), null);
+            }
             return;
         }
         else if (state.board[index] == player.thorn)
         {
             state.board[index] = '-';
-            player.rootMap.SetTile(new Vector3Int(x, y), null);
+            if (state.absolute)
+            {
+                player.rootMap.SetTile(new Vector3Int(x, y), null);
+            }
             return;
         }
 
         state.board[index] = '-';
-        player.rootMap.SetTile(new Vector3Int(x, y), null);
+        if (state.absolute)
+        {
+            player.rootMap.SetTile(new Vector3Int(x, y), null);
+        }
 
         int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
         for (int i = 0; i < 4; i++)
@@ -78,9 +90,22 @@ public class AphidCard: Card
                 {
                     state.board[dirI] = player.deadFortifiedRoot;
                 }
-                player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                if (state.absolute)
+                {
+                    player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                }
                 state.KillRoots(dirX, dirY, state.players[state.otherPlayer]);
             }
         }
+    }
+
+    public override string GetDisabledMessage()
+    {
+        return "Your opponent has nothing you can destroy.";
+    }
+
+    public override bool OverrideHighlight(State state, int index)
+    {
+        return false;
     }
 }

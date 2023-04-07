@@ -11,7 +11,7 @@ public class BirdCard : Card
 
     public override int GetCost(State state)
     {
-        return 3;
+        return 1;
     }
 
     public override int GetNumActions(State state)
@@ -31,5 +31,15 @@ public class BirdCard : Card
         {
             state.players[state.otherPlayer].water = 0;
         }
+    }
+
+    public override string GetDisabledMessage()
+    {
+        return "Your opponent has no water to reduce.";
+    }
+
+    public override bool OverrideHighlight(State state, int index)
+    {
+        return false;
     }
 }

@@ -21,11 +21,21 @@ public class ScentCard : Card
 
     public override bool Validation(State state, int index)
     {
-        return true;
+        return state.turn != state.maxTurns;
     }
 
     public override void Action(State state, int index)
     {
         state.players[state.thisPlayer].scentTurns += 3;
+    }
+
+    public override string GetDisabledMessage()
+    {
+        return "This card is useless in the last turn.";
+    }
+
+    public override bool OverrideHighlight(State state, int index)
+    {
+        return false;
     }
 }

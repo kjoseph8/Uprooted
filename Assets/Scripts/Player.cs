@@ -47,6 +47,39 @@ public class Player
         }
     }
 
+    public Player(Player parent)
+    {
+        plant = parent.plant;
+        water = parent.water;
+        rockCount = parent.rockCount;
+        rootCount = parent.rootCount;
+        rootMoves = parent.rootMoves;
+        scentTurns = parent.scentTurns;
+        root = parent.root;
+        fortifiedRoot = parent.fortifiedRoot;
+        invincibleRoot = parent.invincibleRoot;
+        baseRoot = parent.baseRoot;
+        deadRoot = parent.deadRoot;
+        deadFortifiedRoot = parent.deadFortifiedRoot;
+        deadInvincibleRoot = parent.deadInvincibleRoot;
+        thorn = parent.thorn;
+        strongFire = parent.strongFire;
+        weakFire = parent.weakFire;
+        rootMap = parent.rootMap;
+        foreach(int i in parent.draw)
+        {
+            draw.Add(i);
+        }
+        foreach (int i in parent.hand)
+        {
+            hand.Add(i);
+        }
+        foreach (int i in parent.discard)
+        {
+            discard.Add(i);
+        }
+    }
+
     public void DrawCard()
     {
         if (draw.Count == 0)

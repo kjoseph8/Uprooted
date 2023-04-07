@@ -28,6 +28,19 @@ public class ThickRootCard : Card
     {
         state.board[index] = state.players[state.thisPlayer].fortifiedRoot;
         int[] coords = state.IndexToCoord(index);
-        State.otherMap.SetTile(new Vector3Int(coords[0], coords[1]), State.woodShieldTile);
+        if (state.absolute)
+        {
+            State.otherMap.SetTile(new Vector3Int(coords[0], coords[1]), State.woodShieldTile);
+        }
+    }
+
+    public override string GetDisabledMessage()
+    {
+        return "You have no pairs of unfortified roots to fortify.";
+    }
+
+    public override bool OverrideHighlight(State state, int index)
+    {
+        return false;
     }
 }

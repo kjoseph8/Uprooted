@@ -31,6 +31,19 @@ public class ThornsCard : Card
         int y = coords[1];
 
         state.board[index] = state.players[state.thisPlayer].thorn;
-        state.players[state.thisPlayer].rootMap.SetTile(new Vector3Int(x, y), State.thornTile);
+        if (state.absolute)
+        {
+            state.players[state.thisPlayer].rootMap.SetTile(new Vector3Int(x, y), State.thornTile);
+        }
+    }
+
+    public override string GetDisabledMessage()
+    {
+        return "I don't know how you did it, but there are no empty spaces on the board to place a thorn block.";
+    }
+
+    public override bool OverrideHighlight(State state, int index)
+    {
+        return false;
     }
 }

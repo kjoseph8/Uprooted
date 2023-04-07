@@ -42,8 +42,11 @@ public class BeeCard : Card
         {
             state.board[index] = state.players[state.thisPlayer].root;
         }
-        state.players[state.otherPlayer].rootMap.SetTile(new Vector3Int(x, y), null);
-        state.players[state.thisPlayer].rootMap.SetTile(new Vector3Int(x, y), State.rootTile);
+        if (state.absolute)
+        {
+            state.players[state.otherPlayer].rootMap.SetTile(new Vector3Int(x, y), null);
+            state.players[state.thisPlayer].rootMap.SetTile(new Vector3Int(x, y), State.rootTile);
+        }
         state.ResurrectRoots(x, y, state.players[state.thisPlayer]);
 
         int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
@@ -63,9 +66,22 @@ public class BeeCard : Card
                 {
                     state.board[dirI] = state.players[state.otherPlayer].deadFortifiedRoot;
                 }
-                state.players[state.otherPlayer].rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                if (state.absolute)
+                {
+                    state.players[state.otherPlayer].rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                }
                 state.KillRoots(dirX, dirY, state.players[state.otherPlayer]);
             }
         }
+    }
+
+    public override string GetDisabledMessage()
+    {
+        return "None of your roots are next to any of your opponent's unfortified roots.";
+    }
+
+    public override bool OverrideHighlight(State state, int index)
+    {
+        return false;
     }
 }

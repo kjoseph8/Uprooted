@@ -48,7 +48,10 @@ public class ForestFireCard : Card
         int y = coords[1];
 
         state.board[index] = state.players[state.otherPlayer].strongFire;
-        State.otherMap.SetTile(new Vector3Int(x, y), State.strongFireTile);
+        if (state.absolute)
+        {
+            State.otherMap.SetTile(new Vector3Int(x, y), State.strongFireTile);
+        }
 
         int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
         for (int i = 0; i < 4; i++)
@@ -67,7 +70,10 @@ public class ForestFireCard : Card
                 {
                     state.board[dirI] = state.players[state.otherPlayer].deadFortifiedRoot;
                 }
-                state.players[state.otherPlayer].rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                if (state.absolute)
+                {
+                    state.players[state.otherPlayer].rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                }
                 state.KillRoots(dirX, dirY, state.players[state.otherPlayer]);
             }
         }
@@ -97,9 +103,12 @@ public class ForestFireCard : Card
         int x = coord[0];
         int y = coord[1];
         state.board[index] = '-';
-        state.players[0].rootMap.SetTile(new Vector3Int(x, y), null);
-        state.players[1].rootMap.SetTile(new Vector3Int(x, y), null);
-        State.otherMap.SetTile(new Vector3Int(x, y), null);
+        if (state.absolute)
+        {
+            state.players[0].rootMap.SetTile(new Vector3Int(x, y), null);
+            state.players[1].rootMap.SetTile(new Vector3Int(x, y), null);
+            State.otherMap.SetTile(new Vector3Int(x, y), null);
+        }
         int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
         for (int i = 0; i < 4; i++)
         {
@@ -131,31 +140,46 @@ public class ForestFireCard : Card
         if (state.board[index] == state.players[0].fortifiedRoot)
         {
             state.board[index] = state.players[0].root;
-            State.otherMap.SetTile(new Vector3Int(x, y), null);
+            if (state.absolute)
+            {
+                State.otherMap.SetTile(new Vector3Int(x, y), null);
+            }
             return;
         }
         else if (state.board[index] == state.players[1].fortifiedRoot)
         {
             state.board[index] = state.players[1].root;
-            State.otherMap.SetTile(new Vector3Int(x, y), null);
+            if (state.absolute)
+            {
+                State.otherMap.SetTile(new Vector3Int(x, y), null);
+            }
             return;
         }
         else if (state.board[index] == state.players[0].deadFortifiedRoot)
         {
             state.board[index] = state.players[0].deadRoot;
-            State.otherMap.SetTile(new Vector3Int(x, y), null);
+            if (state.absolute)
+            {
+                State.otherMap.SetTile(new Vector3Int(x, y), null);
+            }
             return;
         }
         else if (state.board[index] == state.players[1].deadFortifiedRoot)
         {
             state.board[index] = state.players[1].deadRoot;
-            State.otherMap.SetTile(new Vector3Int(x, y), null);
+            if (state.absolute)
+            {
+                State.otherMap.SetTile(new Vector3Int(x, y), null);
+            }
             return;
         }
 
         state.board[index] = fire;
-        State.otherMap.SetTile(new Vector3Int(x, y), tile);
-        if (tile == null)
+        if (state.absolute)
+        {
+            State.otherMap.SetTile(new Vector3Int(x, y), tile);
+        }
+        if (tile == null && state.absolute)
         {
             state.players[0].rootMap.SetTile(new Vector3Int(x, y), null);
             state.players[1].rootMap.SetTile(new Vector3Int(x, y), null);
@@ -179,7 +203,10 @@ public class ForestFireCard : Card
                     {
                         state.board[dirI] = state.players[0].deadFortifiedRoot;
                     }
-                    state.players[0].rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                    if (state.absolute)
+                    {
+                        state.players[0].rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                    }
                     state.KillRoots(dirX, dirY, state.players[0]);
                 }
                 else if (dirI != -1 && target == 1 && (state.board[dirI] == state.players[1].root || state.board[dirI] == state.players[1].fortifiedRoot) &&
@@ -193,10 +220,23 @@ public class ForestFireCard : Card
                     {
                         state.board[dirI] = state.players[1].deadFortifiedRoot;
                     }
-                    state.players[1].rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                    if (state.absolute)
+                    {
+                        state.players[1].rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                    }
                     state.KillRoots(dirX, dirY, state.players[1]);
                 }
             }
         }
+    }
+
+    public override string GetDisabledMessage()
+    {
+        return "Your opponent has no end roots to ignite.";
+    }
+
+    public override bool OverrideHighlight(State state, int index)
+    {
+        return false;
     }
 }

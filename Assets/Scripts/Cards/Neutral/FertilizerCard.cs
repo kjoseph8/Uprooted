@@ -28,4 +28,14 @@ public class FertilizerCard: Card
     {
         state.players[state.thisPlayer].rootMoves++;
     }
+
+    public override string GetDisabledMessage()
+    {
+        return "If you see this message, contact the developer.";
+    }
+
+    public override bool OverrideHighlight(State state, int index)
+    {
+        return false;
+    }
 }

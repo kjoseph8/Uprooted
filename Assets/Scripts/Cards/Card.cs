@@ -26,4 +26,8 @@ public abstract class Card
     }
 
     public abstract void Action(State state, int index);
+
+    public abstract string GetDisabledMessage();
+
+    public abstract bool OverrideHighlight(State state, int index);
 }

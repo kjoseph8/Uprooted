@@ -37,6 +37,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI winnerDisp;
     [SerializeField] private Tilemap highlightMap;
     [SerializeField] private Tile highlightTile;
+    [SerializeField] private SpriteRenderer background;
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private ParticleSystem rain;
     [HideInInspector] public State state;
     private bool discardPhase = false;
     private bool tilePhase = false;
@@ -45,8 +48,7 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        state = new State();
-        state.InitState(rootTile, deadRootTile, woodShieldTile, metalShieldTile, thornTile, strongFireTile, weakFireTile, plants);
+        state = new State(rootTile, deadRootTile, woodShieldTile, metalShieldTile, thornTile, strongFireTile, weakFireTile, plants);
         ChangeTurn();
     }
 
@@ -56,6 +58,13 @@ public class GameManager : MonoBehaviour
         validCursor.transform.position = new Vector3(-40, 0, 0);
         invalidCursor.transform.position = new Vector3(-40, 0, 0);
         turnDisp.text = $"Turn {state.turn} / {state.maxTurns}";
+        float factor = (float)state.turn / state.maxTurns;
+        background.color = Color.Lerp(new Color(0.65f, 0.85f, 0.95f, 1), new Color(0, 0.1f, 0.2f, 1), factor);
+        audioSource.pitch = 0.75f * (factor + 1);
+        var shape = rain.shape;
+        shape.rotation = new Vector3(0, 180 - 30 * factor, 0);
+        var emission = rain.emission;
+        emission.rateOverTime = new ParticleSystem.MinMaxCurve(25 + 475 * factor);
         UpdateCards();
         UpdateHighlights();
         int[] coord = state.MouseToCoord();
@@ -265,7 +274,16 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                playButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].water >= state.card.GetCost(state);
+                bool moveExists = false;
+                for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
+                {
+                    if (state.card.Validation(state, i))
+                    {
+                        moveExists = true;
+                        break;
+                    }
+                }
+                playButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].water >= state.card.GetCost(state) && moveExists;
             }
             discardButtons[state.thisPlayer].gameObject.SetActive(false);
             cancelButtons[state.thisPlayer].gameObject.SetActive(true);
@@ -412,13 +430,23 @@ public class GameManager : MonoBehaviour
             int x = coords[0];
             int y = coords[1];
 
-            if (!discardPhase && state.card != null && state.card.GetNumActions(state) > 0 && state.card.Validation(state, i))
+            highlightMap.SetTile(new Vector3Int(x, y), null);
+            if (!discardPhase && state.card != null)
             {
-                highlightMap.SetTile(new Vector3Int(x, y), highlightTile);
-            }
-            else
-            {
-                highlightMap.SetTile(new Vector3Int(x, y), null);
+                if (state.card.GetNumActions(state) > 0)
+                {
+                    if (state.card.Validation(state, i))
+                    {
+                        highlightMap.SetTile(new Vector3Int(x, y), highlightTile);
+                    }
+                }
+                else
+                {
+                    if (state.card.OverrideHighlight(state, i))
+                    {
+                        highlightMap.SetTile(new Vector3Int(x, y), highlightTile);
+                    }
+                }
             }
         }
     }

@@ -8,14 +8,15 @@ using TMPro;
 
 public class GameManager : MonoBehaviour
 {
+    [SerializeField] private CardCollection collection;
     [SerializeField] private TileBase rootTile;
     [SerializeField] private TileBase deadRootTile;
+    [SerializeField] private TileBase seedTile;
     [SerializeField] private TileBase woodShieldTile;
     [SerializeField] private TileBase metalShieldTile;
     [SerializeField] private TileBase thornTile;
     [SerializeField] private TileBase strongFireTile;
     [SerializeField] private TileBase weakFireTile;
-    [SerializeField] private Plant[] plants;
     [SerializeField] private TextMeshProUGUI[] waterDisps;
     [SerializeField] private TextMeshProUGUI[] rootCountDisps;
     [SerializeField] private TextMeshProUGUI[] rockCountDisps;
@@ -32,13 +33,16 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button[] cancelButtons;
     [SerializeField] private Button[] compostButtons;
     [SerializeField] private Image[] selectedImages;
+    [SerializeField] private GameObject[] disabledMsgBackgrounds;
+    [SerializeField] private TextMeshProUGUI[] disabledMessages;
+    [SerializeField] private Sprite rootCardSprite;
     [SerializeField] private GameObject validCursor;
     [SerializeField] private GameObject invalidCursor;
     [SerializeField] private TextMeshProUGUI winnerDisp;
     [SerializeField] private Tilemap highlightMap;
     [SerializeField] private Tile highlightTile;
     [SerializeField] private SpriteRenderer background;
-    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioSource backgroundMusic;
     [SerializeField] private ParticleSystem rain;
     [HideInInspector] public State state;
     private bool discardPhase = false;
@@ -48,7 +52,7 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        state = new State(rootTile, deadRootTile, woodShieldTile, metalShieldTile, thornTile, strongFireTile, weakFireTile, plants);
+        state = new State(rootTile, deadRootTile, seedTile, woodShieldTile, metalShieldTile, thornTile, strongFireTile, weakFireTile);
         ChangeTurn();
     }
 
@@ -60,7 +64,7 @@ public class GameManager : MonoBehaviour
         turnDisp.text = $"Turn {state.turn} / {state.maxTurns}";
         float factor = (float)state.turn / state.maxTurns;
         background.color = Color.Lerp(new Color(0.65f, 0.85f, 0.95f, 1), new Color(0, 0.1f, 0.2f, 1), factor);
-        audioSource.pitch = 0.75f * (factor + 1);
+        backgroundMusic.pitch = 0.75f * (factor + 1);
         var shape = rain.shape;
         shape.rotation = new Vector3(0, 180 - 30 * factor, 0);
         var emission = rain.emission;
@@ -135,6 +139,13 @@ public class GameManager : MonoBehaviour
         }
 
         ForestFireCard.UpdateFire(state);
+
+        if (state.players[state.thisPlayer].wormTurns > 0)
+        {
+            MrWormCard.GrowRandomRoot(state);
+            state.players[state.thisPlayer].wormTurns--;
+        }
+
         tilePhase = false;
         state.thisPlayer = state.otherPlayer;
         state.otherPlayer = 1 - state.thisPlayer;
@@ -223,7 +234,7 @@ public class GameManager : MonoBehaviour
             {
                 cardButtons[i].gameObject.SetActive(true);
                 cardButtons[i].interactable = true;
-                cardButtons[i].image.sprite = state.players[state.thisPlayer].plant.GetSprites()[hand[i]];
+                cardButtons[i].image.sprite = collection.sprites[hand[i]];
                 int defaultI = 2 * i;
                 int rotI = hand.Count - 1;
                 float angle = (defaultI - rotI) * Mathf.PI / 36;
@@ -241,8 +252,16 @@ public class GameManager : MonoBehaviour
             rootButtons[state.thisPlayer].interactable = false;
             endButtons[state.thisPlayer].interactable = false;
             playButtons[state.thisPlayer].gameObject.SetActive(false);
-            discardButtons[state.thisPlayer].gameObject.SetActive(true);
-            cancelButtons[state.thisPlayer].gameObject.SetActive(true);
+            if (state.card != null)
+            {
+                discardButtons[state.thisPlayer].gameObject.SetActive(true);
+                cancelButtons[state.thisPlayer].gameObject.SetActive(true);
+            }
+            else
+            {
+                discardButtons[state.thisPlayer].gameObject.SetActive(false);
+                cancelButtons[state.thisPlayer].gameObject.SetActive(false);
+            }
             compostButtons[state.thisPlayer].gameObject.SetActive(false);
         }
         else if (tilePhase)
@@ -259,7 +278,14 @@ public class GameManager : MonoBehaviour
             endButtons[state.thisPlayer].interactable = true;
             playButtons[state.thisPlayer].gameObject.SetActive(false);
             discardButtons[state.thisPlayer].gameObject.SetActive(false);
-            cancelButtons[state.thisPlayer].gameObject.SetActive(false);
+            if (state.cardIndex == 0)
+            {
+                cancelButtons[state.thisPlayer].gameObject.SetActive(true);
+            }
+            else
+            {
+                cancelButtons[state.thisPlayer].gameObject.SetActive(false);
+            }
             compostButtons[state.thisPlayer].gameObject.SetActive(false);
         }
         else if (state.card != null)
@@ -303,12 +329,12 @@ public class GameManager : MonoBehaviour
 
         if (hoveredIndexes[state.thisPlayer] != -1)
         {
-            selectedImages[state.thisPlayer].sprite = state.players[state.thisPlayer].plant.GetSprites()[hoveredIndexes[state.thisPlayer]];
+            selectedImages[state.thisPlayer].sprite = collection.sprites[hoveredIndexes[state.thisPlayer]];
             selectedImages[state.thisPlayer].gameObject.SetActive(true);
         }
-        else if (state.cardIndex != -1)
+        else if (state.card != null)
         {
-            selectedImages[state.thisPlayer].sprite = state.players[state.thisPlayer].plant.GetSprites()[state.cardIndex];
+            selectedImages[state.thisPlayer].sprite = collection.sprites[state.cardIndex];
             selectedImages[state.thisPlayer].gameObject.SetActive(true);
         }
         else
@@ -318,7 +344,7 @@ public class GameManager : MonoBehaviour
 
         if (hoveredIndexes[state.otherPlayer] != -1)
         {
-            selectedImages[state.otherPlayer].sprite = state.players[state.otherPlayer].plant.GetSprites()[hoveredIndexes[state.otherPlayer]];
+            selectedImages[state.otherPlayer].sprite = collection.sprites[hoveredIndexes[state.otherPlayer]];
             selectedImages[state.otherPlayer].gameObject.SetActive(true);
         }
         else
@@ -332,14 +358,14 @@ public class GameManager : MonoBehaviour
         if (i >= 0)
         {
             Player player = state.players[state.thisPlayer];
-            state.card = player.plant.GetCards()[player.hand[i]];
+            state.card = collection.cards[player.hand[i]];
             state.cardIndex = player.hand[i];
             tilePhase = false;
         }
         else
         {
-            state.card = new RootCard();
-            state.cardIndex = -1;
+            state.card = collection.cards[0];
+            state.cardIndex = 0;
             tilePhase = true;
         }
         state.numActions = state.card.GetNumActions(state);
@@ -364,6 +390,10 @@ public class GameManager : MonoBehaviour
             {
                 tilePhase = true;
             }
+            if (player.hand.Count > 5)
+            {
+                discardPhase = true;
+            }
         }
         else
         {
@@ -385,6 +415,7 @@ public class GameManager : MonoBehaviour
     {
         state.card = null;
         state.cardIndex = -1;
+        tilePhase = false;
     }
 
     public void CompostCard()
@@ -419,6 +450,26 @@ public class GameManager : MonoBehaviour
         else
         {
             hoveredIndexes[1] = -1;
+        }
+    }
+
+    public void PlayButtonHover(bool activate)
+    {
+        if (activate && state.card != null && !playButtons[state.thisPlayer].interactable)
+        {
+            if (state.players[state.thisPlayer].water < state.card.GetCost(state))
+            {
+                disabledMessages[state.thisPlayer].text = "You don't have enough water to play this card.";
+            }
+            else
+            {
+                disabledMessages[state.thisPlayer].text = state.card.GetDisabledMessage();
+            }
+            disabledMsgBackgrounds[state.thisPlayer].SetActive(true);
+        }
+        else
+        {
+            disabledMsgBackgrounds[state.thisPlayer].SetActive(false);
         }
     }
 

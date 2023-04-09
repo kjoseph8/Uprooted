@@ -24,17 +24,19 @@ public class State
     public static Tilemap otherMap;
     public static TileBase rootTile;
     public static TileBase deadRootTile;
+    public static TileBase seedTile;
     public static TileBase woodShieldTile;
     public static TileBase metalShieldTile;
     public static TileBase thornTile;
     public static TileBase strongFireTile;
     public static TileBase weakFireTile;
 
-    public State(TileBase rootTile, TileBase deadRootTile, TileBase woodShieldTile, TileBase metalShieldTile, TileBase thornTile, TileBase strongFireTile, TileBase weakFireTile, Plant[] plants)
+    public State(TileBase rootTile, TileBase deadRootTile, TileBase seedTile, TileBase woodShieldTile, TileBase metalShieldTile, TileBase thornTile, TileBase strongFireTile, TileBase weakFireTile)
     {
         absolute = true;
         State.rootTile = rootTile;
         State.deadRootTile = deadRootTile;
+        State.seedTile = seedTile;
         State.woodShieldTile = woodShieldTile;
         State.metalShieldTile = metalShieldTile;
         State.thornTile = thornTile;
@@ -43,8 +45,8 @@ public class State
         Tilemap roots1Map = GameObject.FindGameObjectWithTag("Roots1").GetComponent<Tilemap>();
         Tilemap roots2Map = GameObject.FindGameObjectWithTag("Roots2").GetComponent<Tilemap>();
         players = new Player[2] {
-            new Player('1', ',', '[', '!', 'i', 'I', '{', 'T', 'B', 'S', roots1Map, plants[0]),
-            new Player('2', '.', ']', '@', 'z', 'Z', '}', 't', 'b', 's', roots2Map, plants[1]),
+            new Player("rose", '1', ',', '[', '!', 'i', 'I', '{', 'T', 'B', 'S', roots1Map),
+            new Player("rose", '2', '.', ']', '@', 'z', 'Z', '}', 't', 'b', 's', roots2Map),
         };
         outlineMap = GameObject.FindGameObjectWithTag("Outline").GetComponent<Tilemap>();
         waterMap = GameObject.FindGameObjectWithTag("Water").GetComponent<Tilemap>();

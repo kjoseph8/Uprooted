@@ -218,7 +218,7 @@ public class State
         return count;
     }
 
-    public bool CheckRock(int index, Player player)
+    public int CountRock(int index, Player player)
     {
         int count = 0;
         int[] coords = IndexToCoord(index);
@@ -233,7 +233,7 @@ public class State
                 }
             }
         }
-        return count == 8;
+        return count;
     }
 
     // Check if any of the neighboring tiles for (x,y) is a specific element

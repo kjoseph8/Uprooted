@@ -20,6 +20,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI[] waterDisps;
     [SerializeField] private TextMeshProUGUI[] rootCountDisps;
     [SerializeField] private TextMeshProUGUI[] rockCountDisps;
+    [SerializeField] private TextMeshProUGUI[] pointDisps;
     [SerializeField] private TextMeshProUGUI[] rootMoveDisps;
     [SerializeField] private TextMeshProUGUI phaseDisp;
     [SerializeField] private TextMeshProUGUI turnDisp;
@@ -108,20 +109,28 @@ public class GameManager : MonoBehaviour
             Player player = state.players[playerIndex];
             player.rootCount = 0;
             player.rockCount = 0;
+            player.completeRockCount = 0;
             for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
             {
                 if (state.board[i] == player.root || state.board[i] == player.fortifiedRoot || state.board[i] == player.invincibleRoot || state.board[i] == player.baseRoot)
                 {
                     player.rootCount++;
                 }
-                else if (state.board[i] == 'R' && state.CheckRock(i, player))
+                else if (state.board[i] == 'R')
                 {
-                    player.rockCount++;
+                    int rockCount = state.CountRock(i, player);
+                    player.rockCount += rockCount;
+                    if (rockCount == 8)
+                    {
+                        player.completeRockCount++;
+                    }
                 }
             }
+            player.points = player.rootCount + player.rockCount + 5 * player.completeRockCount + 2 * player.water;
             waterDisps[playerIndex].text = $"{player.water}";
             rootCountDisps[playerIndex].text = $"{player.rootCount}";
             rockCountDisps[playerIndex].text = $"{player.rockCount}";
+            pointDisps[playerIndex].text = $"{player.points}";
             rootMoveDisps[playerIndex].text = $"{player.rootMoves}";
         }
     }
@@ -190,8 +199,8 @@ public class GameManager : MonoBehaviour
 
         if (state.turn <= state.maxTurns)
         {
-            state.players[state.thisPlayer].water += (state.turn - 1) / 5 + 1;
-            state.players[state.thisPlayer].rootMoves = (state.turn - 1) / 5 + 1;
+            state.players[state.thisPlayer].water += (state.turn - 1) / 10 + 2;
+            state.players[state.thisPlayer].rootMoves = 2;
 
             if (state.players[state.thisPlayer].scentTurns > 0)
             {
@@ -506,26 +515,8 @@ public class GameManager : MonoBehaviour
     {
         turnDisp.text = $"Turn {state.maxTurns} / {state.maxTurns}";
 
-        int p1Points = state.players[0].rockCount;
-        int p2Points = state.players[1].rockCount;
-
-        if (state.players[0].rootCount > state.players[1].rootCount)
-        {
-            p1Points += 2;
-        }
-        else if (state.players[0].rootCount < state.players[1].rootCount)
-        {
-            p2Points += 2;
-        }
-
-        if (state.players[0].water > state.players[1].water)
-        {
-            p1Points += 1;
-        }
-        else if (state.players[0].water < state.players[1].water)
-        {
-            p2Points += 1;
-        }
+        int p1Points = state.players[0].points;
+        int p2Points = state.players[1].points;
 
         int winner = 0;
         if (p1Points > p2Points)

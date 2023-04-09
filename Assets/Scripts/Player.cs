@@ -9,8 +9,10 @@ public class Player
     public List<int> draw = new List<int>();
     public List<int> hand = new List<int>();
     public List<int> discard = new List<int>();
-    public int water = 1;
+    public int points = 0;
+    public int water = 0;
     public int rockCount = 0;
+    public int completeRockCount = 0;
     public int rootCount = 0;
     public int rootMoves = 0;
     public int scentTurns = 0;
@@ -48,8 +50,10 @@ public class Player
 
     public Player(Player parent)
     {
+        points = parent.points;
         water = parent.water;
         rockCount = parent.rockCount;
+        completeRockCount = parent.completeRockCount;
         rootCount = parent.rootCount;
         rootMoves = parent.rootMoves;
         scentTurns = parent.scentTurns;

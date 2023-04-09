@@ -55,9 +55,11 @@ public class MrWormCard : Card
             }
         }
 
-        int index = potential[UnityEngine.Random.Range(0, potential.Count)];
-
-        new RootCard().Action(state, index);
-        player.rootMoves++;
+        if (potential.Count > 0)
+        {
+            int index = potential[UnityEngine.Random.Range(0, potential.Count)];
+            new RootCard().Action(state, index);
+            player.rootMoves++;
+        }
     }
 }

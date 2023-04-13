@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI[] rockCountDisps;
     [SerializeField] private TextMeshProUGUI[] pointDisps;
     [SerializeField] private TextMeshProUGUI[] rootMoveDisps;
+    [SerializeField] private GameObject phaseDispBG;
     [SerializeField] private TextMeshProUGUI phaseDisp;
     [SerializeField] private TextMeshProUGUI turnDisp;
     [SerializeField] private GameObject turnChange;
@@ -40,21 +41,26 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject validCursor;
     [SerializeField] private GameObject invalidCursor;
     [SerializeField] private TextMeshProUGUI winnerDisp;
+    [SerializeField] private Animator tornadoAnim;
+    [SerializeField] private Animator[] defeatAnims;
     [SerializeField] private Tilemap highlightMap;
     [SerializeField] private Tile highlightTile;
     [SerializeField] private SpriteRenderer background;
     [SerializeField] private AudioSource backgroundMusic;
     [SerializeField] private ParticleSystem rain;
     [HideInInspector] public State state;
-    private bool discardPhase = false;
-    private bool tilePhase = false;
+    private MiniMaxAI gameAI;
+    private bool gameEnded = false;
     private int[] hoveredIndexes = new int[] { -1, -1 };
+    private float turnFactor = 0;
+    private float factorSpeed = 0.01f;
 
     // Start is called before the first frame update
     void Start()
     {
-        state = new State(rootTile, deadRootTile, seedTile, woodShieldTile, metalShieldTile, thornTile, strongFireTile, weakFireTile);
-        ChangeTurn();
+        gameAI = new MiniMaxAI();
+        state = new State(collection, rootTile, deadRootTile, seedTile, woodShieldTile, metalShieldTile, thornTile, strongFireTile, weakFireTile);
+        ChangeTurn(true);
     }
 
     // Update is called once per frame
@@ -62,35 +68,36 @@ public class GameManager : MonoBehaviour
     {
         validCursor.transform.position = new Vector3(-40, 0, 0);
         invalidCursor.transform.position = new Vector3(-40, 0, 0);
-        turnDisp.text = $"Turn {state.turn} / {state.maxTurns}";
+        turnDisp.text = $"Turn {Mathf.Min(state.turn, state.maxTurns)} / {state.maxTurns}";
         float factor = (float)state.turn / state.maxTurns;
-        background.color = Color.Lerp(new Color(0.65f, 0.85f, 0.95f, 1), new Color(0, 0.1f, 0.2f, 1), factor);
-        backgroundMusic.pitch = 0.75f * (factor + 1);
+        if (factor > turnFactor)
+        {
+            turnFactor += factorSpeed * Time.deltaTime;
+        }
+        else
+        {
+            turnFactor = factor;
+        }
+        background.color = Color.Lerp(new Color(0.65f, 0.85f, 0.95f, 1), new Color(0, 0.1f, 0.2f, 1), turnFactor);
+        backgroundMusic.pitch = 0.75f * (turnFactor + 1);
         var shape = rain.shape;
-        shape.rotation = new Vector3(0, 180 - 30 * factor, 0);
+        shape.rotation = new Vector3(0, 180 - 30 * turnFactor, 0);
         var emission = rain.emission;
-        emission.rateOverTime = new ParticleSystem.MinMaxCurve(25 + 475 * factor);
+        emission.rateOverTime = new ParticleSystem.MinMaxCurve(25 + 475 * turnFactor);
         UpdateCards();
         UpdateHighlights();
         int[] coord = state.MouseToCoord();
         int index = state.CoordToIndex(coord[0], coord[1]);
         if (state.turn <= state.maxTurns)
         {
-            if (state.card != null && !discardPhase && tilePhase)
+            if (state.card != null && !state.discardPhase && state.tilePhase && !state.players[state.thisPlayer].ai)
             {
                 if (state.card.Validation(state, index))
                 {
                     validCursor.transform.position = state.CoordToWorld(coord[0], coord[1]);
                     if (Input.GetMouseButtonDown(0))
                     {
-                        state.card.Action(state, index);
-                        state.numActions--;
-                        if (state.numActions == 0)
-                        {
-                            state.card = null;
-                            state.cardIndex = -1;
-                            tilePhase = false;
-                        }
+                        state.PlayTile(index);
                     }
                 }
                 else
@@ -99,34 +106,15 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
-        else
+        else if (!gameEnded)
         {
             EndGame();
         }
 
+        state.UpdatePoints();
         for (int playerIndex = 0; playerIndex < 2; playerIndex++)
         {
             Player player = state.players[playerIndex];
-            player.rootCount = 0;
-            player.rockCount = 0;
-            player.completeRockCount = 0;
-            for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
-            {
-                if (state.board[i] == player.root || state.board[i] == player.fortifiedRoot || state.board[i] == player.invincibleRoot || state.board[i] == player.baseRoot)
-                {
-                    player.rootCount++;
-                }
-                else if (state.board[i] == 'R')
-                {
-                    int rockCount = state.CountRock(i, player);
-                    player.rockCount += rockCount;
-                    if (rockCount == 8)
-                    {
-                        player.completeRockCount++;
-                    }
-                }
-            }
-            player.points = player.rootCount + player.rockCount + 5 * player.completeRockCount + 2 * player.water;
             waterDisps[playerIndex].text = $"{player.water}";
             rootCountDisps[playerIndex].text = $"{player.rootCount}";
             rockCountDisps[playerIndex].text = $"{player.rockCount}";
@@ -140,83 +128,21 @@ public class GameManager : MonoBehaviour
         Debug.Log(state.StateToString());
     }
 
-    public void ChangeTurn()
+    public void ChangeTurn(bool ai)
     {
-        if (state.thisPlayer == 1)
+        if (ai || !state.players[state.thisPlayer].ai)
         {
-            state.turn++;
-        }
+            state.ChangeTurn();
 
-        ForestFireCard.UpdateFire(state);
-
-        if (state.players[state.thisPlayer].wormTurns > 0)
-        {
-            MrWormCard.GrowRandomRoot(state);
-            state.players[state.thisPlayer].wormTurns--;
-        }
-
-        tilePhase = false;
-        state.thisPlayer = state.otherPlayer;
-        state.otherPlayer = 1 - state.thisPlayer;
-        rootButtons[state.otherPlayer].interactable = false;
-        endButtons[state.otherPlayer].interactable = false;
-        playButtons[state.otherPlayer].gameObject.SetActive(false);
-        cancelButtons[state.otherPlayer].gameObject.SetActive(false);
-        compostButtons[state.otherPlayer].gameObject.SetActive(false);
-        state.card = null;
-        state.cardIndex = -1;
-
-        if (state.turn == state.maxTurns && state.thisPlayer == 0)
-        {
-            for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
+            if (state.turn <= state.maxTurns)
             {
-                int[] coords = state.IndexToCoord(i);
-                int x = coords[0];
-                int y = coords[1];
-
-                if (state.board[i] == state.players[0].root || state.board[i] == state.players[0].fortifiedRoot)
+                turnChange.GetComponent<TextMeshProUGUI>().text = $"Player {state.thisPlayer + 1}'s Turn";
+                turnChange.GetComponent<Animator>().Play("Sweep");
+                if (state.players[state.thisPlayer].ai)
                 {
-                    state.board[i] = state.players[0].invincibleRoot;
-                    State.otherMap.SetTile(new Vector3Int(x, y), metalShieldTile);
-                }
-                else if (state.board[i] == state.players[1].root || state.board[i] == state.players[1].fortifiedRoot)
-                {
-                    state.board[i] = state.players[1].invincibleRoot;
-                    State.otherMap.SetTile(new Vector3Int(x, y), metalShieldTile);
-                }
-                else if (state.board[i] == state.players[0].deadRoot || state.board[i] == state.players[0].deadFortifiedRoot)
-                {
-                    state.board[i] = state.players[0].deadInvincibleRoot;
-                    State.otherMap.SetTile(new Vector3Int(x, y), metalShieldTile);
-                }
-                else if (state.board[i] == state.players[1].deadRoot || state.board[i] == state.players[1].deadFortifiedRoot)
-                {
-                    state.board[i] = state.players[1].deadInvincibleRoot;
-                    State.otherMap.SetTile(new Vector3Int(x, y), metalShieldTile);
+                    gameAI.Control(state, this);
                 }
             }
-        }
-
-        if (state.turn <= state.maxTurns)
-        {
-            state.players[state.thisPlayer].water += (state.turn - 1) / 10 + 2;
-            state.players[state.thisPlayer].rootMoves = 2;
-
-            if (state.players[state.thisPlayer].scentTurns > 0)
-            {
-                state.players[state.thisPlayer].water++;
-                state.players[state.thisPlayer].scentTurns--;
-            }
-
-            turnChange.GetComponent<TextMeshProUGUI>().text = $"Player {state.thisPlayer + 1}'s Turn";
-            turnChange.GetComponent<Animator>().Play("Sweep");
-            Player player = state.players[state.thisPlayer];
-            for (int i = player.hand.Count; i < 5; i++)
-            {
-                player.DrawCard();
-            }
-            rootButtons[state.thisPlayer].interactable = true;
-            endButtons[state.thisPlayer].interactable = true;
         }
     }
 
@@ -235,15 +161,40 @@ public class GameManager : MonoBehaviour
             otherButtons = p1Hand;
         }
 
+        rootButtons[state.otherPlayer].interactable = false;
+        endButtons[state.otherPlayer].interactable = false;
+        playButtons[state.otherPlayer].gameObject.SetActive(false);
+        discardButtons[state.otherPlayer].gameObject.SetActive(false);
+        cancelButtons[state.otherPlayer].gameObject.SetActive(false);
+        compostButtons[state.otherPlayer].gameObject.SetActive(false);
+
+        if (gameEnded)
+        {
+            for (int i = 0; i < cardButtons.Length; i++)
+            {
+                cardButtons[i].interactable = false;
+                otherButtons[i].interactable = false;
+            }
+            rootButtons[state.thisPlayer].interactable = false;
+            endButtons[state.thisPlayer].interactable = false;
+            playButtons[state.thisPlayer].gameObject.SetActive(false);
+            discardButtons[state.thisPlayer].gameObject.SetActive(false);
+            cancelButtons[state.thisPlayer].gameObject.SetActive(false);
+            compostButtons[state.thisPlayer].gameObject.SetActive(false);
+            selectedImages[state.thisPlayer].gameObject.SetActive(false);
+            selectedImages[state.otherPlayer].gameObject.SetActive(false);
+            return;
+        }
+
         List<int> hand = state.players[state.thisPlayer].hand;
+        List<int> otherHand = state.players[state.otherPlayer].hand;
         for (int i = 0; i < cardButtons.Length; i++)
         {
-            otherButtons[i].interactable = false;
             if (i < hand.Count)
             {
                 cardButtons[i].gameObject.SetActive(true);
                 cardButtons[i].interactable = true;
-                cardButtons[i].image.sprite = collection.sprites[hand[i]];
+                cardButtons[i].image.sprite = State.collection.sprites[hand[i]];
                 int defaultI = 2 * i;
                 int rotI = hand.Count - 1;
                 float angle = (defaultI - rotI) * Mathf.PI / 36;
@@ -253,9 +204,18 @@ public class GameManager : MonoBehaviour
             {
                 cardButtons[i].gameObject.SetActive(false);
             }
+            if (i < otherHand.Count)
+            {
+                otherButtons[i].gameObject.SetActive(true);
+                otherButtons[i].interactable = false;
+            }
+            else
+            {
+                otherButtons[i].gameObject.SetActive(false);
+            }
         }
 
-        if (discardPhase)
+        if (state.discardPhase)
         {
             phaseDisp.text = "Too many cards. Discard a card";
             rootButtons[state.thisPlayer].interactable = false;
@@ -273,7 +233,7 @@ public class GameManager : MonoBehaviour
             }
             compostButtons[state.thisPlayer].gameObject.SetActive(false);
         }
-        else if (tilePhase)
+        else if (state.tilePhase)
         {
             if (state.card != null)
             {
@@ -338,12 +298,12 @@ public class GameManager : MonoBehaviour
 
         if (hoveredIndexes[state.thisPlayer] != -1)
         {
-            selectedImages[state.thisPlayer].sprite = collection.sprites[hoveredIndexes[state.thisPlayer]];
+            selectedImages[state.thisPlayer].sprite = State.collection.sprites[hoveredIndexes[state.thisPlayer]];
             selectedImages[state.thisPlayer].gameObject.SetActive(true);
         }
         else if (state.card != null)
         {
-            selectedImages[state.thisPlayer].sprite = collection.sprites[state.cardIndex];
+            selectedImages[state.thisPlayer].sprite = State.collection.sprites[state.cardIndex];
             selectedImages[state.thisPlayer].gameObject.SetActive(true);
         }
         else
@@ -353,7 +313,7 @@ public class GameManager : MonoBehaviour
 
         if (hoveredIndexes[state.otherPlayer] != -1)
         {
-            selectedImages[state.otherPlayer].sprite = collection.sprites[hoveredIndexes[state.otherPlayer]];
+            selectedImages[state.otherPlayer].sprite = State.collection.sprites[hoveredIndexes[state.otherPlayer]];
             selectedImages[state.otherPlayer].gameObject.SetActive(true);
         }
         else
@@ -364,78 +324,51 @@ public class GameManager : MonoBehaviour
 
     public void SetCard(int i)
     {
+        Player player = state.players[state.thisPlayer];
+        if (player.ai)
+        {
+            return;
+        }
         if (i >= 0)
         {
-            Player player = state.players[state.thisPlayer];
-            state.card = collection.cards[player.hand[i]];
-            state.cardIndex = player.hand[i];
-            tilePhase = false;
+            state.SetCard(player.hand[i]);
         }
         else
         {
-            state.card = collection.cards[0];
-            state.cardIndex = 0;
-            tilePhase = true;
+            state.SetCard(0);
         }
-        state.numActions = state.card.GetNumActions(state);
     }
 
     public void PlayCard()
     {
-        Player player = state.players[state.thisPlayer];
-        player.water -= state.card.GetCost(state);
-        player.hand.Remove(state.cardIndex);
-        player.discard.Add(state.cardIndex);
-        if (state.card.GetNumActions(state) == 0)
+        if (!state.players[state.thisPlayer].ai)
         {
-            state.numActions = 0;
-            state.card.Action(state, 0);
-            if (state.numActions == 0)
-            {
-                state.card = null;
-                state.cardIndex = -1;
-            }
-            else
-            {
-                tilePhase = true;
-            }
-            if (player.hand.Count > 5)
-            {
-                discardPhase = true;
-            }
-        }
-        else
-        {
-            tilePhase = true;
+            state.PlayCard();
         }
     }
 
     public void DiscardCard()
     {
-        Player player = state.players[state.thisPlayer];
-        player.hand.Remove(state.cardIndex);
-        player.discard.Add(state.cardIndex);
-        state.card = null;
-        state.cardIndex = -1;
-        discardPhase = false;
+        if (!state.players[state.thisPlayer].ai)
+        {
+            state.DiscardCard();
+        }
     }
 
     public void CancelCard()
     {
-        state.card = null;
-        state.cardIndex = -1;
-        tilePhase = false;
+        if (!state.players[state.thisPlayer].ai)
+        {
+            state.CancelCard();
+        }
     }
 
     public void CompostCard()
     {
-        Player player = state.players[state.thisPlayer];
-        player.water--;
-        player.hand.Remove(state.cardIndex);
-        player.discard.Add(state.cardIndex);
-        state.card = null;
-        state.cardIndex = -1;
-        player.DrawCard();
+        if (!state.players[state.thisPlayer].ai)
+        {
+            state.CompostCard();
+        }
     }
 
     public void SetP1HoverIndex(int index)
@@ -491,7 +424,7 @@ public class GameManager : MonoBehaviour
             int y = coords[1];
 
             highlightMap.SetTile(new Vector3Int(x, y), null);
-            if (!discardPhase && state.card != null)
+            if (!state.discardPhase && state.card != null)
             {
                 if (state.card.GetNumActions(state) > 0)
                 {
@@ -513,29 +446,39 @@ public class GameManager : MonoBehaviour
 
     private void EndGame()
     {
-        turnDisp.text = $"Turn {state.maxTurns} / {state.maxTurns}";
-
+        gameEnded = true;
+        phaseDispBG.SetActive(false);
         int p1Points = state.players[0].points;
         int p2Points = state.players[1].points;
 
-        int winner = 0;
+        int winner = -1;
         if (p1Points > p2Points)
         {
-            winner = 1;
+            winner = 0;
         }
         else if (p1Points < p2Points)
         {
-            winner = 2;
+            winner = 1;
         }
 
-        if (winner == 0)
+        tornadoAnim.enabled = true;
+        if (winner == -1)
         {
             winnerDisp.text = "It's a Draw.";
+            defeatAnims[0].enabled = true;
+            defeatAnims[1].enabled = true;
         }
         else
         {
-            winnerDisp.text = $"Player {winner} wins!";
+            winnerDisp.text = $"Player {winner + 1} wins!";
+            defeatAnims[1 - winner].enabled = true;
         }
+        StartCoroutine(EndGameHelper());
+    }
+
+    IEnumerator EndGameHelper()
+    {
+        yield return new WaitForSeconds(5);
         winnerDisp.enabled = true;
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -21,7 +22,7 @@ public class MrWormCard : Card
 
     public override bool Validation(State state, int index)
     {
-        return true;
+        return state.players[state.thisPlayer].wormTurns <= state.maxTurns - state.turn;
     }
 
     public override void Action(State state, int index)
@@ -31,7 +32,7 @@ public class MrWormCard : Card
 
     public override string GetDisabledMessage()
     {
-        return "If you see this message, contact the developer.";
+        return "You already paid Mr.Worm enough to work for you till the end of the game.";
     }
 
     public override bool OverrideHighlight(State state, int index)
@@ -57,7 +58,7 @@ public class MrWormCard : Card
 
         if (potential.Count > 0)
         {
-            int index = potential[UnityEngine.Random.Range(0, potential.Count)];
+            int index = potential[new System.Random().Next(0, potential.Count)];
             new RootCard().Action(state, index);
             player.rootMoves++;
         }

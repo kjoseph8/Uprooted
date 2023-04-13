@@ -21,7 +21,7 @@ public class ScentCard : Card
 
     public override bool Validation(State state, int index)
     {
-        return state.turn != state.maxTurns;
+        return state.players[state.thisPlayer].scentTurns < state.maxTurns - state.turn;
     }
 
     public override void Action(State state, int index)
@@ -31,7 +31,7 @@ public class ScentCard : Card
 
     public override string GetDisabledMessage()
     {
-        return "This card is useless in the last turn.";
+        return "You already smelled enough roses to last till the end of the game.";
     }
 
     public override bool OverrideHighlight(State state, int index)

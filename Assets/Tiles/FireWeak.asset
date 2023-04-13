@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 13b75c95f34a00d4e8c04f76b73312e6, type: 3}
-  m_Name: Weak-Fire
+  m_Name: FireWeak
   m_EditorClassIdentifier: 
   m_AnimatedSprites:
   - {fileID: -1448831252, guid: 317605522c077b748b4801cae3376343, type: 3}

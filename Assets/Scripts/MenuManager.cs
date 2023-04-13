@@ -5,20 +5,21 @@ using UnityEngine.SceneManagement;
 
 public class MenuManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [HideInInspector] public bool[] ai = new bool[] { false, false };
 
-    // Update is called once per frame
-    void Update()
+    void Awake()
     {
-        
+        DontDestroyOnLoad(this.gameObject);
     }
 
     public void PlayGame()
     {
         SceneManager.LoadScene(1);
+    }
+
+    public void SinglePlayer()
+    {
+        ai[1] = true;
+        PlayGame();
     }
 }

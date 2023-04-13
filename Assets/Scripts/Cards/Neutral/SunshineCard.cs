@@ -11,7 +11,7 @@ public class SunshineCard : Card
 
     public override int GetCost(State state)
     {
-        return 1;
+        return 2;
     }
 
     public override int GetNumActions(State state)

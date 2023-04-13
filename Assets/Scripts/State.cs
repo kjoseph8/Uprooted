@@ -15,10 +15,15 @@ public class State
     public int otherPlayer = 0;
     public int turn = 0;
     public int maxTurns = 20;
+    public bool discardPhase = false;
+    public bool tilePhase = false;
     public Card card = null;
     public int cardIndex = -1;
+    public int tileIndex = -1;
     public int numActions = 0;
     public Player[] players;
+    public int loveCardPartnerIndex = -1;
+    public static CardCollection collection;
     public static Tilemap outlineMap;
     public static Tilemap waterMap;
     public static Tilemap otherMap;
@@ -31,9 +36,10 @@ public class State
     public static TileBase strongFireTile;
     public static TileBase weakFireTile;
 
-    public State(TileBase rootTile, TileBase deadRootTile, TileBase seedTile, TileBase woodShieldTile, TileBase metalShieldTile, TileBase thornTile, TileBase strongFireTile, TileBase weakFireTile)
+    public State(CardCollection collection, TileBase rootTile, TileBase deadRootTile, TileBase seedTile, TileBase woodShieldTile, TileBase metalShieldTile, TileBase thornTile, TileBase strongFireTile, TileBase weakFireTile)
     {
         absolute = true;
+        State.collection = collection;
         State.rootTile = rootTile;
         State.deadRootTile = deadRootTile;
         State.seedTile = seedTile;
@@ -44,9 +50,10 @@ public class State
         State.weakFireTile = weakFireTile;
         Tilemap roots1Map = GameObject.FindGameObjectWithTag("Roots1").GetComponent<Tilemap>();
         Tilemap roots2Map = GameObject.FindGameObjectWithTag("Roots2").GetComponent<Tilemap>();
+        bool[] ai = GameObject.FindGameObjectWithTag("MenuManager").GetComponent<MenuManager>().ai;
         players = new Player[2] {
-            new Player("rose", '1', ',', '[', '!', 'i', 'I', '{', 'T', 'B', 'S', roots1Map),
-            new Player("rose", '2', '.', ']', '@', 'z', 'Z', '}', 't', 'b', 's', roots2Map),
+            new Player(ai[0], "rose", '1', ',', '[', '!', 'i', 'I', '{', 'T', 'B', 'S', roots1Map),
+            new Player(ai[1], "rose", '2', '.', ']', '@', 'z', 'Z', '}', 't', 'b', 's', roots2Map),
         };
         outlineMap = GameObject.FindGameObjectWithTag("Outline").GetComponent<Tilemap>();
         waterMap = GameObject.FindGameObjectWithTag("Water").GetComponent<Tilemap>();
@@ -116,9 +123,13 @@ public class State
         otherPlayer = parent.otherPlayer;
         turn = parent.turn;
         maxTurns = parent.maxTurns;
+        discardPhase = parent.discardPhase;
+        tilePhase = parent.tilePhase;
+        tileIndex = parent.tileIndex;
         card = parent.card;
         cardIndex = parent.cardIndex;
         numActions = parent.numActions;
+        loveCardPartnerIndex = parent.loveCardPartnerIndex;
         players = new Player[2] { new Player(parent.players[0]), new Player(parent.players[1]) };
         board = new char[parent.board.Length];
         for (int i = 0; i < board.Length; i++)
@@ -363,5 +374,205 @@ public class State
                 }
             }
         }
+    }
+
+    public void UpdatePoints()
+    {
+        for (int playerIndex = 0; playerIndex < 2; playerIndex++)
+        {
+            Player player = players[playerIndex];
+            player.rootCount = 0;
+            player.rockCount = 0;
+            player.completeRockCount = 0;
+            for (int i = 0; i < boardHeight * boardWidth; i++)
+            {
+                if (board[i] == player.root || board[i] == player.fortifiedRoot || board[i] == player.invincibleRoot || board[i] == player.baseRoot)
+                {
+                    player.rootCount++;
+                }
+                else if (board[i] == 'R')
+                {
+                    int rockCount = CountRock(i, player);
+                    player.rockCount += rockCount;
+                    if (rockCount == 8)
+                    {
+                        player.completeRockCount++;
+                    }
+                }
+            }
+            player.points = player.rootCount + player.rockCount + 5 * player.completeRockCount + 2 * player.water;
+        }
+    }
+
+    public void SetCard(int i)
+    {
+        card = collection.cards[i];
+        cardIndex = i;
+        numActions = card.GetNumActions(this);
+        if (i == 0)
+        {
+            tilePhase = true;
+        }
+        else
+        {
+            tilePhase = false;
+        }
+    }
+
+    public void PlayCard()
+    {
+        Player player = players[thisPlayer];
+        player.water -= card.GetCost(this);
+        player.hand.Remove(cardIndex);
+        player.discard.Add(cardIndex);
+        if (card.GetNumActions(this) == 0)
+        {
+            numActions = 0;
+            card.Action(this, 0);
+            card = null;
+            cardIndex = -1;
+            tilePhase = false;
+        }
+        else
+        {
+            tilePhase = true;
+        }
+
+        if (players[thisPlayer].hand.Count > 5)
+        {
+            discardPhase = true;
+        }
+    }
+
+    public void PlayTile(int index)
+    {
+        card.Action(this, index);
+        numActions--;
+        if (numActions == 0)
+        {
+            tilePhase = false;
+            card = null;
+            cardIndex = -1;
+        }
+    }
+
+    public void DiscardCard()
+    {
+        Player player = players[thisPlayer];
+        player.hand.Remove(cardIndex);
+        player.discard.Add(cardIndex);
+        card = null;
+        cardIndex = -1;
+        discardPhase = false;
+    }
+
+    public void CancelCard()
+    {
+        card = null;
+        cardIndex = -1;
+        numActions = 0;
+        tilePhase = false;
+    }
+
+    public void CompostCard()
+    {
+        Player player = players[thisPlayer];
+        player.water--;
+        player.hand.Remove(cardIndex);
+        player.discard.Add(cardIndex);
+        card = null;
+        cardIndex = -1;
+        player.DrawCard();
+    }
+
+    public void StartTurn()
+    {
+        if (turn == maxTurns && thisPlayer == 0)
+        {
+            for (int i = 0; i < boardHeight * boardWidth; i++)
+            {
+                int[] coords = IndexToCoord(i);
+                int x = coords[0];
+                int y = coords[1];
+
+                if (board[i] == players[0].root || board[i] == players[0].fortifiedRoot)
+                {
+                    board[i] = players[0].invincibleRoot;
+                    if (absolute)
+                    {
+                        otherMap.SetTile(new Vector3Int(x, y), metalShieldTile);
+                    }
+                }
+                else if (board[i] == players[1].root || board[i] == players[1].fortifiedRoot)
+                {
+                    board[i] = players[1].invincibleRoot;
+                    if (absolute)
+                    {
+                        otherMap.SetTile(new Vector3Int(x, y), metalShieldTile);
+                    }
+                }
+                else if (board[i] == players[0].deadRoot || board[i] == players[0].deadFortifiedRoot)
+                {
+                    board[i] = players[0].deadInvincibleRoot;
+                    if (absolute)
+                    {
+                        otherMap.SetTile(new Vector3Int(x, y), metalShieldTile);
+                    }
+                }
+                else if (board[i] == players[1].deadRoot || board[i] == players[1].deadFortifiedRoot)
+                {
+                    board[i] = players[1].deadInvincibleRoot;
+                    if (absolute)
+                    {
+                        otherMap.SetTile(new Vector3Int(x, y), metalShieldTile);
+                    }
+                }
+            }
+        }
+
+        players[thisPlayer].water += (turn - 1) / 10 + 2;
+        players[thisPlayer].rootMoves = 2;
+
+        if (players[thisPlayer].scentTurns > 0)
+        {
+            players[thisPlayer].water++;
+            players[thisPlayer].scentTurns--;
+        }
+
+        Player player = players[thisPlayer];
+        for (int i = player.hand.Count; i < 5; i++)
+        {
+            player.DrawCard();
+        }
+    }
+
+    public void ChangeTurn()
+    {
+        EndTurn();
+
+        thisPlayer = otherPlayer;
+        otherPlayer = 1 - thisPlayer;
+
+        StartTurn();
+    }
+
+    public void EndTurn()
+    {
+        if (thisPlayer == 1)
+        {
+            turn++;
+        }
+
+        ForestFireCard.UpdateFire(this);
+
+        if (players[thisPlayer].wormTurns > 0)
+        {
+            MrWormCard.GrowRandomRoot(this);
+            players[thisPlayer].wormTurns--;
+        }
+
+        card = null;
+        cardIndex = -1;
+        tilePhase = false;
     }
 }

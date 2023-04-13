@@ -4,9 +4,6 @@ using UnityEngine;
 
 public class LoveCard : Card
 {
-    private int partnerX = -1;
-    private int partnerY = -1;
-
     public override string GetName()
     {
         return "A Symbol of Love";
@@ -32,6 +29,10 @@ public class LoveCard : Card
         int[] coords = state.IndexToCoord(index);
         int x = coords[0];
         int y = coords[1];
+
+        int[] partnerCoords = state.IndexToCoord(state.loveCardPartnerIndex);
+        int partnerX = partnerCoords[0];
+        int partnerY = partnerCoords[1];
 
         if (state.numActions != GetNumActions(state))
         {
@@ -62,12 +63,13 @@ public class LoveCard : Card
     public override void Action(State state, int index)
     {
         state.board[index] = state.players[state.thisPlayer].fortifiedRoot;
+        state.loveCardPartnerIndex = index;
         int[] coords = state.IndexToCoord(index);
-        partnerX = coords[0];
-        partnerY = coords[1];
+        int x = coords[0];
+        int y = coords[1];
         if (state.absolute)
         {
-            State.otherMap.SetTile(new Vector3Int(partnerX, partnerY), State.woodShieldTile);
+            State.otherMap.SetTile(new Vector3Int(x, y), State.woodShieldTile);
         }
     }
 

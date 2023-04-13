@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,6 +10,7 @@ public class Player
     public List<int> draw = new List<int>();
     public List<int> hand = new List<int>();
     public List<int> discard = new List<int>();
+    public bool ai;
     public int points = 0;
     public int water = 0;
     public int rockCount = 0;
@@ -29,8 +31,9 @@ public class Player
     public char weakFire;
     public Tilemap rootMap;
 
-    public Player(string plant, char root, char fortifiedRoot, char invincibleRoot, char baseRoot, char deadRoot, char deadFortifiedRoot, char deadInvincibleRoot, char thorn, char strongFire, char weakFire, Tilemap rootMap)
+    public Player(bool ai, string plant, char root, char fortifiedRoot, char invincibleRoot, char baseRoot, char deadRoot, char deadFortifiedRoot, char deadInvincibleRoot, char thorn, char strongFire, char weakFire, Tilemap rootMap)
     {
+        this.ai = ai;
         this.root = root;
         this.fortifiedRoot = fortifiedRoot;
         this.invincibleRoot = invincibleRoot;
@@ -50,6 +53,7 @@ public class Player
 
     public Player(Player parent)
     {
+        ai = parent.ai;
         points = parent.points;
         water = parent.water;
         rockCount = parent.rockCount;
@@ -89,7 +93,7 @@ public class Player
         {
             RestoreDiscard();
         }
-        int cardIndex = UnityEngine.Random.Range(0, draw.Count);
+        int cardIndex = new System.Random().Next(0, draw.Count);
         hand.Add(draw[cardIndex]);
         draw.RemoveAt(cardIndex);
     }

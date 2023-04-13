@@ -45,6 +45,7 @@ public class SaplingCard : Card
             state.players[state.thisPlayer].rootMap.SetTile(new Vector3Int(x, y), State.rootTile);
             State.otherMap.SetTile(new Vector3Int(x, y), State.seedTile);
         }
+        state.ResurrectRoots(x, y, state.players[state.thisPlayer]);
     }
 
     public override string GetDisabledMessage()

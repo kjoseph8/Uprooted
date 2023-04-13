@@ -1,8 +1,8 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-5200431863435699911
+--- !u!114 &11400000
 MonoBehaviour:
-  m_ObjectHideFlags: 8
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9d1514134bc4fbd41bb739b1b9a49231, type: 3}
-  m_Name: Root (Override)
+  m_Name: RootDead
   m_EditorClassIdentifier: 
-  m_DefaultSprite: {fileID: 21300000, guid: f53cdc9948c6eee4c908acad8e15c714, type: 3}
+  m_DefaultSprite: {fileID: 21300000, guid: 9ffafac29be235b42ad3a2984919ec76, type: 3}
   m_DefaultGameObject: {fileID: 0}
   m_DefaultColliderType: 1
   m_TilingRules:
   - m_Id: 0
     m_Sprites:
-    - {fileID: 21300000, guid: 83f85a6f57c12be42a83f45d9056a214, type: 3}
+    - {fileID: 21300000, guid: 0d0261c1967d7d84ba7292f1195ae67b, type: 3}
     m_GameObject: {fileID: 0}
     m_MinAnimationSpeed: 1
     m_MaxAnimationSpeed: 1
@@ -35,7 +35,7 @@ MonoBehaviour:
     m_RuleTransform: 1
   - m_Id: 1
     m_Sprites:
-    - {fileID: 21300000, guid: c6f4ad4c70556394389ea613da766a07, type: 3}
+    - {fileID: 21300000, guid: c45eedd725ab10a4bb2f9cc15dbb1080, type: 3}
     m_GameObject: {fileID: 0}
     m_MinAnimationSpeed: 1
     m_MaxAnimationSpeed: 1
@@ -52,7 +52,7 @@ MonoBehaviour:
     m_RuleTransform: 1
   - m_Id: 6
     m_Sprites:
-    - {fileID: 21300000, guid: f53cdc9948c6eee4c908acad8e15c714, type: 3}
+    - {fileID: 21300000, guid: 9ffafac29be235b42ad3a2984919ec76, type: 3}
     m_GameObject: {fileID: 0}
     m_MinAnimationSpeed: 1
     m_MaxAnimationSpeed: 1
@@ -69,7 +69,7 @@ MonoBehaviour:
     m_RuleTransform: 1
   - m_Id: 3
     m_Sprites:
-    - {fileID: 21300000, guid: 9c51bdf88444b5743a41dab4f88e332e, type: 3}
+    - {fileID: 21300000, guid: c68d44618b6deca49b3d9a42f06f13c8, type: 3}
     m_GameObject: {fileID: 0}
     m_MinAnimationSpeed: 1
     m_MaxAnimationSpeed: 1
@@ -86,7 +86,7 @@ MonoBehaviour:
     m_RuleTransform: 1
   - m_Id: 5
     m_Sprites:
-    - {fileID: 21300000, guid: b4c5b17f058df8b4d926d00b758de369, type: 3}
+    - {fileID: 21300000, guid: 6c02344ad8988e147b50cd3cc08aeb12, type: 3}
     m_GameObject: {fileID: 0}
     m_MinAnimationSpeed: 1
     m_MaxAnimationSpeed: 1
@@ -103,7 +103,7 @@ MonoBehaviour:
     m_RuleTransform: 1
   - m_Id: 7
     m_Sprites:
-    - {fileID: 21300000, guid: e94ab3664be9a0141841636f7f02b22f, type: 3}
+    - {fileID: 21300000, guid: 9b7b398dee3c9784b9be5528cce4ae68, type: 3}
     m_GameObject: {fileID: 0}
     m_MinAnimationSpeed: 1
     m_MaxAnimationSpeed: 1
@@ -118,31 +118,3 @@ MonoBehaviour:
     - {x: -1, y: 0, z: 0}
     - {x: 0, y: 1, z: 0}
     m_RuleTransform: 1
---- !u!114 &11400000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4c779848d9dd029409ca676b49e10a18, type: 3}
-  m_Name: Fortified-Root
-  m_EditorClassIdentifier: 
-  m_Tile: {fileID: 11400000, guid: 7e715f368fe373945a1961abcf5a6846, type: 2}
-  m_Sprites:
-  - m_OriginalSprite: {fileID: 21300000, guid: 5662d416de575374aba6b8d2a8f11946, type: 3}
-    m_OverrideSprite: {fileID: 21300000, guid: f53cdc9948c6eee4c908acad8e15c714, type: 3}
-  - m_OriginalSprite: {fileID: 21300000, guid: 8d0121a2fde93824b98908d2fd8fea71, type: 3}
-    m_OverrideSprite: {fileID: 21300000, guid: 83f85a6f57c12be42a83f45d9056a214, type: 3}
-  - m_OriginalSprite: {fileID: 21300000, guid: a58410e4f043a3f4482e656dc5b0888b, type: 3}
-    m_OverrideSprite: {fileID: 21300000, guid: c6f4ad4c70556394389ea613da766a07, type: 3}
-  - m_OriginalSprite: {fileID: 21300000, guid: 12f58c95562179541be8f828223ab2c6, type: 3}
-    m_OverrideSprite: {fileID: 21300000, guid: 9c51bdf88444b5743a41dab4f88e332e, type: 3}
-  - m_OriginalSprite: {fileID: 21300000, guid: 4a68aa3f3b825b0458a09c082e2efa9c, type: 3}
-    m_OverrideSprite: {fileID: 21300000, guid: b4c5b17f058df8b4d926d00b758de369, type: 3}
-  - m_OriginalSprite: {fileID: 21300000, guid: 547c7362806d2db418ed4c9c62433c9b, type: 3}
-    m_OverrideSprite: {fileID: 21300000, guid: e94ab3664be9a0141841636f7f02b22f, type: 3}
-  m_GameObjects: []
-  m_InstanceTile: {fileID: -5200431863435699911}

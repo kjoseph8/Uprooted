@@ -24,6 +24,49 @@ public class ThornsCard : Card
         return index != -1 && state.board[index] == '-';
     }
 
+    public override bool AIValidation(State state)
+    {
+        Player player = state.players[state.otherPlayer];
+
+        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
+        {
+            int[] coords = state.IndexToCoord(i);
+
+            if (Validation(state, i) && state.CountNeighbors(coords[0], coords[1], new char[] { player.root, player.fortifiedRoot, player.deadRoot, player.deadFortifiedRoot }) > 1)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public override List<int> GetValidAIMoves(State state)
+    {
+        Player player = state.players[state.otherPlayer];
+        List<int> validMoves = new List<int>();
+        int minDestructibles = 0;
+        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
+        {
+            int[] coords = state.IndexToCoord(i);
+
+            if (Validation(state, i))
+            {
+                int destructibles = state.CountNeighbors(coords[0], coords[1], new char[] { player.root, player.fortifiedRoot, player.deadRoot, player.deadFortifiedRoot });
+
+                if (destructibles > minDestructibles)
+                {
+                    validMoves.Clear();
+                    minDestructibles = destructibles;
+                }
+                if (destructibles == minDestructibles)
+                {
+                    validMoves.Add(i);
+                }
+            }
+        }
+        return validMoves;
+    }
+
     public override void Action(State state, int index)
     {
         int[] coords = state.IndexToCoord(index);

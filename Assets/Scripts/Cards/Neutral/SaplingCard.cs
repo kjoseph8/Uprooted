@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -31,6 +32,79 @@ public class SaplingCard : Card
         int y = coords[1];
 
         return state.board[index] == '-' && state.CountNeighbors(x, y, new char[] { '0' }) > 0;
+    }
+
+    public override bool AIValidation(State state)
+    {
+        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
+        {
+            if (Validation(state, i))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public override List<int> GetValidAIMoves(State state)
+    {
+        List<int> validMoves = new List<int>();
+        List<int> options1 = new List<int>();
+        List<int> options2 = new List<int>();
+        for (int i = 0; i <= state.boardWidth/2; i += state.boardWidth / 2)
+        {
+            for (int j = 0; j < state.boardWidth / 2; j++)
+            {
+                int index = i + j;
+                if (Validation(state, index))
+                {
+                    options1.Add(index);
+                }
+                index = i + j + state.boardWidth * (state.boardHeight - 1);
+                if (Validation(state, index))
+                {
+                    options2.Add(index);
+                }
+            }
+            if (options1.Count > 0)
+            {
+                validMoves.Add(options1[new System.Random().Next(0, options1.Count)]);
+            }
+            options1.Clear();
+            if (options2.Count > 0)
+            {
+                validMoves.Add(options2[new System.Random().Next(0, options2.Count)]);
+            }
+            options2.Clear();
+        }
+
+        for (int i = 0; i <= 2 * state.boardHeight / 3; i += state.boardHeight / 3)
+        {
+            for (int j = 0; j < state.boardHeight / 3; j++)
+            {
+                int index = state.boardWidth * (i + j);
+                if (Validation(state, index))
+                {
+                    options1.Add(index);
+                }
+                index = state.boardWidth * (i + j) + state.boardWidth - 1;
+                if (Validation(state, index))
+                {
+                    options2.Add(index);
+                }
+            }
+            if (options1.Count > 0)
+            {
+                validMoves.Add(options1[new System.Random().Next(0, options1.Count)]);
+            }
+            options1.Clear();
+            if (options2.Count > 0)
+            {
+                validMoves.Add(options2[new System.Random().Next(0, options2.Count)]);
+            }
+            options2.Clear();
+        }
+        return validMoves;
     }
 
     public override void Action(State state, int index)

@@ -12,6 +12,10 @@ public abstract class Card
 
     public abstract bool Validation(State state, int index);
 
+    public abstract bool AIValidation(State state);
+
+    public abstract List<int> GetValidAIMoves(State state);
+
     public abstract void Action(State state, int index);
 
     public abstract string GetDisabledMessage();

@@ -4,27 +4,45 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
 
-public class MiniMaxAI
+public class MiniMaxAI: MonoBehaviour
 {
-    private int lastTime = (int)Time.time;
+    private int lastTime;
 
-    public async void Control(State state, GameManager manager)
+    void Start()
     {
-        await FastDelay(1000);
+        lastTime = (int)Time.time;
+    }
+
+    public IEnumerator Control(State state, GameManager manager)
+    {
+        bool finished = false;
+        int thisTime = (int)Time.time;
+        if (thisTime - lastTime < 1000)
+        {
+            yield return new WaitForSeconds((1000 - (thisTime - lastTime)) / 1000.0f);
+        }
+        yield return new WaitForSeconds(1);
         lastTime = (int)Time.time;
         if (state.discardPhase)
         {
-            await Task.Run(() => SelectDiscard(state, 2));
-            lastTime = (int)Time.time;
-            await FastDelay(1000);
+            yield return StartCoroutine(SelectDiscard(state, 2));
+            yield return new WaitForSeconds(1);
             state.DiscardCard();
         }
         else if (state.tilePhase)
         {
-            await Task.Run(() => SelectTile(state, 2));
+            yield return StartCoroutine(SelectTile(state, 2));
             if (state.tileIndex == -1)
             {
-                state.CancelCard();
+                if (state.cardIndex == 0)
+                {
+                    manager.ChangeTurn(true);
+                    finished = true;
+                }
+                else
+                {
+                    state.CancelCard();
+                }
             }
             else
             {
@@ -33,35 +51,46 @@ public class MiniMaxAI
         }
         else
         {
-            await Task.Run(() => SelectCard(state, 2));
+            yield return StartCoroutine(SelectCard(state, 2));
             if (state.card == null || state.cardIndex == -1)
             {
                 manager.ChangeTurn(true);
-                return;
+                finished = true;
             }
-            if (state.cardIndex != 0)
+            else if (state.cardIndex != 0)
             {
                 lastTime = (int)Time.time;
-                await FastDelay(1000);
+                yield return new WaitForSeconds(1);
                 state.PlayCard();
             }
         }
-        Control(state, manager);
+        if (!finished)
+        {
+            yield return StartCoroutine(Control(state, manager));
+        }
     }
 
-    public int ControlHelper(State state, int turns)
+    IEnumerator ControlHelper(State state, int turns)
     {
+        bool finished = false;
         if (state.discardPhase)
         {
-            SelectDiscard(state, turns);
+            yield return StartCoroutine(SelectDiscard(state, turns));
             state.DiscardCard();
         }
         else if (state.tilePhase)
         {
-            SelectTile(state, turns);
+            yield return StartCoroutine(SelectTile(state, turns));
             if (state.tileIndex == -1)
             {
-                state.CancelCard();
+                if (state.cardIndex == 0)
+                {
+                    finished = true;
+                }
+                else
+                {
+                    state.CancelCard();
+                }
             }
             else
             {
@@ -71,63 +100,59 @@ public class MiniMaxAI
         else
         {
             turns--;
-            if (turns <= 0)
+            if (turns > 0)
             {
-                return Heuristic(state);
+                yield return StartCoroutine(SelectCard(state, turns));
             }
-            SelectCard(state, turns);
             if (state.card == null || state.cardIndex == -1)
             {
-                return Heuristic(state);
+                finished = true;
             }
             else if (state.cardIndex != 0)
             {
                 state.PlayCard();
             }
         }
-        return ControlHelper(state, turns);
+        if (!finished)
+        {
+            yield return StartCoroutine(ControlHelper(state, turns));
+        }
     }
 
-    private void SelectCard(State state, int turns)
+    IEnumerator SelectCard(State state, int turns)
     {
+        yield return null;
         Player player = state.players[state.thisPlayer];
         int card = 0;
-        int heuristic = Heuristic(state);
+        State stateClone = new State(state);
+        int heuristic = Heuristic(stateClone);
 
         for (int i = 0; i < player.hand.Count; i++)
         {
             int index = player.hand[i];
-            if (State.collection.cards[index].GetCost(state) > player.water)
+            
+            if (State.collection.cards[index].GetCost(state) <= player.water && State.collection.cards[index].AIValidation(state))
             {
-                continue;
-            }
-
-            for (int j = 0; j < state.boardHeight * state.boardWidth; j++)
-            {
-                if (State.collection.cards[index].Validation(state, j))
+                State next = new State(state);
+                next.SetCard(index);
+                next.PlayCard();
+                yield return StartCoroutine(ControlHelper(next, turns));
+                int nextHeuristic = Heuristic(next);
+                if (state.thisPlayer == 0)
                 {
-                    State next = new State(state);
-                    next.SetCard(index);
-                    next.PlayCard();
-                    ControlHelper(next, turns);
-                    int nextHeuristic = Heuristic(next);
-                    if (state.thisPlayer == 0)
+                    if (nextHeuristic > heuristic)
                     {
-                        if (nextHeuristic > heuristic)
-                        {
-                            card = index;
-                            heuristic = nextHeuristic;
-                        }
+                        card = index;
+                        heuristic = nextHeuristic;
                     }
-                    else
+                }
+                else
+                {
+                    if (nextHeuristic < heuristic)
                     {
-                        if (nextHeuristic < heuristic)
-                        {
-                            card = index;
-                            heuristic = nextHeuristic;
-                        }
+                        card = index;
+                        heuristic = nextHeuristic;
                     }
-                    break;
                 }
             }
         }
@@ -152,8 +177,9 @@ public class MiniMaxAI
         }
     }
 
-    private void SelectTile(State state, int turns)
+    IEnumerator SelectTile(State state, int turns)
     {
+        yield return null;
         int move = -1;
         int heuristic = 0;
         if (state.thisPlayer == 0)
@@ -165,29 +191,28 @@ public class MiniMaxAI
             heuristic = 1000000000;
         }
 
-        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
+        List<int> validMoves = state.card.GetValidAIMoves(state);
+
+        foreach (int index in validMoves)
         {
-            if (state.card.Validation(state, i))
+            State next = new State(state);
+            next.PlayTile(index);
+            yield return StartCoroutine(ControlHelper(next, turns));
+            int nextHeuristic = Heuristic(next);
+            if (state.thisPlayer == 0)
             {
-                State next = new State(state);
-                next.PlayTile(i);
-                ControlHelper(next, turns);
-                int nextHeuristic = Heuristic(next);
-                if (state.thisPlayer == 0)
+                if (nextHeuristic > heuristic)
                 {
-                    if (nextHeuristic > heuristic)
-                    {
-                        move = i;
-                        heuristic = nextHeuristic;
-                    }
+                    move = index;
+                    heuristic = nextHeuristic;
                 }
-                else
+            }
+            else
+            {
+                if (nextHeuristic < heuristic)
                 {
-                    if (nextHeuristic < heuristic)
-                    {
-                        move = i;
-                        heuristic = nextHeuristic;
-                    }
+                    move = index;
+                    heuristic = nextHeuristic;
                 }
             }
         }
@@ -195,8 +220,9 @@ public class MiniMaxAI
         state.tileIndex = move;
     }
 
-    private void SelectDiscard(State state, int turns)
+    IEnumerator SelectDiscard(State state, int turns)
     {
+        yield return null;
         Player player = state.players[state.thisPlayer];
         int card = -1;
         int heuristic = 0;
@@ -215,7 +241,7 @@ public class MiniMaxAI
             State next = new State(state);
             next.SetCard(index);
             next.DiscardCard();
-            ControlHelper(next, turns);
+            yield return StartCoroutine(ControlHelper(next, turns));
             int nextHeuristic = Heuristic(next);
             if (state.thisPlayer == 0)
             {
@@ -245,18 +271,9 @@ public class MiniMaxAI
         }
     }
 
-    private Task FastDelay(int delay)
+    public static int Heuristic(State state)
     {
-        int thisTime = (int)Time.time;
-        if (thisTime - lastTime < delay)
-        {
-            return Task.Delay(delay - (thisTime - lastTime));
-        }
-        return Task.Delay(0);
-    }
-
-    private int Heuristic(State state)
-    {
+        state.ChangeTurn();
         state.UpdatePoints();
         if (state.turn > state.maxTurns)
         {

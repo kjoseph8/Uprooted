@@ -9,6 +9,7 @@ using TMPro;
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private CardCollection collection;
+    [SerializeField] private MiniMaxAI gameAI;
     [SerializeField] private TileBase rootTile;
     [SerializeField] private TileBase deadRootTile;
     [SerializeField] private TileBase seedTile;
@@ -49,7 +50,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private AudioSource backgroundMusic;
     [SerializeField] private ParticleSystem rain;
     [HideInInspector] public State state;
-    private MiniMaxAI gameAI;
     private bool gameEnded = false;
     private int[] hoveredIndexes = new int[] { -1, -1 };
     private float turnFactor = 0;
@@ -58,7 +58,6 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        gameAI = new MiniMaxAI();
         state = new State(collection, rootTile, deadRootTile, seedTile, woodShieldTile, metalShieldTile, thornTile, strongFireTile, weakFireTile);
         ChangeTurn(true);
     }
@@ -140,7 +139,7 @@ public class GameManager : MonoBehaviour
                 turnChange.GetComponent<Animator>().Play("Sweep");
                 if (state.players[state.thisPlayer].ai)
                 {
-                    gameAI.Control(state, this);
+                    StartCoroutine(gameAI.Control(state, this));
                 }
             }
         }

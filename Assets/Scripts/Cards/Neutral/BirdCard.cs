@@ -24,31 +24,6 @@ public class BirdCard : Card
         return state.players[state.otherPlayer].water > 0;
     }
 
-    public override bool AIValidation(State state)
-    {
-        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
-        {
-            if (Validation(state, i))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public override List<int> GetValidAIMoves(State state)
-    {
-        List<int> validMoves = new List<int>();
-        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
-        {
-            if (Validation(state, i))
-            {
-                validMoves.Add(i);
-            }
-        }
-        return validMoves;
-    }
-
     public override void Action(State state, int index)
     {
         state.players[state.otherPlayer].water -= 2;
@@ -61,10 +36,5 @@ public class BirdCard : Card
     public override string GetDisabledMessage()
     {
         return "Your opponent has no water to reduce.";
-    }
-
-    public override bool OverrideHighlight(State state, int index)
-    {
-        return false;
     }
 }

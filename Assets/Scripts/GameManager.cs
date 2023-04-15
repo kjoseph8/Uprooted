@@ -28,7 +28,13 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI turnDisp;
     [SerializeField] private GameObject turnChange;
     [SerializeField] private Button[] p1Hand;
+    [SerializeField] private TextMeshProUGUI[] p1HandCosts;
     [SerializeField] private Button[] p2Hand;
+    [SerializeField] private TextMeshProUGUI[] p2HandCosts;
+    [SerializeField] private RectTransform[] p1CounterDisps;
+    [SerializeField] private TextMeshProUGUI[] p1Counters;
+    [SerializeField] private RectTransform[] p2CounterDisps;
+    [SerializeField] private TextMeshProUGUI[] p2Counters;
     [SerializeField] private Button[] rootButtons;
     [SerializeField] private Button[] endButtons;
     [SerializeField] private Button[] playButtons;
@@ -36,6 +42,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button[] cancelButtons;
     [SerializeField] private Button[] compostButtons;
     [SerializeField] private Image[] selectedImages;
+    [SerializeField] private TextMeshProUGUI[] selectedCosts;
     [SerializeField] private GameObject[] disabledMsgBackgrounds;
     [SerializeField] private TextMeshProUGUI[] disabledMessages;
     [SerializeField] private Sprite rootCardSprite;
@@ -148,16 +155,22 @@ public class GameManager : MonoBehaviour
     private void UpdateCards()
     {
         Button[] cardButtons;
+        TextMeshProUGUI[] cardCosts;
         Button[] otherButtons;
+        TextMeshProUGUI[] otherCosts;
         if (state.thisPlayer == 0)
         {
             cardButtons = p1Hand;
+            cardCosts = p1HandCosts;
             otherButtons = p2Hand;
+            otherCosts = p2HandCosts;
         }
         else
         {
             cardButtons = p2Hand;
+            cardCosts = p2HandCosts;
             otherButtons = p1Hand;
+            otherCosts = p1HandCosts;
         }
 
         rootButtons[state.otherPlayer].interactable = false;
@@ -194,6 +207,7 @@ public class GameManager : MonoBehaviour
                 cardButtons[i].gameObject.SetActive(true);
                 cardButtons[i].interactable = true;
                 cardButtons[i].image.sprite = State.collection.sprites[hand[i]];
+                cardCosts[i].text = $"{State.collection.cards[hand[i]].GetCost(state)}";
                 int defaultI = 2 * i;
                 int rotI = hand.Count - 1;
                 float angle = (defaultI - rotI) * Mathf.PI / 36;
@@ -207,6 +221,12 @@ public class GameManager : MonoBehaviour
             {
                 otherButtons[i].gameObject.SetActive(true);
                 otherButtons[i].interactable = false;
+                otherButtons[i].image.sprite = State.collection.sprites[otherHand[i]];
+                otherCosts[i].text = $"{State.collection.cards[otherHand[i]].GetCost(state)}";
+                int defaultI = 2 * i;
+                int rotI = otherHand.Count - 1;
+                float angle = (defaultI - rotI) * Mathf.PI / 36;
+                otherButtons[i].transform.rotation = new Quaternion(0, 0, Mathf.Sin(angle / 2), Mathf.Cos(angle / 2));
             }
             else
             {
@@ -298,11 +318,13 @@ public class GameManager : MonoBehaviour
         if (hoveredIndexes[state.thisPlayer] != -1)
         {
             selectedImages[state.thisPlayer].sprite = State.collection.sprites[hoveredIndexes[state.thisPlayer]];
+            selectedCosts[state.thisPlayer].text = $"{State.collection.cards[hoveredIndexes[state.thisPlayer]].GetCost(state)}";
             selectedImages[state.thisPlayer].gameObject.SetActive(true);
         }
         else if (state.card != null)
         {
             selectedImages[state.thisPlayer].sprite = State.collection.sprites[state.cardIndex];
+            selectedCosts[state.thisPlayer].text = $"{State.collection.cards[state.cardIndex].GetCost(state)}";
             selectedImages[state.thisPlayer].gameObject.SetActive(true);
         }
         else
@@ -313,11 +335,44 @@ public class GameManager : MonoBehaviour
         if (hoveredIndexes[state.otherPlayer] != -1)
         {
             selectedImages[state.otherPlayer].sprite = State.collection.sprites[hoveredIndexes[state.otherPlayer]];
+            selectedCosts[state.otherPlayer].text = $"{State.collection.cards[hoveredIndexes[state.otherPlayer]].GetCost(state)}";
             selectedImages[state.otherPlayer].gameObject.SetActive(true);
         }
         else
         {
             selectedImages[state.otherPlayer].gameObject.SetActive(false);
+        }
+
+        int[] p1Counts = new int[] { state.players[0].wormTurns, state.players[0].scentTurns };
+        int p1Offset = 0;
+        int[] p2Counts = new int[] { state.players[1].wormTurns, state.players[1].scentTurns };
+        int p2Offset = 0;
+        for (int i = 0; i < p1Counters.Length; i++)
+        {
+            p1Counters[i].text = $"{p1Counts[i]}";
+            p1CounterDisps[i].localPosition = new Vector3(125 * p1Offset - 150, 0, 0);
+            p2Counters[i].text = $"{p2Counts[i]}";
+            p2CounterDisps[i].localPosition = new Vector3(-125 * p2Offset + 150, 0, 0);
+
+            if (p1Counts[i] == 0)
+            {
+                p1CounterDisps[i].gameObject.SetActive(false);
+            }
+            else
+            {
+                p1CounterDisps[i].gameObject.SetActive(true);
+                p1Offset++;
+            }
+
+            if (p2Counts[i] == 0)
+            {
+                p2CounterDisps[i].gameObject.SetActive(false);
+            }
+            else
+            {
+                p2CounterDisps[i].gameObject.SetActive(true);
+                p2Offset++;
+            }
         }
     }
 

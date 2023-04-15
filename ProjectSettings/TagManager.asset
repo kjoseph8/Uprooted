@@ -3,14 +3,7 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags:
-  - Outline
-  - Water
-  - Roots1
-  - Roots2
-  - Other
-  - Rocks
-  - MenuManager
+  tags: []
   layers:
   - Default
   - TransparentFX

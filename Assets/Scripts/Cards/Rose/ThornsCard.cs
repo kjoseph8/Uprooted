@@ -11,7 +11,7 @@ public class ThornsCard : Card
 
     public override int GetCost(State state)
     {
-        return 2;
+        return 1;
     }
 
     public override int GetNumActions(State state)
@@ -40,10 +40,11 @@ public class ThornsCard : Card
         return false;
     }
 
-    public override List<int> GetValidAIMoves(State state)
+    public override IEnumerator UpdateValidAIMoves(State state)
     {
+        yield return null;
         Player player = state.players[state.otherPlayer];
-        List<int> validMoves = new List<int>();
+        state.validAIMoves.Clear();
         int minDestructibles = 0;
         for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
         {
@@ -55,16 +56,15 @@ public class ThornsCard : Card
 
                 if (destructibles > minDestructibles)
                 {
-                    validMoves.Clear();
+                    state.validAIMoves.Clear();
                     minDestructibles = destructibles;
                 }
                 if (destructibles == minDestructibles)
                 {
-                    validMoves.Add(i);
+                    state.validAIMoves.Add(i);
                 }
             }
         }
-        return validMoves;
     }
 
     public override void Action(State state, int index)
@@ -83,10 +83,5 @@ public class ThornsCard : Card
     public override string GetDisabledMessage()
     {
         return "I don't know how you did it, but there are no empty spaces on the board to place a thorn block.";
-    }
-
-    public override bool OverrideHighlight(State state, int index)
-    {
-        return false;
     }
 }

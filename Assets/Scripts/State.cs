@@ -23,6 +23,7 @@ public class State
     public int numActions = 0;
     public Player[] players;
     public int loveCardPartnerIndex = -1;
+    public List<int> validAIMoves = new List<int>();
     public static CardCollection collection;
     public static Tilemap outlineMap;
     public static Tilemap waterMap;
@@ -50,7 +51,12 @@ public class State
         State.weakFireTile = weakFireTile;
         Tilemap roots1Map = GameObject.FindGameObjectWithTag("Roots1").GetComponent<Tilemap>();
         Tilemap roots2Map = GameObject.FindGameObjectWithTag("Roots2").GetComponent<Tilemap>();
-        bool[] ai = GameObject.FindGameObjectWithTag("MenuManager").GetComponent<MenuManager>().ai;
+        GameObject menuManagerObj = GameObject.FindGameObjectWithTag("MenuManager");
+        bool[] ai = new bool[] { false, false };
+        if (menuManagerObj != null)
+        {
+            ai = menuManagerObj.GetComponent<MenuManager>().ai;
+        }
         players = new Player[2] {
             new Player(ai[0], "rose", '1', ',', '[', '!', 'i', 'I', '{', 'T', 'B', 'S', roots1Map),
             new Player(ai[1], "rose", '2', '.', ']', '@', 'z', 'Z', '}', 't', 'b', 's', roots2Map),
@@ -229,7 +235,7 @@ public class State
         return count;
     }
 
-    public int CountRock(int index, Player player)
+    public int CountAllNeighbors(int index, char[] neighbors)
     {
         int count = 0;
         int[] coords = IndexToCoord(index);
@@ -237,8 +243,12 @@ public class State
         {
             for (int y = coords[1] - 1; y <= coords[1] + 1; y++)
             {
+                if (x == y)
+                {
+                    continue;
+                }
                 char coordState = GetCoordState(x, y);
-                if (coordState == player.root || coordState == player.fortifiedRoot || coordState == player.invincibleRoot || coordState == player.baseRoot)
+                if (Array.IndexOf(neighbors, GetCoordState(x, y)) != -1)
                 {
                     count++;
                 }
@@ -253,24 +263,33 @@ public class State
         return CountNeighbors(x, y, neighbors) != 0;
     }
 
-    // Checks if path along an element exisits from (x,y) to a goal
-    public bool AStar(int x, int y, char[] path, char goal)
+    public bool HasAnyNeighbor(int index, char[] neighbors)
+    {
+        return CountAllNeighbors(index, neighbors) != 0;
+    }
+
+    // Count distance from point (x,y) along path to goal
+    public int BFS(int x, int y, char[] path, char[] goal)
     {
         Queue<int> queue = new Queue<int>();
+        Queue<int> dists = new Queue<int>();
         ArrayList visited = new ArrayList();
         int i = CoordToIndex(x, y);
+        int dist = 0;
         if (i == -1)
         {
-            return false;
+            return -1;
         }
-        if (board[i] == goal)
+        if (Array.IndexOf(goal, board[i]) != -1)
         {
-            return true;
+            return dist;
         }
         queue.Enqueue(i);
+        dists.Enqueue(dist);
         while (queue.Count != 0)
         {
             i = queue.Dequeue();
+            dist = dists.Dequeue() + 1;
             visited.Add(i);
             int[] coords = IndexToCoord(i);
             x = coords[0];
@@ -280,18 +299,19 @@ public class State
             {
                 x = dirs[j, 0];
                 y = dirs[j, 1];
-                if (GetCoordState(x, y) == goal)
+                if (Array.IndexOf(goal, GetCoordState(x, y)) != -1)
                 {
-                    return true;
+                    return dist;
                 }
                 int index = CoordToIndex(x, y);
                 if (index != -1 && Array.IndexOf(path, board[index]) != -1 && !visited.Contains(index))
                 {
                     queue.Enqueue(index);
+                    dists.Enqueue(dist);
                 }
             }
         }
-        return false;
+        return -1;
     }
 
     public void KillRoots(int x, int y, Player player)
@@ -392,7 +412,7 @@ public class State
                 }
                 else if (board[i] == 'R')
                 {
-                    int rockCount = CountRock(i, player);
+                    int rockCount = CountAllNeighbors(i, new char[] { player.root, player.fortifiedRoot, player.invincibleRoot, player.baseRoot });
                     player.rockCount += rockCount;
                     if (rockCount == 8)
                     {
@@ -400,7 +420,7 @@ public class State
                     }
                 }
             }
-            player.points = player.rootCount + player.rockCount + 5 * player.completeRockCount + 2 * player.water;
+            player.points = player.rootCount + player.rockCount + 5 * player.completeRockCount + player.water;
         }
     }
 
@@ -553,7 +573,10 @@ public class State
         thisPlayer = otherPlayer;
         otherPlayer = 1 - thisPlayer;
 
-        StartTurn();
+        if (turn <= maxTurns)
+        {
+            StartTurn();
+        }
     }
 
     public void EndTurn()

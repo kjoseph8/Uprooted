@@ -179,7 +179,6 @@ public class MiniMaxAI: MonoBehaviour
 
     IEnumerator SelectTile(State state, int turns)
     {
-        yield return null;
         int move = -1;
         int heuristic = 0;
         if (state.thisPlayer == 0)
@@ -191,9 +190,9 @@ public class MiniMaxAI: MonoBehaviour
             heuristic = 1000000000;
         }
 
-        List<int> validMoves = state.card.GetValidAIMoves(state);
+        yield return StartCoroutine(state.card.UpdateValidAIMoves(state));
 
-        foreach (int index in validMoves)
+        foreach (int index in state.validAIMoves)
         {
             State next = new State(state);
             next.PlayTile(index);
@@ -275,23 +274,37 @@ public class MiniMaxAI: MonoBehaviour
     {
         state.ChangeTurn();
         state.UpdatePoints();
-        if (state.turn > state.maxTurns)
-        {
-            if (state.players[0].points > state.players[1].points)
-            {
-                return 1000000000;
-            }
-            else if (state.players[0].points < state.players[1].points)
-            {
-                return -1000000000;
-            }
-            return 0;
-        }
         int points = state.players[0].points - state.players[1].points;
-        points += state.players[0].wormTurns;
-        points -= state.players[1].wormTurns;
-        points += 2 * state.players[0].scentTurns;
-        points -= 2 * state.players[1].scentTurns;
+        if (state.turn <= state.maxTurns)
+        {
+            points += state.players[0].wormTurns;
+            points -= state.players[1].wormTurns;
+            points += 2 * state.players[0].scentTurns;
+            points -= 2 * state.players[1].scentTurns;
+            for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
+            {
+                int[] coords = state.IndexToCoord(i);
+
+                if (Array.IndexOf(new char[] { state.players[0].strongFire, state.players[1].strongFire }, state.board[i]) != -1)
+                {
+                    points -= 2 * state.CountNeighbors(coords[0], coords[1], new char[] { state.players[0].root, state.players[0].deadRoot, state.players[0].thorn });
+                    points += 2 * state.CountNeighbors(coords[0], coords[1], new char[] { state.players[1].root, state.players[1].deadRoot, state.players[1].thorn });
+                }
+                else if (Array.IndexOf(new char[] { state.players[0].weakFire, state.players[1].weakFire }, state.board[i]) != -1)
+                {
+                    points -= state.CountNeighbors(coords[0], coords[1], new char[] { state.players[0].root, state.players[0].deadRoot, state.players[0].thorn });
+                    points += state.CountNeighbors(coords[0], coords[1], new char[] { state.players[1].root, state.players[1].deadRoot, state.players[1].thorn });
+                }
+                else if (state.board[i] == state.players[0].thorn)
+                {
+                    points += state.CountNeighbors(coords[0], coords[1], new char[] { state.players[1].root, state.players[1].fortifiedRoot, state.players[1].deadRoot, state.players[1].deadFortifiedRoot });
+                }
+                else if (state.board[i] == state.players[1].thorn)
+                {
+                    points -= state.CountNeighbors(coords[0], coords[1], new char[] { state.players[0].root, state.players[0].fortifiedRoot, state.players[0].deadRoot, state.players[0].deadFortifiedRoot });
+                }
+            }
+        }
         return points;
     }
 }

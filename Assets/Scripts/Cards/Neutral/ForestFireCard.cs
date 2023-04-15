@@ -42,31 +42,6 @@ public class ForestFireCard : Card
         return false;
     }
 
-    public override bool AIValidation(State state)
-    {
-        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
-        {
-            if (Validation(state, i))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public override List<int> GetValidAIMoves(State state)
-    {
-        List<int> validMoves = new List<int>();
-        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
-        {
-            if (Validation(state, i))
-            {
-                validMoves.Add(i);
-            }
-        }
-        return validMoves;
-    }
-
     public override void Action(State state, int index)
     {
         int[] coords = state.IndexToCoord(index);
@@ -86,7 +61,7 @@ public class ForestFireCard : Card
             int dirY = dirs[i, 1];
             int dirI = state.CoordToIndex(dirX, dirY);
             if (dirI != -1 && (state.board[dirI] == state.players[state.otherPlayer].root || state.board[dirI] == state.players[state.otherPlayer].fortifiedRoot) &&
-                !state.AStar(dirX, dirY, new char[] { state.players[state.otherPlayer].root, state.players[state.otherPlayer].fortifiedRoot }, state.players[state.otherPlayer].baseRoot))
+                state.BFS(dirX, dirY, new char[] { state.players[state.otherPlayer].root, state.players[state.otherPlayer].fortifiedRoot }, new char[] { state.players[state.otherPlayer].baseRoot }) == -1)
             {
                 if (state.board[dirI] == state.players[state.otherPlayer].root)
                 {
@@ -219,7 +194,7 @@ public class ForestFireCard : Card
                 int dirY = dirs[i, 1];
                 int dirI = state.CoordToIndex(dirX, dirY);
                 if (dirI != -1 && target == 0 && (state.board[dirI] == state.players[0].root || state.board[dirI] == state.players[0].fortifiedRoot) &&
-                !state.AStar(dirX, dirY, new char[] { state.players[0].root, state.players[0].fortifiedRoot, state.players[0].invincibleRoot }, state.players[0].baseRoot))
+                state.BFS(dirX, dirY, new char[] { state.players[0].root, state.players[0].fortifiedRoot, state.players[0].invincibleRoot }, new char[] { state.players[0].baseRoot }) == -1)
                 {
                     if (state.board[dirI] == state.players[0].root)
                     {
@@ -236,7 +211,7 @@ public class ForestFireCard : Card
                     state.KillRoots(dirX, dirY, state.players[0]);
                 }
                 else if (dirI != -1 && target == 1 && (state.board[dirI] == state.players[1].root || state.board[dirI] == state.players[1].fortifiedRoot) &&
-                !state.AStar(dirX, dirY, new char[] { state.players[1].root, state.players[1].fortifiedRoot, state.players[1].invincibleRoot }, state.players[1].baseRoot))
+                state.BFS(dirX, dirY, new char[] { state.players[1].root, state.players[1].fortifiedRoot, state.players[1].invincibleRoot }, new char[] { state.players[1].baseRoot }) == -1)
                 {
                     if (state.board[dirI] == state.players[1].root)
                     {
@@ -259,10 +234,5 @@ public class ForestFireCard : Card
     public override string GetDisabledMessage()
     {
         return "Your opponent has no end roots to ignite.";
-    }
-
-    public override bool OverrideHighlight(State state, int index)
-    {
-        return false;
     }
 }

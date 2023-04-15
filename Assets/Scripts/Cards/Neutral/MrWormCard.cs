@@ -12,7 +12,7 @@ public class MrWormCard : Card
 
     public override int GetCost(State state)
     {
-        return 2;
+        return 1;
     }
 
     public override int GetNumActions(State state)
@@ -25,31 +25,6 @@ public class MrWormCard : Card
         return state.players[state.thisPlayer].wormTurns <= state.maxTurns - state.turn;
     }
 
-    public override bool AIValidation(State state)
-    {
-        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
-        {
-            if (Validation(state, i))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public override List<int> GetValidAIMoves(State state)
-    {
-        List<int> validMoves = new List<int>();
-        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
-        {
-            if (Validation(state, i))
-            {
-                validMoves.Add(i);
-            }
-        }
-        return validMoves;
-    }
-
     public override void Action(State state, int index)
     {
         state.players[state.thisPlayer].wormTurns += 3;
@@ -58,11 +33,6 @@ public class MrWormCard : Card
     public override string GetDisabledMessage()
     {
         return "You already paid Mr.Worm enough to work for you till the end of the game.";
-    }
-
-    public override bool OverrideHighlight(State state, int index)
-    {
-        return false;
     }
 
     public static void GrowRandomRoot(State state)

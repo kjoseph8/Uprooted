@@ -32,20 +32,9 @@ public class AphidCard: Card
         return index != -1 && Array.IndexOf(new char[] { player.root, player.fortifiedRoot, player.deadRoot, player.deadFortifiedRoot, player.thorn }, state.board[index]) != -1;
     }
 
-    public override bool AIValidation(State state)
+    public override IEnumerator UpdateValidAIMoves(State state)
     {
-        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
-        {
-            if (Validation(state, i))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public override List<int> GetValidAIMoves(State state)
-    {
+        yield return null;
         Player player = state.players[state.thisPlayer];
         int heuristic = 0;
         if (state.thisPlayer == 0)
@@ -57,7 +46,7 @@ public class AphidCard: Card
             heuristic = 1000000000;
         }
 
-        List<int> validMoves = new List<int>();
+        state.validAIMoves.Clear();
         List<int> neighborRootMoves = new List<int>();
         for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
         {
@@ -78,7 +67,7 @@ public class AphidCard: Card
                 {
                     if (nextHeuristic > heuristic)
                     {
-                        validMoves.Clear();
+                        state.validAIMoves.Clear();
                         heuristic = nextHeuristic;
                     }
                 }
@@ -86,21 +75,20 @@ public class AphidCard: Card
                 {
                     if (nextHeuristic < heuristic)
                     {
-                        validMoves.Clear();
+                        state.validAIMoves.Clear();
                         heuristic = nextHeuristic;
                     }
                 }
                 if (!alreadyAdded && nextHeuristic == heuristic)
                 {
-                    validMoves.Add(i);
+                    state.validAIMoves.Add(i);
                 }
             }
         }
         foreach (int index in neighborRootMoves)
         {
-            validMoves.Add(index);
+            state.validAIMoves.Add(index);
         }
-        return validMoves;
     }
 
     public override void Action(State state, int index)
@@ -151,7 +139,7 @@ public class AphidCard: Card
             int dirY = dirs[i, 1];
             int dirI = state.CoordToIndex(dirX, dirY);
             if (dirI != -1 && (state.board[dirI] == player.root || state.board[dirI] == player.fortifiedRoot) && 
-                !state.AStar(dirX, dirY, new char[] { player.root, player.fortifiedRoot, player.invincibleRoot }, player.baseRoot))
+                state.BFS(dirX, dirY, new char[] { player.root, player.fortifiedRoot, player.invincibleRoot }, new char[] { player.baseRoot }) == -1)
             {
                 if (state.board[dirI] == player.root)
                 {
@@ -173,10 +161,5 @@ public class AphidCard: Card
     public override string GetDisabledMessage()
     {
         return "Your opponent has nothing you can destroy.";
-    }
-
-    public override bool OverrideHighlight(State state, int index)
-    {
-        return false;
     }
 }

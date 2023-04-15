@@ -42,12 +42,14 @@ public class ThickRootCard : Card
         return false;
     }
 
-    public override List<int> GetValidAIMoves(State state)
+    public override IEnumerator UpdateValidAIMoves(State state)
     {
+        yield return null;
         Player thisPlayer = state.players[state.thisPlayer];
         Player otherPlayer = state.players[state.otherPlayer];
-        char[] critical = new char[] { thisPlayer.strongFire, thisPlayer.weakFire, otherPlayer.strongFire, otherPlayer.weakFire, otherPlayer.thorn, otherPlayer.root, otherPlayer.fortifiedRoot, otherPlayer.invincibleRoot, otherPlayer.baseRoot, 'R' };
-        List<int> validMoves = new List<int>();
+        char[] enemyRoots = new char[] { otherPlayer.root, otherPlayer.fortifiedRoot, otherPlayer.invincibleRoot, otherPlayer.baseRoot};
+        char[] fires = new char[] { thisPlayer.strongFire, thisPlayer.weakFire, otherPlayer.strongFire, otherPlayer.weakFire };
+        state.validAIMoves.Clear();
         int minThreats = 0;
         for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
         {
@@ -55,19 +57,21 @@ public class ThickRootCard : Card
 
             if (Validation(state, i))
             {
-                int threats = state.CountNeighbors(coords[0], coords[1], critical);
+                int threats = state.CountAllNeighbors(i, new char[] { 'R' });
+                threats += 2 * state.CountNeighbors(coords[0], coords[1], enemyRoots);
+                threats += 3 * state.CountNeighbors(coords[0], coords[1], new char[] { otherPlayer.thorn });
+                threats += 15 * state.CountNeighbors(coords[0], coords[1], fires);
                 if (threats > minThreats)
                 {
-                    validMoves.Clear();
+                    state.validAIMoves.Clear();
                     minThreats = threats;
                 }
                 if (threats == minThreats)
                 {
-                    validMoves.Add(i);
+                    state.validAIMoves.Add(i);
                 }
             }
         }
-        return validMoves;
     }
 
     public override void Action(State state, int index)
@@ -83,10 +87,5 @@ public class ThickRootCard : Card
     public override string GetDisabledMessage()
     {
         return "You have no pairs of unfortified roots to fortify.";
-    }
-
-    public override bool OverrideHighlight(State state, int index)
-    {
-        return false;
     }
 }

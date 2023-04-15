@@ -54,17 +54,42 @@ public class RootCard: Card
         return false;
     }
 
-    public override List<int> GetValidAIMoves(State state)
+    public override IEnumerator UpdateValidAIMoves(State state)
     {
-        List<int> validMoves = new List<int>();
+        Player player = state.players[state.thisPlayer];
+        state.validAIMoves.Clear();
+        int maxDist = 1000000000;
         for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
         {
+            int[] coords = state.IndexToCoord(i);
+
             if (Validation(state, i))
             {
-                validMoves.Add(i);
+                int dist = -1;
+                if (state.HasAnyNeighbor(i, new char[] { 'R' }) || state.HasNeighbor(coords[0], coords[1], new char[] { player.deadRoot, player.deadFortifiedRoot, player.deadInvincibleRoot }))
+                {
+                    dist = 0;
+                }
+                else
+                {
+                    yield return null;
+                    dist = state.BFS(coords[0], coords[1], new char[] { '-' }, new char[] { player.deadRoot, player.deadFortifiedRoot, player.deadInvincibleRoot, 'W', 'R' });
+                }
+                if (dist == -1)
+                {
+                    dist = 1000000000;
+                }
+                if (dist < maxDist)
+                {
+                    state.validAIMoves.Clear();
+                    maxDist = dist;
+                }
+                if (dist == maxDist)
+                {
+                    state.validAIMoves.Add(i);
+                }
             }
         }
-        return validMoves;
     }
 
     public override void Action(State state, int index)

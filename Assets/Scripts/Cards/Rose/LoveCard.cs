@@ -86,16 +86,17 @@ public class LoveCard : Card
         return false;
     }
 
-    public override List<int> GetValidAIMoves(State state)
+    public override IEnumerator UpdateValidAIMoves(State state)
     {
-        List<int> validMoves = new List<int>();
+        yield return null;
+        state.validAIMoves.Clear();
         if (state.numActions != GetNumActions(state))
         {
             for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
             {
                 if (Validation(state, i))
                 {
-                    validMoves.Add(i);
+                    state.validAIMoves.Add(i);
                 }
             }
         }
@@ -103,7 +104,8 @@ public class LoveCard : Card
         {
             Player thisPlayer = state.players[state.thisPlayer];
             Player otherPlayer = state.players[state.otherPlayer];
-            char[] critical = new char[] { thisPlayer.strongFire, thisPlayer.weakFire, otherPlayer.strongFire, otherPlayer.weakFire, otherPlayer.thorn, otherPlayer.root, otherPlayer.fortifiedRoot, otherPlayer.invincibleRoot, otherPlayer.baseRoot, 'R' };
+            char[] enemyRoots = new char[] { otherPlayer.root, otherPlayer.fortifiedRoot, otherPlayer.invincibleRoot, otherPlayer.baseRoot };
+            char[] fires = new char[] { thisPlayer.strongFire, thisPlayer.weakFire, otherPlayer.strongFire, otherPlayer.weakFire };
             int minThreats = 0;
             for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
             {
@@ -111,20 +113,22 @@ public class LoveCard : Card
 
                 if (Validation(state, i))
                 {
-                    int threats = state.CountNeighbors(coords[0], coords[1], critical);
+                    int threats = state.CountAllNeighbors(i, new char[] { 'R' });
+                    threats += 2 * state.CountNeighbors(coords[0], coords[1], enemyRoots);
+                    threats += 3 * state.CountNeighbors(coords[0], coords[1], new char[] { otherPlayer.thorn });
+                    threats += 15 * state.CountNeighbors(coords[0], coords[1], fires);
                     if (threats > minThreats)
                     {
-                        validMoves.Clear();
+                        state.validAIMoves.Clear();
                         minThreats = threats;
                     }
                     if (threats == minThreats)
                     {
-                        validMoves.Add(i);
+                        state.validAIMoves.Add(i);
                     }
                 }
             }
         }
-        return validMoves;
     }
 
     public override void Action(State state, int index)
@@ -143,10 +147,5 @@ public class LoveCard : Card
     public override string GetDisabledMessage()
     {
         return "You have no pairs of unfortified roots to fortify.";
-    }
-
-    public override bool OverrideHighlight(State state, int index)
-    {
-        return false;
     }
 }

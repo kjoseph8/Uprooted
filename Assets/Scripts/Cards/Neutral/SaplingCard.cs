@@ -34,21 +34,10 @@ public class SaplingCard : Card
         return state.board[index] == '-' && state.CountNeighbors(x, y, new char[] { '0' }) > 0;
     }
 
-    public override bool AIValidation(State state)
+    public override IEnumerator UpdateValidAIMoves(State state)
     {
-        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
-        {
-            if (Validation(state, i))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public override List<int> GetValidAIMoves(State state)
-    {
-        List<int> validMoves = new List<int>();
+        yield return null;
+        state.validAIMoves.Clear();
         List<int> options1 = new List<int>();
         List<int> options2 = new List<int>();
         for (int i = 0; i <= state.boardWidth/2; i += state.boardWidth / 2)
@@ -68,12 +57,12 @@ public class SaplingCard : Card
             }
             if (options1.Count > 0)
             {
-                validMoves.Add(options1[new System.Random().Next(0, options1.Count)]);
+                state.validAIMoves.Add(options1[new System.Random().Next(0, options1.Count)]);
             }
             options1.Clear();
             if (options2.Count > 0)
             {
-                validMoves.Add(options2[new System.Random().Next(0, options2.Count)]);
+                state.validAIMoves.Add(options2[new System.Random().Next(0, options2.Count)]);
             }
             options2.Clear();
         }
@@ -95,16 +84,15 @@ public class SaplingCard : Card
             }
             if (options1.Count > 0)
             {
-                validMoves.Add(options1[new System.Random().Next(0, options1.Count)]);
+                state.validAIMoves.Add(options1[new System.Random().Next(0, options1.Count)]);
             }
             options1.Clear();
             if (options2.Count > 0)
             {
-                validMoves.Add(options2[new System.Random().Next(0, options2.Count)]);
+                state.validAIMoves.Add(options2[new System.Random().Next(0, options2.Count)]);
             }
             options2.Clear();
         }
-        return validMoves;
     }
 
     public override void Action(State state, int index)
@@ -125,10 +113,5 @@ public class SaplingCard : Card
     public override string GetDisabledMessage()
     {
         return "There are no empty tiles at the border of the map to place a new sapling.";
-    }
-
-    public override bool OverrideHighlight(State state, int index)
-    {
-        return false;
     }
 }

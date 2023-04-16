@@ -32,62 +32,40 @@ public class AphidCard: Card
         return index != -1 && Array.IndexOf(new char[] { player.root, player.fortifiedRoot, player.deadRoot, player.deadFortifiedRoot, player.thorn }, state.board[index]) != -1;
     }
 
-    public override IEnumerator UpdateValidAIMoves(State state)
+    public override bool AIValidation(State state)
     {
-        yield return null;
         Player player = state.players[state.thisPlayer];
-        int heuristic = 0;
-        if (state.thisPlayer == 0)
-        {
-            heuristic = -1000000000;
-        }
-        else
-        {
-            heuristic = 1000000000;
-        }
-
-        state.validAIMoves.Clear();
-        List<int> neighborRootMoves = new List<int>();
         for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
         {
             if (Validation(state, i))
             {
-                bool alreadyAdded = false;
                 int[] coords = state.IndexToCoord(i);
-                if (state.CountNeighbors(coords[0], coords[1], new char[] { player.root, player.fortifiedRoot, player.invincibleRoot, player.baseRoot }) > 0)
+                if (state.CountNeighbors(coords[0], coords[1], new char[] { player.root, player.fortifiedRoot, player.invincibleRoot, player.baseRoot }) > 0
+                    || state.board[i] == state.players[state.otherPlayer].thorn)
                 {
-                    neighborRootMoves.Add(i);
-                    alreadyAdded = true;
+                    return true;
                 }
+            }
+        }
+        return false;
+    }
 
-                State next = new State(state);
-                next.PlayTile(i);
-                int nextHeuristic = MiniMaxAI.Heuristic(next);
-                if (state.thisPlayer == 0)
-                {
-                    if (nextHeuristic > heuristic)
-                    {
-                        state.validAIMoves.Clear();
-                        heuristic = nextHeuristic;
-                    }
-                }
-                else
-                {
-                    if (nextHeuristic < heuristic)
-                    {
-                        state.validAIMoves.Clear();
-                        heuristic = nextHeuristic;
-                    }
-                }
-                if (!alreadyAdded && nextHeuristic == heuristic)
+    public override IEnumerator UpdateValidAIMoves(State state)
+    {
+        yield return null;
+        Player player = state.players[state.thisPlayer];
+        state.validAIMoves.Clear();
+        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
+        {
+            if (Validation(state, i))
+            {
+                int[] coords = state.IndexToCoord(i);
+                if (state.CountNeighbors(coords[0], coords[1], new char[] { player.root, player.fortifiedRoot, player.invincibleRoot, player.baseRoot }) > 0
+                    || state.board[i] == state.players[state.otherPlayer].thorn)
                 {
                     state.validAIMoves.Add(i);
                 }
             }
-        }
-        foreach (int index in neighborRootMoves)
-        {
-            state.validAIMoves.Add(index);
         }
     }
 

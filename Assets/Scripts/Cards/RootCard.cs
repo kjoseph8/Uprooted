@@ -90,6 +90,12 @@ public class RootCard: Card
                 }
             }
         }
+        if (maxDist == 1000000000 && state.validAIMoves.Count > 0)
+        {
+            int index = state.validAIMoves[new System.Random().Next(0, state.validAIMoves.Count)];
+            state.validAIMoves.Clear();
+            state.validAIMoves.Add(index);
+        }
     }
 
     public override void Action(State state, int index)

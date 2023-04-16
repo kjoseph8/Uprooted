@@ -437,6 +437,7 @@ public class State
         {
             tilePhase = false;
         }
+        UpdatePoints();
     }
 
     public void PlayCard()
@@ -462,6 +463,7 @@ public class State
         {
             discardPhase = true;
         }
+        UpdatePoints();
     }
 
     public void PlayTile(int index)
@@ -474,6 +476,7 @@ public class State
             card = null;
             cardIndex = -1;
         }
+        UpdatePoints();
     }
 
     public void DiscardCard()
@@ -484,6 +487,7 @@ public class State
         card = null;
         cardIndex = -1;
         discardPhase = false;
+        UpdatePoints();
     }
 
     public void CancelCard()
@@ -492,6 +496,7 @@ public class State
         cardIndex = -1;
         numActions = 0;
         tilePhase = false;
+        UpdatePoints();
     }
 
     public void CompostCard()
@@ -503,6 +508,7 @@ public class State
         card = null;
         cardIndex = -1;
         player.DrawCard();
+        UpdatePoints();
     }
 
     public void StartTurn()
@@ -577,6 +583,7 @@ public class State
         {
             StartTurn();
         }
+        UpdatePoints();
     }
 
     public void EndTurn()

@@ -192,6 +192,11 @@ public class MiniMaxAI: MonoBehaviour
 
         yield return StartCoroutine(state.card.UpdateValidAIMoves(state));
 
+        while (Mathf.Pow(state.validAIMoves.Count, state.card.GetNumActions(state)) > 10)
+        {
+            state.validAIMoves.RemoveAt(new System.Random().Next(0, state.validAIMoves.Count));
+        }
+
         foreach (int index in state.validAIMoves)
         {
             State next = new State(state);

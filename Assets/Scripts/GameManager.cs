@@ -87,9 +87,10 @@ public class GameManager : MonoBehaviour
         background.color = Color.Lerp(new Color(0.65f, 0.85f, 0.95f, 1), new Color(0, 0.1f, 0.2f, 1), turnFactor);
         backgroundMusic.pitch = 0.75f * (turnFactor + 1);
         var shape = rain.shape;
+        shape.position = new Vector3(20 - factor * 15, 0, 0);
         shape.rotation = new Vector3(0, 180 - 30 * turnFactor, 0);
         var emission = rain.emission;
-        emission.rateOverTime = new ParticleSystem.MinMaxCurve(25 + 475 * turnFactor);
+        emission.rateOverTime = new ParticleSystem.MinMaxCurve(25 + 225 * turnFactor);
         UpdateCards();
         UpdateHighlights();
         int[] coord = state.MouseToCoord();
@@ -117,7 +118,6 @@ public class GameManager : MonoBehaviour
             EndGame();
         }
 
-        state.UpdatePoints();
         for (int playerIndex = 0; playerIndex < 2; playerIndex++)
         {
             Player player = state.players[playerIndex];
@@ -207,7 +207,16 @@ public class GameManager : MonoBehaviour
                 cardButtons[i].gameObject.SetActive(true);
                 cardButtons[i].interactable = true;
                 cardButtons[i].image.sprite = State.collection.sprites[hand[i]];
-                cardCosts[i].text = $"{State.collection.cards[hand[i]].GetCost(state)}";
+                int cost = State.collection.cards[hand[i]].GetCost(state);
+                cardCosts[i].text = $"{cost}";
+                if (cost > state.players[state.thisPlayer].water)
+                {
+                    cardCosts[i].color = new Color(1, 0.5f, 0.5f, 1);
+                }
+                else
+                {
+                    cardCosts[i].color = new Color(1, 1, 1, 1);
+                }
                 int defaultI = 2 * i;
                 int rotI = hand.Count - 1;
                 float angle = (defaultI - rotI) * Mathf.PI / 36;
@@ -222,7 +231,9 @@ public class GameManager : MonoBehaviour
                 otherButtons[i].gameObject.SetActive(true);
                 otherButtons[i].interactable = false;
                 otherButtons[i].image.sprite = State.collection.sprites[otherHand[i]];
-                otherCosts[i].text = $"{State.collection.cards[otherHand[i]].GetCost(state)}";
+                int cost = State.collection.cards[otherHand[i]].GetCost(state);
+                otherCosts[i].text = $"{cost}";
+                otherCosts[i].color = new Color(0.5f, 0.5f, 0.5f, 1);
                 int defaultI = 2 * i;
                 int rotI = otherHand.Count - 1;
                 float angle = (defaultI - rotI) * Mathf.PI / 36;
@@ -318,13 +329,31 @@ public class GameManager : MonoBehaviour
         if (hoveredIndexes[state.thisPlayer] != -1)
         {
             selectedImages[state.thisPlayer].sprite = State.collection.sprites[hoveredIndexes[state.thisPlayer]];
-            selectedCosts[state.thisPlayer].text = $"{State.collection.cards[hoveredIndexes[state.thisPlayer]].GetCost(state)}";
+            int cost = State.collection.cards[hoveredIndexes[state.thisPlayer]].GetCost(state);
+            selectedCosts[state.thisPlayer].text = $"{cost}";
+            if (cost > state.players[state.thisPlayer].water)
+            {
+                selectedCosts[state.thisPlayer].color = new Color(1, 0.5f, 0.5f, 1);
+            }
+            else
+            {
+                selectedCosts[state.thisPlayer].color = new Color(1, 1, 1, 1);
+            }
             selectedImages[state.thisPlayer].gameObject.SetActive(true);
         }
         else if (state.card != null)
         {
             selectedImages[state.thisPlayer].sprite = State.collection.sprites[state.cardIndex];
-            selectedCosts[state.thisPlayer].text = $"{State.collection.cards[state.cardIndex].GetCost(state)}";
+            int cost = State.collection.cards[state.cardIndex].GetCost(state);
+            selectedCosts[state.thisPlayer].text = $"{cost}";
+            if (cost > state.players[state.thisPlayer].water)
+            {
+                selectedCosts[state.thisPlayer].color = new Color(1, 0.5f, 0.5f, 1);
+            }
+            else
+            {
+                selectedCosts[state.thisPlayer].color = new Color(1, 1, 1, 1);
+            }
             selectedImages[state.thisPlayer].gameObject.SetActive(true);
         }
         else
@@ -335,7 +364,16 @@ public class GameManager : MonoBehaviour
         if (hoveredIndexes[state.otherPlayer] != -1)
         {
             selectedImages[state.otherPlayer].sprite = State.collection.sprites[hoveredIndexes[state.otherPlayer]];
-            selectedCosts[state.otherPlayer].text = $"{State.collection.cards[hoveredIndexes[state.otherPlayer]].GetCost(state)}";
+            int cost = State.collection.cards[hoveredIndexes[state.otherPlayer]].GetCost(state);
+            selectedCosts[state.otherPlayer].text = $"{cost}";
+            if (cost > state.players[state.otherPlayer].water)
+            {
+                selectedCosts[state.otherPlayer].color = new Color(1, 0.5f, 0.5f, 1);
+            }
+            else
+            {
+                selectedCosts[state.otherPlayer].color = new Color(1, 1, 1, 1);
+            }
             selectedImages[state.otherPlayer].gameObject.SetActive(true);
         }
         else
@@ -502,6 +540,7 @@ public class GameManager : MonoBehaviour
     {
         gameEnded = true;
         phaseDispBG.SetActive(false);
+        tornadoAnim.gameObject.SetActive(true);
         int p1Points = state.players[0].points;
         int p2Points = state.players[1].points;
 

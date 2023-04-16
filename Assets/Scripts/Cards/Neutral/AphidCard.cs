@@ -32,36 +32,37 @@ public class AphidCard: Card
         return index != -1 && Array.IndexOf(new char[] { player.root, player.fortifiedRoot, player.deadRoot, player.deadFortifiedRoot, player.thorn }, state.board[index]) != -1;
     }
 
-    public override bool AIValidation(State state)
-    {
-        Player player = state.players[state.thisPlayer];
-        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
-        {
-            if (Validation(state, i))
-            {
-                int[] coords = state.IndexToCoord(i);
-                if (state.CountNeighbors(coords[0], coords[1], new char[] { player.root, player.fortifiedRoot, player.invincibleRoot, player.baseRoot }) > 0
-                    || state.board[i] == state.players[state.otherPlayer].thorn)
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     public override IEnumerator UpdateValidAIMoves(State state)
     {
         yield return null;
         Player player = state.players[state.thisPlayer];
         state.validAIMoves.Clear();
+        bool thornExists = false;
+        bool neighboringRootExists = false;
         for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
         {
             if (Validation(state, i))
             {
                 int[] coords = state.IndexToCoord(i);
-                if (state.CountNeighbors(coords[0], coords[1], new char[] { player.root, player.fortifiedRoot, player.invincibleRoot, player.baseRoot }) > 0
-                    || state.board[i] == state.players[state.otherPlayer].thorn)
+                if (state.board[i] == state.players[state.otherPlayer].thorn)
+                {
+                    if (!thornExists)
+                    {
+                        thornExists = true;
+                        state.validAIMoves.Clear();
+                    }
+                    state.validAIMoves.Add(i);
+                }
+                else if (!thornExists && state.CountNeighbors(coords[0], coords[1], new char[] { player.root, player.fortifiedRoot, player.invincibleRoot, player.baseRoot }) > 0)
+                {
+                    if (!neighboringRootExists)
+                    {
+                        neighboringRootExists = true;
+                        state.validAIMoves.Clear();
+                    }
+                    state.validAIMoves.Add(i);
+                }
+                else if (!thornExists && !neighboringRootExists)
                 {
                     state.validAIMoves.Add(i);
                 }

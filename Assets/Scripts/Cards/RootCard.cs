@@ -42,59 +42,63 @@ public class RootCard: Card
         return false;
     }
 
-    public override bool AIValidation(State state)
-    {
-        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
-        {
-            if (Validation(state, i))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public override IEnumerator UpdateValidAIMoves(State state)
     {
+        yield return null;
         Player player = state.players[state.thisPlayer];
         state.validAIMoves.Clear();
-        int maxDist = 1000000000;
+        Queue<int> queue = new Queue<int>();
+        Queue<int> dists = new Queue<int>();
+        List<int> visited = new List<int>();
         for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
         {
             int[] coords = state.IndexToCoord(i);
-
-            if (Validation(state, i))
+            if ((state.board[i] == '-' || state.board[i] == 'W')
+                && state.CountNeighbors(coords[0], coords[1], new char[] { player.deadRoot, player.deadFortifiedRoot, player.deadInvincibleRoot }) > 0)
             {
-                int dist = -1;
-                if (state.HasAnyNeighbor(i, new char[] { 'R' }) || state.HasNeighbor(coords[0], coords[1], new char[] { player.deadRoot, player.deadFortifiedRoot, player.deadInvincibleRoot }))
-                {
-                    dist = 0;
-                }
-                else
-                {
-                    yield return null;
-                    dist = state.BFS(coords[0], coords[1], new char[] { '-' }, new char[] { player.deadRoot, player.deadFortifiedRoot, player.deadInvincibleRoot, 'W', 'R' });
-                }
-                if (dist == -1)
-                {
-                    dist = 1000000000;
-                }
-                if (dist < maxDist)
-                {
-                    state.validAIMoves.Clear();
-                    maxDist = dist;
-                }
-                if (dist == maxDist)
-                {
-                    state.validAIMoves.Add(i);
-                }
+                queue.Enqueue(i);
+                dists.Enqueue(0);
+            }
+            else if (state.board[i] == 'W' || (state.board[i] == '-' && state.CountAllNeighbors(i, new char[] { 'R' }) > 0))
+            {
+                queue.Enqueue(i);
+                dists.Enqueue(1);
             }
         }
-        if (maxDist == 1000000000 && state.validAIMoves.Count > 0)
+
+        int minDist = -1; ;
+        while (queue.Count != 0)
         {
-            int index = state.validAIMoves[new System.Random().Next(0, state.validAIMoves.Count)];
-            state.validAIMoves.Clear();
-            state.validAIMoves.Add(index);
+            int i = queue.Dequeue();
+            int dist = dists.Dequeue();
+            if (minDist != -1 && dist > minDist)
+            {
+                break;
+            }
+            else if (Validation(state, i))
+            {
+                minDist = dist;
+                state.validAIMoves.Add(i);
+            }
+            else if (minDist == -1)
+            {
+                int[] coords = state.IndexToCoord(i);
+                int x = coords[0];
+                int y = coords[1];
+                int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
+                for (int j = 0; j < 4; j++)
+                {
+                    x = dirs[j, 0];
+                    y = dirs[j, 1];
+                    int index = state.CoordToIndex(x, y);
+                    if (index != -1 && (state.board[index] == '-' || state.board[index] == 'W') && !visited.Contains(index))
+                    {
+                        queue.Enqueue(index);
+                        dists.Enqueue(dist + 1);
+                        visited.Add(index);
+                    }
+                }
+            }
         }
     }
 

@@ -280,17 +280,17 @@ public class State
         {
             return -1;
         }
-        if (Array.IndexOf(goal, board[i]) != -1)
-        {
-            return dist;
-        }
         queue.Enqueue(i);
         dists.Enqueue(dist);
+        visited.Add(i);
         while (queue.Count != 0)
         {
             i = queue.Dequeue();
-            dist = dists.Dequeue() + 1;
-            visited.Add(i);
+            dist = dists.Dequeue();
+            if (Array.IndexOf(goal, board[i]) != -1)
+            {
+                return dist;
+            }
             int[] coords = IndexToCoord(i);
             x = coords[0];
             y = coords[1];
@@ -299,15 +299,12 @@ public class State
             {
                 x = dirs[j, 0];
                 y = dirs[j, 1];
-                if (Array.IndexOf(goal, GetCoordState(x, y)) != -1)
-                {
-                    return dist;
-                }
                 int index = CoordToIndex(x, y);
-                if (index != -1 && Array.IndexOf(path, board[index]) != -1 && !visited.Contains(index))
+                if (index != -1 && (Array.IndexOf(path, board[index]) != -1 || Array.IndexOf(goal, board[index]) != -1) && !visited.Contains(index))
                 {
                     queue.Enqueue(index);
-                    dists.Enqueue(dist);
+                    dists.Enqueue(dist + 1);
+                    visited.Add(index);
                 }
             }
         }

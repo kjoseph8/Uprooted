@@ -52,6 +52,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI winnerDisp;
     [SerializeField] private Animator[] defeatAnims;
     [SerializeField] private Tile highlightTile;
+    [SerializeField] private Animator tornadoWarning;
+    [SerializeField] private AudioClip tornadoSiren;
+    [SerializeField] private AudioSource soundSrc;
     [SerializeField] private GameObject backgroundObj;
     [SerializeField] private ParticleSystem rain;
     [SerializeField] private Animator tornadoAnim;
@@ -109,7 +112,7 @@ public class GameManager : MonoBehaviour
                     validCursor.transform.position = state.CoordToWorld(coord[0], coord[1]);
                     if (Input.GetMouseButtonDown(0))
                     {
-                        state.PlayTile(index);
+                        PlayTile(index);
                     }
                 }
                 else
@@ -147,8 +150,16 @@ public class GameManager : MonoBehaviour
 
             if (state.turn <= state.maxTurns)
             {
-                turnChange.GetComponent<TextMeshProUGUI>().text = $"Player {state.thisPlayer + 1}'s Turn";
-                turnChange.GetComponent<Animator>().Play("Sweep");
+                if (state.thisPlayer == 0 && state.turn == state.maxTurns - 4)
+                {
+                    tornadoWarning.enabled = true;
+                    soundSrc.PlayOneShot(tornadoSiren);
+                }
+                else
+                {
+                    turnChange.GetComponent<TextMeshProUGUI>().text = $"Player {state.thisPlayer + 1}'s Turn";
+                    turnChange.GetComponent<Animator>().Play("Sweep");
+                }
                 if (state.players[state.thisPlayer].ai)
                 {
                     StartCoroutine(gameAI.Control(state, this));
@@ -436,12 +447,22 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void PlayCard()
+    public void PlayCard(bool ai)
     {
-        if (!state.players[state.thisPlayer].ai)
+        if (ai || !state.players[state.thisPlayer].ai)
         {
+            if (state.card.GetNumActions(state) == 0)
+            {
+                soundSrc.PlayOneShot(State.collection.sounds[state.cardIndex]);
+            }
             state.PlayCard();
         }
+    }
+
+    public void PlayTile(int index)
+    {
+        soundSrc.PlayOneShot(State.collection.sounds[state.cardIndex]);
+        state.PlayTile(index);
     }
 
     public void DiscardCard()

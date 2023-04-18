@@ -46,7 +46,7 @@ public class MiniMaxAI: MonoBehaviour
             }
             else
             {
-                state.PlayTile(state.tileIndex);
+                manager.PlayTile(state.tileIndex);
             }
         }
         else
@@ -61,7 +61,7 @@ public class MiniMaxAI: MonoBehaviour
             {
                 lastTime = (int)Time.time;
                 yield return new WaitForSeconds(1);
-                state.PlayCard();
+                manager.PlayCard(true);
             }
         }
         if (!finished)
@@ -321,6 +321,26 @@ public class MiniMaxAI: MonoBehaviour
                 {
                     points -= state.CountNeighbors(coords[0], coords[1], new char[] { state.players[0].root, state.players[0].deadRoot });
                     points -= 0.5f * state.CountNeighbors(coords[0], coords[1], new char[] { state.players[0].fortifiedRoot, state.players[0].deadFortifiedRoot });
+                }
+                else if (state.board[i] == state.players[0].baseRoot)
+                {
+                    List<int> start = new List<int>();
+                    start.Add(i);
+                    Player player = state.players[0];
+                    if (state.BFS(start, new char[] { player.root, player.fortifiedRoot, player.invincibleRoot, player.baseRoot }, new char[0], "oasis") != -1)
+                    {
+                        points += state.maxTurns - state.turn;
+                    }
+                }
+                else if (state.board[i] == state.players[1].baseRoot)
+                {
+                    List<int> start = new List<int>();
+                    start.Add(i);
+                    Player player = state.players[1];
+                    if (state.BFS(start, new char[] { player.root, player.fortifiedRoot, player.invincibleRoot, player.baseRoot }, new char[0], "oasis") != -1)
+                    {
+                        points -= state.maxTurns - state.turn;
+                    }
                 }
             }
         }

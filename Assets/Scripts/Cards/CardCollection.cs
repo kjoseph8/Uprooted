@@ -5,6 +5,7 @@ using UnityEngine;
 public class CardCollection : MonoBehaviour
 {
     public Sprite[] sprites;
+    public AudioClip[] sounds;
     [HideInInspector]
     public Card[] cards = new Card[]
     {

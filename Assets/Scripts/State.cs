@@ -658,8 +658,16 @@ public class State
         }
 
         Player player = players[thisPlayer];
-        player.water += (turn - 1) / 10 + 2;
-        player.rootMoves = 2;
+        if (turn > maxTurns - 5)
+        {
+            player.rootMoves = 3;
+            player.water += 3;
+        }
+        else
+        {
+            player.rootMoves = 2;
+            player.water += 2;
+        }
 
         if (player.scentTurns > 0)
         {
@@ -667,7 +675,6 @@ public class State
             player.scentTurns--;
         }
 
-        List<int> lava = new List<int>();
         for (int i = 0; i < boardHeight * boardWidth; i++)
         {
             if (board[i] == player.baseRoot)

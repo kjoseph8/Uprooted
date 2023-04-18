@@ -57,7 +57,7 @@ public class RootCard: Card
             {
                 priority.Add(i);
             }
-            else if (state.board[i] == 'W' || (state.board[i] == '-' && state.CountAllNeighbors(i, new char[] { 'R' }) > 0))
+            else if (state.board[i] == 'W' || (state.board[i] == '-' && (state.CountAllNeighbors(i, new char[] { 'R' }) > 0 || state.oasisIndexes.Contains(i))))
             {
                 otherTarget.Add(i);
             }
@@ -72,6 +72,10 @@ public class RootCard: Card
             start.Add(i);
         }
         state.BFS(start, new char[] { '-' }, new char[0], "rootAI");
+        if (state.validAIMoves.Count == 0)
+        {
+            base.UpdateValidAIMoves(state);
+        }
     }
 
     public override void Action(State state, int index)

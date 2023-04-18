@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private MiniMaxAI gameAI;
     [SerializeField] private TileBase rootTile;
     [SerializeField] private TileBase deadRootTile;
+    [SerializeField] private TileBase rockTile;
     [SerializeField] private TileBase seedTile;
     [SerializeField] private TileBase woodShieldTile;
     [SerializeField] private TileBase metalShieldTile;
@@ -49,14 +50,15 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject validCursor;
     [SerializeField] private GameObject invalidCursor;
     [SerializeField] private TextMeshProUGUI winnerDisp;
-    [SerializeField] private Animator tornadoAnim;
     [SerializeField] private Animator[] defeatAnims;
-    [SerializeField] private Tilemap highlightMap;
     [SerializeField] private Tile highlightTile;
-    [SerializeField] private SpriteRenderer background;
-    [SerializeField] private AudioSource backgroundMusic;
+    [SerializeField] private GameObject backgroundObj;
     [SerializeField] private ParticleSystem rain;
+    [SerializeField] private Animator tornadoAnim;
     [HideInInspector] public State state;
+    private SpriteRenderer background;
+    private AudioSource backgroundMusic;
+    private Tilemap highlightMap;
     private bool gameEnded = false;
     private int[] hoveredIndexes = new int[] { -1, -1 };
     private float turnFactor = 0;
@@ -65,7 +67,10 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        state = new State(collection, rootTile, deadRootTile, seedTile, woodShieldTile, metalShieldTile, thornTile, strongFireTile, weakFireTile);
+        background = backgroundObj.GetComponent<SpriteRenderer>();
+        backgroundMusic = backgroundObj.GetComponent<AudioSource>();
+        highlightMap = GameObject.FindGameObjectWithTag("Highlights").GetComponent<Tilemap>();
+        state = new State(collection, rootTile, deadRootTile, rockTile, seedTile, woodShieldTile, metalShieldTile, thornTile, strongFireTile, weakFireTile);
         ChangeTurn(true);
     }
 
@@ -87,7 +92,7 @@ public class GameManager : MonoBehaviour
         background.color = Color.Lerp(new Color(0.65f, 0.85f, 0.95f, 1), new Color(0, 0.1f, 0.2f, 1), turnFactor);
         backgroundMusic.pitch = 0.75f * (turnFactor + 1);
         var shape = rain.shape;
-        shape.position = new Vector3(20 - factor * 15, 0, 0);
+        shape.position = new Vector3(20 - factor * 20, 0, 0);
         shape.rotation = new Vector3(0, 180 - 30 * turnFactor, 0);
         var emission = rain.emission;
         emission.rateOverTime = new ParticleSystem.MinMaxCurve(25 + 225 * turnFactor);
@@ -471,8 +476,13 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            hoveredIndexes[0] = -1;
+            hoveredIndexes[0] = 0;
         }
+    }
+
+    public void UnsetP1HoverIndex()
+    {
+        hoveredIndexes[0] = -1;
     }
 
     public void SetP2HoverIndex(int index)
@@ -483,8 +493,13 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            hoveredIndexes[1] = -1;
+            hoveredIndexes[1] = 0;
         }
+    }
+
+    public void UnsetP2HoverIndex()
+    {
+        hoveredIndexes[1] = -1;
     }
 
     public void PlayButtonHover(bool activate)

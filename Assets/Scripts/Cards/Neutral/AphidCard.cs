@@ -117,8 +117,10 @@ public class AphidCard: Card
             int dirX = dirs[i, 0];
             int dirY = dirs[i, 1];
             int dirI = state.CoordToIndex(dirX, dirY);
+            List<int> start = new List<int>();
+            start.Add(dirI);
             if (dirI != -1 && (state.board[dirI] == player.root || state.board[dirI] == player.fortifiedRoot) && 
-                state.BFS(dirX, dirY, new char[] { player.root, player.fortifiedRoot, player.invincibleRoot }, new char[] { player.baseRoot }) == -1)
+                state.BFS(start, new char[] { player.root, player.fortifiedRoot, player.invincibleRoot }, new char[] { player.baseRoot }) == -1)
             {
                 if (state.board[dirI] == player.root)
                 {

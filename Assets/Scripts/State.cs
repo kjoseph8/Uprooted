@@ -22,14 +22,19 @@ public class State
     public int tileIndex = -1;
     public int numActions = 0;
     public Player[] players;
+    public List<int> oasisIndexes;
     public int loveCardPartnerIndex = -1;
-    public List<int> validAIMoves = new List<int>();
+    public List<int> validAIMoves;
     public static CardCollection collection;
     public static Tilemap outlineMap;
     public static Tilemap waterMap;
+    public static Tilemap rockMap;
     public static Tilemap otherMap;
+    public static Tilemap oasisMap;
+    public static Tilemap lavaMap;
     public static TileBase rootTile;
     public static TileBase deadRootTile;
+    public static TileBase rockTile;
     public static TileBase seedTile;
     public static TileBase woodShieldTile;
     public static TileBase metalShieldTile;
@@ -37,12 +42,13 @@ public class State
     public static TileBase strongFireTile;
     public static TileBase weakFireTile;
 
-    public State(CardCollection collection, TileBase rootTile, TileBase deadRootTile, TileBase seedTile, TileBase woodShieldTile, TileBase metalShieldTile, TileBase thornTile, TileBase strongFireTile, TileBase weakFireTile)
+    public State(CardCollection collection, TileBase rootTile, TileBase deadRootTile, TileBase rockTile, TileBase seedTile, TileBase woodShieldTile, TileBase metalShieldTile, TileBase thornTile, TileBase strongFireTile, TileBase weakFireTile)
     {
         absolute = true;
         State.collection = collection;
         State.rootTile = rootTile;
         State.deadRootTile = deadRootTile;
+        State.rockTile = rockTile;
         State.seedTile = seedTile;
         State.woodShieldTile = woodShieldTile;
         State.metalShieldTile = metalShieldTile;
@@ -61,10 +67,25 @@ public class State
             new Player(ai[0], "rose", '1', ',', '[', '!', 'i', 'I', '{', 'T', 'B', 'S', roots1Map),
             new Player(ai[1], "rose", '2', '.', ']', '@', 'z', 'Z', '}', 't', 'b', 's', roots2Map),
         };
+        oasisIndexes = new List<int>();
+        validAIMoves = new List<int>();
         outlineMap = GameObject.FindGameObjectWithTag("Outline").GetComponent<Tilemap>();
         waterMap = GameObject.FindGameObjectWithTag("Water").GetComponent<Tilemap>();
-        Tilemap rockMap = GameObject.FindGameObjectWithTag("Rocks").GetComponent<Tilemap>();
+        rockMap = GameObject.FindGameObjectWithTag("Rocks").GetComponent<Tilemap>();
         otherMap = GameObject.FindGameObjectWithTag("Other").GetComponent<Tilemap>();
+        Tilemap planetMap = GameObject.FindGameObjectWithTag("Planet").GetComponent<Tilemap>();
+        GameObject oasis = GameObject.FindGameObjectWithTag("Oasis");
+        oasisMap = null;
+        if (oasis != null)
+        {
+            oasisMap = oasis.GetComponent<Tilemap>();
+        }
+        GameObject lava = GameObject.FindGameObjectWithTag("Lava");
+        lavaMap = null;
+        if (lava != null)
+        {
+            lavaMap = lava.GetComponent<Tilemap>();
+        }
 
         BoundsInt bounds = outlineMap.cellBounds;
         boardHeight = bounds.size.y;
@@ -77,9 +98,28 @@ public class State
         TileBase[] roots1Tiles = roots1Map.GetTilesBlock(bounds);
         TileBase[] roots2Tiles = roots2Map.GetTilesBlock(bounds);
         TileBase[] otherTiles = otherMap.GetTilesBlock(bounds);
+        TileBase[] planetTiles = planetMap.GetTilesBlock(bounds);
+        TileBase[] oasisTiles = null;
+        if (oasisMap != null)
+        {
+            oasisTiles = oasisMap.GetTilesBlock(bounds);
+        }
+        TileBase[] lavaTiles = null;
+        if (lavaMap != null)
+        {
+            lavaTiles = lavaMap.GetTilesBlock(bounds);
+        }
         for (int i = 0; i < boardHeight * boardWidth; i++)
         {
-            if (waterTiles[i] != null)
+            if (oasisTiles != null && oasisTiles[i] != null && planetTiles[i] == null)
+            {
+                oasisIndexes.Add(i);
+            }
+            if (lavaTiles != null && lavaTiles[i] != null)
+            {
+                board[i] = 'L';
+            }
+            else if (waterTiles[i] != null)
             {
                 board[i] = 'W';
             }
@@ -137,10 +177,16 @@ public class State
         numActions = parent.numActions;
         loveCardPartnerIndex = parent.loveCardPartnerIndex;
         players = new Player[2] { new Player(parent.players[0]), new Player(parent.players[1]) };
+        validAIMoves = new List<int>();
         board = new char[parent.board.Length];
         for (int i = 0; i < board.Length; i++)
         {
             board[i] = parent.board[i];
+        }
+        oasisIndexes = new List<int>();
+        foreach (int i in parent.oasisIndexes)
+        {
+            oasisIndexes.Add(i);
         }
     }
 
@@ -239,16 +285,15 @@ public class State
     {
         int count = 0;
         int[] coords = IndexToCoord(index);
-        for (int x = coords[0] - 1; x <= coords[0] + 1; x++)
+        for (int x = -1; x <= 1; x++)
         {
-            for (int y = coords[1] - 1; y <= coords[1] + 1; y++)
+            for (int y = -1; y <= 1; y++)
             {
-                if (x == y)
+                if (x == 0 && y == 0)
                 {
                     continue;
                 }
-                char coordState = GetCoordState(x, y);
-                if (Array.IndexOf(neighbors, GetCoordState(x, y)) != -1)
+                if (Array.IndexOf(neighbors, GetCoordState(coords[0] + x, coords[1] + y)) != -1)
                 {
                     count++;
                 }
@@ -268,32 +313,84 @@ public class State
         return CountAllNeighbors(index, neighbors) != 0;
     }
 
-    // Count distance from point (x,y) along path to goal
-    public int BFS(int x, int y, char[] path, char[] goal)
+    // BFS algorithm from points in start along path to goal
+    public int BFS(List<int> start, char[] path, char[] goal, string output = "dist", int timeout = -1)
     {
         Queue<int> queue = new Queue<int>();
         Queue<int> dists = new Queue<int>();
-        ArrayList visited = new ArrayList();
-        int i = CoordToIndex(x, y);
+        List<int> visited = new List<int>();
         int dist = 0;
-        if (i == -1)
+        Player player = players[thisPlayer];
+        foreach (int i in start)
         {
-            return -1;
+            if (i != -1)
+            {
+                queue.Enqueue(i);
+                int[] coords = IndexToCoord(i);
+                if (output == "rootAI" && CountNeighbors(coords[0], coords[1], new char[] { player.deadRoot, player.deadFortifiedRoot, player.deadInvincibleRoot }) == 0)
+                {
+                    dists.Enqueue(dist + 1);
+                }
+                else
+                {
+                    dists.Enqueue(dist);
+                }
+                visited.Add(i);
+            }
         }
-        queue.Enqueue(i);
-        dists.Enqueue(dist);
-        visited.Add(i);
+        int count = 0;
+        if (output == "rootAI")
+        {
+            validAIMoves.Clear();
+        }
         while (queue.Count != 0)
         {
-            i = queue.Dequeue();
+            int i = queue.Dequeue();
             dist = dists.Dequeue();
-            if (Array.IndexOf(goal, board[i]) != -1)
+            if (timeout != -1 && dist > timeout)
             {
-                return dist;
+                if (output == "count")
+                {
+                    return count;
+                }
+                else if (output == "rootAI")
+                {
+                    return validAIMoves.Count;
+                }
+                else
+                {
+                    return -1;
+                }
+            }
+            if (output == "oasis")
+            {
+                if (oasisIndexes.Contains(i))
+                {
+                    return dist;
+                }
+            }
+            else if (output == "rootAI")
+            {
+                if (collection.cards[0].Validation(this, i))
+                {
+                    timeout = dist;
+                    validAIMoves.Add(i);
+                }
+            }
+            else if (Array.IndexOf(goal, board[i]) != -1)
+            {
+                if (output == "count")
+                {
+                    count++;
+                }
+                else
+                {
+                    return dist;
+                }
             }
             int[] coords = IndexToCoord(i);
-            x = coords[0];
-            y = coords[1];
+            int x = coords[0];
+            int y = coords[1];
             int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
             for (int j = 0; j < 4; j++)
             {
@@ -308,7 +405,14 @@ public class State
                 }
             }
         }
-        return -1;
+        if (output == "count")
+        {
+            return count;
+        }
+        else
+        {
+            return -1;
+        }
     }
 
     public void KillRoots(int x, int y, Player player)
@@ -553,16 +657,30 @@ public class State
             }
         }
 
-        players[thisPlayer].water += (turn - 1) / 10 + 2;
-        players[thisPlayer].rootMoves = 2;
+        Player player = players[thisPlayer];
+        player.water += (turn - 1) / 10 + 2;
+        player.rootMoves = 2;
 
-        if (players[thisPlayer].scentTurns > 0)
+        if (player.scentTurns > 0)
         {
-            players[thisPlayer].water++;
-            players[thisPlayer].scentTurns--;
+            player.water++;
+            player.scentTurns--;
         }
 
-        Player player = players[thisPlayer];
+        List<int> lava = new List<int>();
+        for (int i = 0; i < boardHeight * boardWidth; i++)
+        {
+            if (board[i] == player.baseRoot)
+            {
+                List<int> start = new List<int>();
+                start.Add(i);
+                if (BFS(start, new char[] { player.root, player.fortifiedRoot, player.invincibleRoot, player.baseRoot }, new char[0], "oasis") != -1)
+                {
+                    player.water++;
+                }
+            }
+        }
+
         for (int i = player.hand.Count; i < 5; i++)
         {
             player.DrawCard();

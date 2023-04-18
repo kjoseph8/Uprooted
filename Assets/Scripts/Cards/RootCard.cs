@@ -47,59 +47,31 @@ public class RootCard: Card
         yield return null;
         Player player = state.players[state.thisPlayer];
         state.validAIMoves.Clear();
-        Queue<int> queue = new Queue<int>();
-        Queue<int> dists = new Queue<int>();
-        List<int> visited = new List<int>();
+        List<int> priority = new List<int>();
+        List<int> otherTarget = new List<int>();
         for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
         {
             int[] coords = state.IndexToCoord(i);
             if ((state.board[i] == '-' || state.board[i] == 'W')
                 && state.CountNeighbors(coords[0], coords[1], new char[] { player.deadRoot, player.deadFortifiedRoot, player.deadInvincibleRoot }) > 0)
             {
-                queue.Enqueue(i);
-                dists.Enqueue(0);
+                priority.Add(i);
             }
             else if (state.board[i] == 'W' || (state.board[i] == '-' && state.CountAllNeighbors(i, new char[] { 'R' }) > 0))
             {
-                queue.Enqueue(i);
-                dists.Enqueue(1);
+                otherTarget.Add(i);
             }
         }
-
-        int minDist = -1; ;
-        while (queue.Count != 0)
+        List<int> start = new List<int>();
+        foreach (int i in priority)
         {
-            int i = queue.Dequeue();
-            int dist = dists.Dequeue();
-            if (minDist != -1 && dist > minDist)
-            {
-                break;
-            }
-            else if (Validation(state, i))
-            {
-                minDist = dist;
-                state.validAIMoves.Add(i);
-            }
-            else if (minDist == -1)
-            {
-                int[] coords = state.IndexToCoord(i);
-                int x = coords[0];
-                int y = coords[1];
-                int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
-                for (int j = 0; j < 4; j++)
-                {
-                    x = dirs[j, 0];
-                    y = dirs[j, 1];
-                    int index = state.CoordToIndex(x, y);
-                    if (index != -1 && (state.board[index] == '-' || state.board[index] == 'W') && !visited.Contains(index))
-                    {
-                        queue.Enqueue(index);
-                        dists.Enqueue(dist + 1);
-                        visited.Add(index);
-                    }
-                }
-            }
+            start.Add(i);
         }
+        foreach (int i in otherTarget)
+        {
+            start.Add(i);
+        }
+        state.BFS(start, new char[] { '-' }, new char[0], "rootAI");
     }
 
     public override void Action(State state, int index)

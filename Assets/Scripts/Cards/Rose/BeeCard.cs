@@ -55,8 +55,10 @@ public class BeeCard : Card
             int dirX = dirs[i, 0];
             int dirY = dirs[i, 1];
             int dirI = state.CoordToIndex(dirX, dirY);
+            List<int> start = new List<int>();
+            start.Add(dirI);
             if (dirI != -1 && (state.board[dirI] == state.players[state.otherPlayer].root || state.board[dirI] == state.players[state.otherPlayer].fortifiedRoot) &&
-                state.BFS(dirX, dirY, new char[] { state.players[state.otherPlayer].root, state.players[state.otherPlayer].fortifiedRoot }, new char[] { state.players[state.otherPlayer].baseRoot }) == -1)
+                state.BFS(start, new char[] { state.players[state.otherPlayer].root, state.players[state.otherPlayer].fortifiedRoot }, new char[] { state.players[state.otherPlayer].baseRoot }) == -1)
             {
                 if (state.board[dirI] == state.players[state.otherPlayer].root)
                 {

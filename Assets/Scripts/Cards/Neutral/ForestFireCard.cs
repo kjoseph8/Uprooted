@@ -23,7 +23,7 @@ public class ForestFireCard : Card
 
     public override bool Validation(State state, int index)
     {
-        if (index == -1)
+        if (index == -1 || state.oasisIndexes.Contains(index))
         {
             return false;
         }
@@ -60,8 +60,10 @@ public class ForestFireCard : Card
             int dirX = dirs[i, 0];
             int dirY = dirs[i, 1];
             int dirI = state.CoordToIndex(dirX, dirY);
+            List<int> start = new List<int>();
+            start.Add(dirI);
             if (dirI != -1 && (state.board[dirI] == state.players[state.otherPlayer].root || state.board[dirI] == state.players[state.otherPlayer].fortifiedRoot) &&
-                state.BFS(dirX, dirY, new char[] { state.players[state.otherPlayer].root, state.players[state.otherPlayer].fortifiedRoot }, new char[] { state.players[state.otherPlayer].baseRoot }) == -1)
+                state.BFS(start, new char[] { state.players[state.otherPlayer].root, state.players[state.otherPlayer].fortifiedRoot }, new char[] { state.players[state.otherPlayer].baseRoot }) == -1)
             {
                 if (state.board[dirI] == state.players[state.otherPlayer].root)
                 {
@@ -193,8 +195,10 @@ public class ForestFireCard : Card
                 int dirX = dirs[i, 0];
                 int dirY = dirs[i, 1];
                 int dirI = state.CoordToIndex(dirX, dirY);
+                List<int> start = new List<int>();
+                start.Add(dirI);
                 if (dirI != -1 && target == 0 && (state.board[dirI] == state.players[0].root || state.board[dirI] == state.players[0].fortifiedRoot) &&
-                state.BFS(dirX, dirY, new char[] { state.players[0].root, state.players[0].fortifiedRoot, state.players[0].invincibleRoot }, new char[] { state.players[0].baseRoot }) == -1)
+                state.BFS(start, new char[] { state.players[0].root, state.players[0].fortifiedRoot, state.players[0].invincibleRoot }, new char[] { state.players[0].baseRoot }) == -1)
                 {
                     if (state.board[dirI] == state.players[0].root)
                     {
@@ -211,7 +215,7 @@ public class ForestFireCard : Card
                     state.KillRoots(dirX, dirY, state.players[0]);
                 }
                 else if (dirI != -1 && target == 1 && (state.board[dirI] == state.players[1].root || state.board[dirI] == state.players[1].fortifiedRoot) &&
-                state.BFS(dirX, dirY, new char[] { state.players[1].root, state.players[1].fortifiedRoot, state.players[1].invincibleRoot }, new char[] { state.players[1].baseRoot }) == -1)
+                state.BFS(start, new char[] { state.players[1].root, state.players[1].fortifiedRoot, state.players[1].invincibleRoot }, new char[] { state.players[1].baseRoot }) == -1)
                 {
                     if (state.board[dirI] == state.players[1].root)
                     {

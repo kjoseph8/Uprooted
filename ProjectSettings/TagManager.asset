@@ -3,7 +3,18 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Outline
+  - Roots2
+  - Other
+  - Water
+  - Roots1
+  - Rocks
+  - MenuManager
+  - Highlights
+  - Oasis
+  - Planet
+  - Lava
   layers:
   - Default
   - TransparentFX

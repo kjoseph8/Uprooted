@@ -9,6 +9,12 @@ EditorBuildSettings:
     path: Assets/Scenes/Title Screen.unity
     guid: 67cde3465282983459cf45ad8c4fbd20
   - enabled: 1
-    path: Assets/Scenes/Playtest 2.unity
-    guid: d512810e78dd0644a89b5837f5e24d0d
+    path: Assets/Scenes/Garden.unity
+    guid: 746a2daa2c9730f45b5361f56d2dd86d
+  - enabled: 1
+    path: Assets/Scenes/Desert.unity
+    guid: 8919d40322d38214381cbd5c125f4738
+  - enabled: 1
+    path: Assets/Scenes/Volcano.unity
+    guid: b1f7ff91837dd2944974ffc59e4e70e0
   m_configObjects: {}

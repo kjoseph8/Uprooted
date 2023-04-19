@@ -52,7 +52,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI winnerDisp;
     [SerializeField] private Animator[] defeatAnims;
     [SerializeField] private Tile highlightTile;
-    [SerializeField] private Animator tornadoWarning;
+    [SerializeField] private GameObject tornadoWarning;
     [SerializeField] private AudioClip tornadoSiren;
     [SerializeField] private AudioSource soundSrc;
     [SerializeField] private GameObject backgroundObj;
@@ -152,7 +152,7 @@ public class GameManager : MonoBehaviour
             {
                 if (state.thisPlayer == 0 && state.turn == state.maxTurns - 4)
                 {
-                    tornadoWarning.enabled = true;
+                    tornadoWarning.SetActive(true);
                     soundSrc.PlayOneShot(tornadoSiren);
                 }
                 else

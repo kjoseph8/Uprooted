@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class SaplingCard : Card
 {
-    public override string GetName()
+    public override string GetName(State state)
     {
         return "Sapling";
     }
@@ -34,9 +34,8 @@ public class SaplingCard : Card
         return state.board[index] == '-' && state.CountNeighbors(x, y, new char[] { '0' }) > 0;
     }
 
-    public override IEnumerator UpdateValidAIMoves(State state)
+    public override void UpdateValidAIMoves(State state)
     {
-        yield return null;
         state.validAIMoves.Clear();
         List<int> options1 = new List<int>();
         List<int> options2 = new List<int>();
@@ -110,7 +109,12 @@ public class SaplingCard : Card
         state.ResurrectRoots(x, y, state.players[state.thisPlayer]);
     }
 
-    public override string GetDisabledMessage()
+    public override float GetVolume(State state)
+    {
+        return 0.5f;
+    }
+
+    public override string GetDisabledMessage(State state)
     {
         return "There are no empty tiles at the border of the map to place a new sapling.";
     }

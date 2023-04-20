@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ThickRootCard : Card
 {
-    public override string GetName()
+    public override string GetName(State state)
     {
         return "Thick Root";
     }
@@ -42,9 +42,8 @@ public class ThickRootCard : Card
         return false;
     }
 
-    public override IEnumerator UpdateValidAIMoves(State state)
+    public override void UpdateValidAIMoves(State state)
     {
-        yield return null;
         Player thisPlayer = state.players[state.thisPlayer];
         Player otherPlayer = state.players[state.otherPlayer];
         char[] enemyRoots = new char[] { otherPlayer.root, otherPlayer.fortifiedRoot, otherPlayer.invincibleRoot, otherPlayer.baseRoot};
@@ -84,7 +83,12 @@ public class ThickRootCard : Card
         }
     }
 
-    public override string GetDisabledMessage()
+    public override float GetVolume(State state)
+    {
+        return 0.6f;
+    }
+
+    public override string GetDisabledMessage(State state)
     {
         return "You have no pairs of unfortified roots to fortify.";
     }

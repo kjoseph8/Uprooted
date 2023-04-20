@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 public class State
@@ -41,6 +42,7 @@ public class State
     public static TileBase thornTile;
     public static TileBase strongFireTile;
     public static TileBase weakFireTile;
+    public static int stage = 0;
 
     public State(CardCollection collection, TileBase rootTile, TileBase deadRootTile, TileBase rockTile, TileBase seedTile, TileBase woodShieldTile, TileBase metalShieldTile, TileBase thornTile, TileBase strongFireTile, TileBase weakFireTile)
     {
@@ -55,6 +57,7 @@ public class State
         State.thornTile = thornTile;
         State.strongFireTile = strongFireTile;
         State.weakFireTile = weakFireTile;
+        State.stage = SceneManager.GetActiveScene().buildIndex;
         Tilemap roots1Map = GameObject.FindGameObjectWithTag("Roots1").GetComponent<Tilemap>();
         Tilemap roots2Map = GameObject.FindGameObjectWithTag("Roots2").GetComponent<Tilemap>();
         GameObject menuManagerObj = GameObject.FindGameObjectWithTag("MenuManager");
@@ -518,6 +521,16 @@ public class State
                     if (rockCount == 8)
                     {
                         player.completeRockCount++;
+                        if (absolute)
+                        {
+                            int[] coords = IndexToCoord(i);
+                            player.rootMap.SetTile(new Vector3Int(coords[0], coords[1]), rootTile);
+                        }
+                    }
+                    else if (absolute)
+                    {
+                        int[] coords = IndexToCoord(i);
+                        player.rootMap.SetTile(new Vector3Int(coords[0], coords[1]), null);
                     }
                 }
             }
@@ -527,6 +540,13 @@ public class State
 
     public void SetCard(int i)
     {
+        if (tilePhase && card != null && cardIndex != 0 && numActions == card.GetNumActions(this))
+        {
+            players[thisPlayer].water += card.GetCost(this);
+            players[thisPlayer].discard.Remove(cardIndex);
+            players[thisPlayer].hand.Add(cardIndex);
+            UpdatePoints();
+        }
         card = collection.cards[i];
         cardIndex = i;
         numActions = card.GetNumActions(this);
@@ -538,7 +558,6 @@ public class State
         {
             tilePhase = false;
         }
-        UpdatePoints();
     }
 
     public void PlayCard()
@@ -658,16 +677,6 @@ public class State
         }
 
         Player player = players[thisPlayer];
-        if (turn > maxTurns - 5)
-        {
-            player.rootMoves = 3;
-            player.water += 3;
-        }
-        else
-        {
-            player.rootMoves = 2;
-            player.water += 2;
-        }
 
         if (player.scentTurns > 0)
         {
@@ -675,15 +684,42 @@ public class State
             player.scentTurns--;
         }
 
-        for (int i = 0; i < boardHeight * boardWidth; i++)
+        if (State.stage != 2)
         {
-            if (board[i] == player.baseRoot)
+            if (turn > maxTurns - 5)
             {
-                List<int> start = new List<int>();
-                start.Add(i);
-                if (BFS(start, new char[] { player.root, player.fortifiedRoot, player.invincibleRoot, player.baseRoot }, new char[0], "oasis") != -1)
+                player.rootMoves = 3;
+                player.water += 3;
+            }
+            else
+            {
+                player.rootMoves = 2;
+                player.water += 2;
+            }
+        }
+        else
+        {
+            if (turn > maxTurns - 5)
+            {
+                player.rootMoves = 3;
+                player.water += 2;
+            }
+            else
+            {
+                player.rootMoves = 2;
+                player.water += 1;
+            }
+
+            for (int i = 0; i < boardHeight * boardWidth; i++)
+            {
+                if (board[i] == player.baseRoot)
                 {
-                    player.water++;
+                    List<int> start = new List<int>();
+                    start.Add(i);
+                    if (BFS(start, new char[] { player.root, player.fortifiedRoot, player.invincibleRoot, player.baseRoot }, new char[0], "oasis") != -1)
+                    {
+                        player.water++;
+                    }
                 }
             }
         }

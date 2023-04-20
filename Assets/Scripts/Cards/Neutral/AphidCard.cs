@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class AphidCard: Card
 {
-    public override string GetName()
+    public override string GetName(State state)
     {
         return "Aphid Infestation";
     }
@@ -32,9 +32,8 @@ public class AphidCard: Card
         return index != -1 && Array.IndexOf(new char[] { player.root, player.fortifiedRoot, player.deadRoot, player.deadFortifiedRoot, player.thorn }, state.board[index]) != -1;
     }
 
-    public override IEnumerator UpdateValidAIMoves(State state)
+    public override void UpdateValidAIMoves(State state)
     {
-        yield return null;
         Player player = state.players[state.thisPlayer];
         state.validAIMoves.Clear();
         bool thornExists = false;
@@ -139,7 +138,12 @@ public class AphidCard: Card
         }
     }
 
-    public override string GetDisabledMessage()
+    public override float GetVolume(State state)
+    {
+        return 0.7f;
+    }
+
+    public override string GetDisabledMessage(State state)
     {
         return "Your opponent has nothing you can destroy.";
     }

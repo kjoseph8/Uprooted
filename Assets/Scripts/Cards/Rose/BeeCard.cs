@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BeeCard : Card
 {
-    public override string GetName()
+    public override string GetName(State state)
     {
         return "A Sym-Bee-Otic Relationship";
     }
@@ -77,7 +77,12 @@ public class BeeCard : Card
         }
     }
 
-    public override string GetDisabledMessage()
+    public override float GetVolume(State state)
+    {
+        return 0.7f;
+    }
+
+    public override string GetDisabledMessage(State state)
     {
         return "None of your roots are next to any of your opponent's unfortified roots.";
     }

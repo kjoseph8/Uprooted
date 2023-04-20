@@ -1,7 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Unity.Services.Core;
+using Unity.Services.Authentication;
 
 public class MenuManager : MonoBehaviour
 {
@@ -9,10 +12,18 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private GameObject[] stagePreviews;
     [HideInInspector] public bool[] ai = new bool[] { false, false };
     private int stage = 0;
-
-    void Awake()
+    async void Awake()
     {
         DontDestroyOnLoad(this.gameObject);
+        try
+        {
+            await UnityServices.InitializeAsync();
+            await AuthenticationService.Instance.SignInAnonymouslyAsync();
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+        }
     }
 
     public void ReturnToTitle()

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ScentCard : Card
 {
-    public override string GetName()
+    public override string GetName(State state)
     {
         return "Pleasant Scent";
     }
@@ -29,7 +29,12 @@ public class ScentCard : Card
         state.players[state.thisPlayer].scentTurns += 3;
     }
 
-    public override string GetDisabledMessage()
+    public override float GetVolume(State state)
+    {
+        return 0.6f;
+    }
+
+    public override string GetDisabledMessage(State state)
     {
         return "You already smelled enough roses to last till the end of the game.";
     }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ThornsCard : Card
 {
-    public override string GetName()
+    public override string GetName(State state)
     {
         return "Every Rose has its Thorn";
     }
@@ -40,9 +40,8 @@ public class ThornsCard : Card
         return false;
     }
 
-    public override IEnumerator UpdateValidAIMoves(State state)
+    public override void UpdateValidAIMoves(State state)
     {
-        yield return null;
         Player player = state.players[state.otherPlayer];
         state.validAIMoves.Clear();
         int minDestructibles = 0;
@@ -80,7 +79,12 @@ public class ThornsCard : Card
         }
     }
 
-    public override string GetDisabledMessage()
+    public override float GetVolume(State state)
+    {
+        return 0.4f;
+    }
+
+    public override string GetDisabledMessage(State state)
     {
         return "I don't know how you did it, but there are no empty spaces on the board to place a thorn block.";
     }

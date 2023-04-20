@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Threading.Tasks;
 
 public class MiniMaxAI: MonoBehaviour
 {
@@ -13,7 +12,7 @@ public class MiniMaxAI: MonoBehaviour
         lastTime = (int)Time.time;
     }
 
-    public IEnumerator Control(State state, GameManager manager)
+    public IEnumerator Control(State state, GameManager manager, int moves = 3)
     {
         bool finished = false;
         int thisTime = (int)Time.time;
@@ -21,17 +20,16 @@ public class MiniMaxAI: MonoBehaviour
         {
             yield return new WaitForSeconds((1000 - (thisTime - lastTime)) / 1000.0f);
         }
-        yield return new WaitForSeconds(1);
         lastTime = (int)Time.time;
         if (state.discardPhase)
         {
-            yield return StartCoroutine(SelectDiscard(state, 2));
+            yield return StartCoroutine(SelectDiscard(state, moves));
             yield return new WaitForSeconds(1);
-            state.DiscardCard();
+            manager.DiscardCard(true);
         }
         else if (state.tilePhase)
         {
-            yield return StartCoroutine(SelectTile(state, 2));
+            yield return StartCoroutine(SelectTile(state, moves));
             if (state.tileIndex == -1)
             {
                 if (state.cardIndex == 0)
@@ -51,7 +49,7 @@ public class MiniMaxAI: MonoBehaviour
         }
         else
         {
-            yield return StartCoroutine(SelectCard(state, 2));
+            yield return StartCoroutine(SelectCard(state, moves));
             if (state.card == null || state.cardIndex == -1)
             {
                 manager.ChangeTurn(true);
@@ -70,21 +68,22 @@ public class MiniMaxAI: MonoBehaviour
         }
     }
 
-    IEnumerator ControlHelper(State state, int turns)
+    IEnumerator ControlHelper(State state, int moves)
     {
         bool finished = false;
         if (state.discardPhase)
         {
-            yield return StartCoroutine(SelectDiscard(state, turns));
+            yield return StartCoroutine(SelectDiscard(state, moves));
             state.DiscardCard();
         }
         else if (state.tilePhase)
         {
-            yield return StartCoroutine(SelectTile(state, turns));
+            yield return StartCoroutine(SelectTile(state, moves));
             if (state.tileIndex == -1)
             {
                 if (state.cardIndex == 0)
                 {
+                    state.ChangeTurn();
                     finished = true;
                 }
                 else
@@ -99,13 +98,14 @@ public class MiniMaxAI: MonoBehaviour
         }
         else
         {
-            turns--;
-            if (turns > 0)
+            moves--;
+            if (moves > 0)
             {
-                yield return StartCoroutine(SelectCard(state, turns));
+                yield return StartCoroutine(SelectCard(state, moves));
             }
             if (state.card == null || state.cardIndex == -1)
             {
+                state.ChangeTurn();
                 finished = true;
             }
             else if (state.cardIndex != 0)
@@ -115,29 +115,27 @@ public class MiniMaxAI: MonoBehaviour
         }
         if (!finished)
         {
-            yield return StartCoroutine(ControlHelper(state, turns));
+            yield return StartCoroutine(ControlHelper(state, moves));
         }
     }
 
-    IEnumerator SelectCard(State state, int turns)
+    IEnumerator SelectCard(State state, int moves)
     {
         yield return null;
         Player player = state.players[state.thisPlayer];
         int card = 0;
-        float heuristic = 0;
+        State next = new State(state);
         if (player.rootMoves > 0)
         {
-            State next = new State(state);
             next.SetCard(0);
             next.tilePhase = true;
-            yield return StartCoroutine(ControlHelper(next, turns));
-            heuristic = Heuristic(next);
+            next.PlayCard();
         }
         else
         {
-            State next = new State(state);
-            heuristic = Heuristic(next);
+            next.ChangeTurn();
         }
+        float heuristic = Heuristic(next);
 
         for (int i = 0; i < player.hand.Count; i++)
         {
@@ -145,10 +143,10 @@ public class MiniMaxAI: MonoBehaviour
             
             if (State.collection.cards[index].GetCost(state) <= player.water && State.collection.cards[index].AIValidation(state))
             {
-                State next = new State(state);
+                next = new State(state);
                 next.SetCard(index);
                 next.PlayCard();
-                yield return StartCoroutine(ControlHelper(next, turns));
+                yield return StartCoroutine(ControlHelper(next, moves));
                 float nextHeuristic = Heuristic(next);
                 if (state.thisPlayer == 0)
                 {
@@ -189,7 +187,7 @@ public class MiniMaxAI: MonoBehaviour
         }
     }
 
-    IEnumerator SelectTile(State state, int turns)
+    IEnumerator SelectTile(State state, int moves)
     {
         int move = -1;
         float heuristic = 0;
@@ -202,7 +200,7 @@ public class MiniMaxAI: MonoBehaviour
             heuristic = 1000000000;
         }
 
-        yield return StartCoroutine(state.card.UpdateValidAIMoves(state));
+        state.card.UpdateValidAIMoves(state);
 
         while (Mathf.Pow(state.validAIMoves.Count, state.card.GetNumActions(state)) > 10)
         {
@@ -213,7 +211,7 @@ public class MiniMaxAI: MonoBehaviour
         {
             State next = new State(state);
             next.PlayTile(index);
-            yield return StartCoroutine(ControlHelper(next, turns));
+            yield return StartCoroutine(ControlHelper(next, moves));
             float nextHeuristic = Heuristic(next);
             if (state.thisPlayer == 0)
             {
@@ -236,7 +234,7 @@ public class MiniMaxAI: MonoBehaviour
         state.tileIndex = move;
     }
 
-    IEnumerator SelectDiscard(State state, int turns)
+    IEnumerator SelectDiscard(State state, int moves)
     {
         yield return null;
         Player player = state.players[state.thisPlayer];
@@ -257,7 +255,7 @@ public class MiniMaxAI: MonoBehaviour
             State next = new State(state);
             next.SetCard(index);
             next.DiscardCard();
-            yield return StartCoroutine(ControlHelper(next, turns));
+            yield return StartCoroutine(ControlHelper(next, moves));
             float nextHeuristic = Heuristic(next);
             if (state.thisPlayer == 0)
             {
@@ -289,7 +287,6 @@ public class MiniMaxAI: MonoBehaviour
 
     public static float Heuristic(State state)
     {
-        state.ChangeTurn();
         state.UpdatePoints();
         float points = state.players[0].points - state.players[1].points;
         if (state.turn < state.maxTurns)

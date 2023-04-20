@@ -6,7 +6,7 @@ using UnityEngine.Tilemaps;
 
 public class ForestFireCard : Card
 {
-    public override string GetName()
+    public override string GetName(State state)
     {
         return "Forest Fire";
     }
@@ -235,7 +235,12 @@ public class ForestFireCard : Card
         }
     }
 
-    public override string GetDisabledMessage()
+    public override float GetVolume(State state)
+    {
+        return 1.0f;
+    }
+
+    public override string GetDisabledMessage(State state)
     {
         return "Your opponent has no end roots to ignite.";
     }

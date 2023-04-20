@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
+using Unity.Services.Core;
+using Unity.Services.Authentication;
+using Unity.Services.CloudCode;
 using TMPro;
 
 public class GameManager : MonoBehaviour
@@ -55,12 +58,17 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject tornadoWarning;
     [SerializeField] private AudioClip tornadoSiren;
     [SerializeField] private AudioSource soundSrc;
+    [SerializeField] private AudioClip compostSound;
     [SerializeField] private GameObject backgroundObj;
-    [SerializeField] private ParticleSystem rain;
-    [SerializeField] private Animator tornadoAnim;
+    [SerializeField] private GameObject rainObj;
+    [SerializeField] private GameObject tornado;
     [HideInInspector] public State state;
     private SpriteRenderer background;
     private AudioSource backgroundMusic;
+    private ParticleSystem rain;
+    private AudioSource rainSrc;
+    private Animator tornadoAnim;
+    private AudioSource windSound;
     private Tilemap highlightMap;
     private bool gameEnded = false;
     private int[] hoveredIndexes = new int[] { -1, -1 };
@@ -72,6 +80,10 @@ public class GameManager : MonoBehaviour
     {
         background = backgroundObj.GetComponent<SpriteRenderer>();
         backgroundMusic = backgroundObj.GetComponent<AudioSource>();
+        rain = rainObj.GetComponent<ParticleSystem>();
+        rainSrc = rainObj.GetComponent<AudioSource>();
+        tornadoAnim = tornado.GetComponent<Animator>();
+        windSound = tornadoAnim.GetComponent<AudioSource>();
         highlightMap = GameObject.FindGameObjectWithTag("Highlights").GetComponent<Tilemap>();
         state = new State(collection, rootTile, deadRootTile, rockTile, seedTile, woodShieldTile, metalShieldTile, thornTile, strongFireTile, weakFireTile);
         ChangeTurn(true);
@@ -99,6 +111,11 @@ public class GameManager : MonoBehaviour
         shape.rotation = new Vector3(0, 180 - 30 * turnFactor, 0);
         var emission = rain.emission;
         emission.rateOverTime = new ParticleSystem.MinMaxCurve(25 + 225 * turnFactor);
+        rainSrc.volume = .2f + .5f * turnFactor;
+        if (state.turn > state.maxTurns - 5)
+        {
+            windSound.volume = 0.2f + 0.4f * turnFactor;
+        }
         UpdateCards();
         UpdateHighlights();
         int[] coord = state.MouseToCoord();
@@ -153,6 +170,8 @@ public class GameManager : MonoBehaviour
                 if (state.thisPlayer == 0 && state.turn == state.maxTurns - 4)
                 {
                     tornadoWarning.SetActive(true);
+                    StartCoroutine(RemoveTornadoSiren());
+                    soundSrc.volume = 0.4f;
                     soundSrc.PlayOneShot(tornadoSiren);
                 }
                 else
@@ -162,10 +181,20 @@ public class GameManager : MonoBehaviour
                 }
                 if (state.players[state.thisPlayer].ai)
                 {
+#if UNITY_WEBGL
                     StartCoroutine(gameAI.Control(state, this));
+#else
+                    MultiMiniMaxAI.Control(state, this);
+#endif
                 }
             }
         }
+    }
+
+    IEnumerator RemoveTornadoSiren()
+    {
+        yield return new WaitForSeconds(4);
+        tornadoWarning.SetActive(false);
     }
 
     private void UpdateCards()
@@ -261,53 +290,32 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        rootButtons[state.thisPlayer].interactable = !state.discardPhase && state.players[state.thisPlayer].rootMoves > 0;
+        endButtons[state.thisPlayer].interactable = !state.discardPhase && !(state.players[state.thisPlayer].rootMoves != 0 && State.collection.cards[0].AIValidation(state));
+        discardButtons[state.thisPlayer].gameObject.SetActive(state.discardPhase && state.card != null);
+        cancelButtons[state.thisPlayer].gameObject.SetActive(state.card != null && (!state.tilePhase || state.cardIndex == 0));
+        compostButtons[state.thisPlayer].gameObject.SetActive(!state.discardPhase && !state.tilePhase && state.card != null);
+        compostButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].water > 0;
         if (state.discardPhase)
         {
             phaseDisp.text = "Too many cards. Discard a card";
-            rootButtons[state.thisPlayer].interactable = false;
-            endButtons[state.thisPlayer].interactable = false;
             playButtons[state.thisPlayer].gameObject.SetActive(false);
-            if (state.card != null)
-            {
-                discardButtons[state.thisPlayer].gameObject.SetActive(true);
-                cancelButtons[state.thisPlayer].gameObject.SetActive(true);
-            }
-            else
-            {
-                discardButtons[state.thisPlayer].gameObject.SetActive(false);
-                cancelButtons[state.thisPlayer].gameObject.SetActive(false);
-            }
-            compostButtons[state.thisPlayer].gameObject.SetActive(false);
         }
         else if (state.tilePhase)
         {
             if (state.card != null)
             {
-                phaseDisp.text = state.card.GetName();
+                phaseDisp.text = state.card.GetName(state);
             }
             else
             {
                 phaseDisp.text = "Select a Tile";
             }
-            rootButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].rootMoves > 0;
-            endButtons[state.thisPlayer].interactable = true;
             playButtons[state.thisPlayer].gameObject.SetActive(false);
-            discardButtons[state.thisPlayer].gameObject.SetActive(false);
-            if (state.cardIndex == 0)
-            {
-                cancelButtons[state.thisPlayer].gameObject.SetActive(true);
-            }
-            else
-            {
-                cancelButtons[state.thisPlayer].gameObject.SetActive(false);
-            }
-            compostButtons[state.thisPlayer].gameObject.SetActive(false);
         }
         else if (state.card != null)
         {
-            phaseDisp.text = state.card.GetName();
-            rootButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].rootMoves > 0;
-            endButtons[state.thisPlayer].interactable = true;
+            phaseDisp.text = state.card.GetName(state);
             playButtons[state.thisPlayer].gameObject.SetActive(true);
             if (state.card.GetNumActions(state) == 0)
             {
@@ -326,20 +334,11 @@ public class GameManager : MonoBehaviour
                 }
                 playButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].water >= state.card.GetCost(state) && moveExists;
             }
-            discardButtons[state.thisPlayer].gameObject.SetActive(false);
-            cancelButtons[state.thisPlayer].gameObject.SetActive(true);
-            compostButtons[state.thisPlayer].gameObject.SetActive(true);
-            compostButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].water > 0;
         }
         else
         {
             phaseDisp.text = "Select a Card or Place a Root";
-            rootButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].rootMoves > 0;
-            endButtons[state.thisPlayer].interactable = true;
             playButtons[state.thisPlayer].gameObject.SetActive(false);
-            discardButtons[state.thisPlayer].gameObject.SetActive(false);
-            cancelButtons[state.thisPlayer].gameObject.SetActive(false);
-            compostButtons[state.thisPlayer].gameObject.SetActive(false);
         }
 
         if (hoveredIndexes[state.thisPlayer] != -1)
@@ -433,17 +432,16 @@ public class GameManager : MonoBehaviour
     public void SetCard(int i)
     {
         Player player = state.players[state.thisPlayer];
-        if (player.ai)
+        if (!player.ai)
         {
-            return;
-        }
-        if (i >= 0)
-        {
-            state.SetCard(player.hand[i]);
-        }
-        else
-        {
-            state.SetCard(0);
+            if (i >= 0)
+            {
+                state.SetCard(player.hand[i]);
+            }
+            else
+            {
+                state.SetCard(0);
+            }
         }
     }
 
@@ -451,25 +449,68 @@ public class GameManager : MonoBehaviour
     {
         if (ai || !state.players[state.thisPlayer].ai)
         {
+            Log("uprootedPlayCard");
             if (state.card.GetNumActions(state) == 0)
             {
+                soundSrc.volume = state.card.GetVolume(state);
                 soundSrc.PlayOneShot(State.collection.sounds[state.cardIndex]);
             }
             state.PlayCard();
+            disabledMsgBackgrounds[state.thisPlayer].SetActive(false);
         }
     }
 
     public void PlayTile(int index)
     {
+        Log("uprootedPlayTile", index);
+        soundSrc.volume = state.card.GetVolume(state);
         soundSrc.PlayOneShot(State.collection.sounds[state.cardIndex]);
         state.PlayTile(index);
     }
 
-    public void DiscardCard()
+    public void DiscardCard(bool ai)
     {
-        if (!state.players[state.thisPlayer].ai)
+        if (ai || !state.players[state.thisPlayer].ai)
         {
+            Log("uprootedDiscard");
             state.DiscardCard();
+        }
+    }
+
+    private async void Log(string service, int index = 0)
+    {
+        try
+        {
+            var arguments = new Dictionary<string, object>();
+            arguments.Add("name", state.card.GetName(state));
+            arguments.Add("turn", state.turn);
+            arguments.Add("ai", state.players[state.thisPlayer].ai);
+            arguments.Add("plant", state.players[state.thisPlayer].plant);
+
+            if (State.stage == 1)
+            {
+                arguments.Add("stage", "garden");
+            }
+            else if (State.stage == 2)
+            {
+                arguments.Add("stage", "desert");
+            }
+            else
+            {
+                arguments.Add("stage", "volcano");
+            }
+
+            if (service == "uprootedPlayTile")
+            {
+                int[] coords = state.IndexToCoord(index);
+                arguments.Add("x", coords[0]);
+                arguments.Add("y", coords[1]);
+            }
+            var response = await CloudCodeService.Instance.CallEndpointAsync(service, arguments);
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
         }
     }
 
@@ -481,10 +522,13 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void CompostCard()
+    public void CompostCard(bool ai)
     {
-        if (!state.players[state.thisPlayer].ai)
+        if (ai || !state.players[state.thisPlayer].ai)
         {
+            Log("uprootedCompost");
+            soundSrc.volume = 1;
+            soundSrc.PlayOneShot(compostSound);
             state.CompostCard();
         }
     }
@@ -525,15 +569,19 @@ public class GameManager : MonoBehaviour
 
     public void PlayButtonHover(bool activate)
     {
-        if (activate && state.card != null && !playButtons[state.thisPlayer].interactable)
+        if (activate && state.card != null && (!playButtons[state.thisPlayer].interactable || state.card.GetWarningMessage(state) != null))
         {
             if (state.players[state.thisPlayer].water < state.card.GetCost(state))
             {
                 disabledMessages[state.thisPlayer].text = "You don't have enough water to play this card.";
             }
+            else if (!playButtons[state.thisPlayer].interactable)
+            {
+                disabledMessages[state.thisPlayer].text = state.card.GetDisabledMessage(state);
+            }
             else
             {
-                disabledMessages[state.thisPlayer].text = state.card.GetDisabledMessage();
+                disabledMessages[state.thisPlayer].text = state.card.GetWarningMessage(state);
             }
             disabledMsgBackgrounds[state.thisPlayer].SetActive(true);
         }
@@ -576,7 +624,6 @@ public class GameManager : MonoBehaviour
     {
         gameEnded = true;
         phaseDispBG.SetActive(false);
-        tornadoAnim.gameObject.SetActive(true);
         int p1Points = state.players[0].points;
         int p2Points = state.players[1].points;
 

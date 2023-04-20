@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class LoveCard : Card
 {
-    public override string GetName()
+    public override string GetName(State state)
     {
         return "A Symbol of Love";
     }
@@ -86,9 +86,8 @@ public class LoveCard : Card
         return false;
     }
 
-    public override IEnumerator UpdateValidAIMoves(State state)
+    public override void UpdateValidAIMoves(State state)
     {
-        yield return null;
         state.validAIMoves.Clear();
         if (state.numActions != GetNumActions(state))
         {
@@ -144,7 +143,12 @@ public class LoveCard : Card
         }
     }
 
-    public override string GetDisabledMessage()
+    public override float GetVolume(State state)
+    {
+        return 0.6f;
+    }
+
+    public override string GetDisabledMessage(State state)
     {
         return "You have no pairs of unfortified roots to fortify.";
     }

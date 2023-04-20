@@ -798,11 +798,11 @@ PlayerSettings:
   apiCompatibilityLevel: 6
   activeInputHandler: 0
   windowsGamepadBackendHint: 0
-  cloudProjectId: 
+  cloudProjectId: 0883be4b-8a5e-471c-8344-95115071cab1
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: 
-  organizationId: 
+  projectName: Uprooted
+  organizationId: kevin98799
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   playerDataPath: 

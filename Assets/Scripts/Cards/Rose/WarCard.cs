@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class WarCard : Card
 {
-    public override string GetName()
+    public override string GetName(State state)
     {
         return "War of the Roses";
     }
@@ -70,7 +70,12 @@ public class WarCard : Card
         }
     }
 
-    public override string GetDisabledMessage()
+    public override float GetVolume(State state)
+    {
+        return 0.4f;
+    }
+
+    public override string GetDisabledMessage(State state)
     {
         return "None of your thorn blocks can destroy anything.";
     }

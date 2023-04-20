@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class MrWormCard : Card
 {
-    public override string GetName()
+    public override string GetName(State state)
     {
         return "Mr Worm!";
     }
@@ -30,7 +30,12 @@ public class MrWormCard : Card
         state.players[state.thisPlayer].wormTurns += 3;
     }
 
-    public override string GetDisabledMessage()
+    public override float GetVolume(State state)
+    {
+        return 1.0f;
+    }
+
+    public override string GetDisabledMessage(State state)
     {
         return "You already paid Mr.Worm enough to work for you till the end of the game.";
     }

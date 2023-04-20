@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class RootCard: Card
 {
-    public override string GetName()
+    public override string GetName(State state)
     {
         return "Place a Root";
     }
@@ -42,9 +42,8 @@ public class RootCard: Card
         return false;
     }
 
-    public override IEnumerator UpdateValidAIMoves(State state)
+    public override void UpdateValidAIMoves(State state)
     {
-        yield return null;
         Player player = state.players[state.thisPlayer];
         state.validAIMoves.Clear();
         List<int> priority = new List<int>();
@@ -114,7 +113,12 @@ public class RootCard: Card
         state.ResurrectRoots(x, y, state.players[state.thisPlayer]);
     }
 
-    public override string GetDisabledMessage()
+    public override float GetVolume(State state)
+    {
+        return 1.0f;
+    }
+
+    public override string GetDisabledMessage(State state)
     {
         return "There are no possible spaces to place new roots.";
     }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class FertilizerCard: Card
 {
-    public override string GetName()
+    public override string GetName(State state)
     {
         return "Fertilizer";
     }
@@ -27,5 +27,10 @@ public class FertilizerCard: Card
     public override void Action(State state, int index)
     {
         state.players[state.thisPlayer].rootMoves++;
+    }
+
+    public override float GetVolume(State state)
+    {
+        return 1.0f;
     }
 }

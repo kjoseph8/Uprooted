@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BirdCard : Card
 {
-    public override string GetName()
+    public override string GetName(State state)
     {
         return "Eek! A Bird!";
     }
@@ -26,15 +26,30 @@ public class BirdCard : Card
 
     public override void Action(State state, int index)
     {
-        state.players[state.otherPlayer].water -= 2;
-        if (state.players[state.otherPlayer].water < 0)
+        Player player = state.players[state.otherPlayer];
+        player.water -= 2;
+        if (player.water < 0)
         {
-            state.players[state.otherPlayer].water = 0;
+            player.water = 0;
         }
     }
 
-    public override string GetDisabledMessage()
+    public override float GetVolume(State state)
     {
-        return "Your opponent has no water to reduce.";
+        return 0.4f;
+    }
+
+    public override string GetDisabledMessage(State state)
+    {
+        return "Your opponent has no water to drain.";
+    }
+
+    public override string GetWarningMessage(State state)
+    {
+        if (state.players[state.otherPlayer].water == 1)
+        {
+            return "Your opponent only has 1 water to drain.";
+        }
+        return null;
     }
 }

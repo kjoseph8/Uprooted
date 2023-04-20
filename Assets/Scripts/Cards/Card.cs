@@ -4,13 +4,17 @@ using UnityEngine;
 
 public abstract class Card
 {
-    public abstract string GetName();
+    public abstract string GetName(State state);
 
     public abstract int GetCost(State state);
 
     public abstract int GetNumActions(State state);
 
     public abstract bool Validation(State state, int index);
+
+    public abstract void Action(State state, int index);
+
+    public abstract float GetVolume(State state);
 
     public virtual bool AIValidation(State state)
     {
@@ -24,9 +28,8 @@ public abstract class Card
         return false;
     }
 
-    public virtual IEnumerator UpdateValidAIMoves(State state)
+    public virtual void UpdateValidAIMoves(State state)
     {
-        yield return null;
         state.validAIMoves.Clear();
         for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
         {
@@ -37,9 +40,7 @@ public abstract class Card
         }
     }
 
-    public abstract void Action(State state, int index);
-
-    public virtual string GetDisabledMessage()
+    public virtual string GetDisabledMessage(State state)
     {
         return "If you see this message, contact the developer.";
     }
@@ -47,5 +48,10 @@ public abstract class Card
     public virtual bool OverrideHighlight(State state, int index)
     {
         return false;
+    }
+
+    public virtual string GetWarningMessage(State state)
+    {
+        return null;
     }
 }

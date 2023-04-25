@@ -267,8 +267,8 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 1056450629224240242}
           m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-          m_MethodName: UnsetP2HoverIndex
-          m_Mode: 1
+          m_MethodName: SetP2HoverIndex
+          m_Mode: 3
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
             m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -367,7 +367,7 @@ GameObject:
   - component: {fileID: 7011113496030533343}
   - component: {fileID: 7011113496030533340}
   m_Layer: 5
-  m_Name: Count
+  m_Name: Festival Count
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -424,7 +424,7 @@ MonoBehaviour:
   m_text: 99
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f200b729e10f75d478cf8df2e879be9c, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 6813373533035268896, guid: f200b729e10f75d478cf8df2e879be9c, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -840,7 +840,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_UiScaleMode: 1
-  m_ReferencePixelsPerUnit: 100
+  m_ReferencePixelsPerUnit: 64
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 2
@@ -1278,7 +1278,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 75a0c0aa463232445bed01401578bfda, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 8b7ade00972d76b4a8010855337ccc38, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1570,12 +1570,12 @@ GameObject:
   - component: {fileID: 7011113496148775369}
   - component: {fileID: 7011113496148775366}
   m_Layer: 5
-  m_Name: Counter 2
+  m_Name: Festival Counter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &7011113496148775367
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1883,8 +1883,8 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 1056450629224240242}
           m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-          m_MethodName: UnsetP2HoverIndex
-          m_Mode: 1
+          m_MethodName: SetP2HoverIndex
+          m_Mode: 3
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
             m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -2278,7 +2278,7 @@ GameObject:
   - component: {fileID: 7011113496272539194}
   - component: {fileID: 7011113496272539195}
   m_Layer: 5
-  m_Name: Count
+  m_Name: Scent Count
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2413,7 +2413,7 @@ GameObject:
   - component: {fileID: 7011113496277976544}
   - component: {fileID: 7011113496277976545}
   m_Layer: 5
-  m_Name: Count
+  m_Name: Worm Count
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2602,7 +2602,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Choose a Card or Place a Root
+  m_text: Choose a Card\nor Place a Root
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f200b729e10f75d478cf8df2e879be9c, type: 2}
   m_sharedMaterial: {fileID: 6813373533035268896, guid: f200b729e10f75d478cf8df2e879be9c, type: 2}
@@ -2629,8 +2629,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 96
-  m_fontSizeBase: 96
+  m_fontSize: 72
+  m_fontSizeBase: 72
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -4167,9 +4167,14 @@ MonoBehaviour:
   - {fileID: 21300000, guid: c654e1e4aa923664191694fe4a9250fa, type: 3}
   - {fileID: 21300000, guid: 3c2d6f9212700314b88b982a2c13ee90, type: 3}
   - {fileID: 21300000, guid: 86c6d8720f3e8344ebc098fe38535987, type: 3}
+  - {fileID: 21300000, guid: 93b12add62a9be8419a28a72a9741b31, type: 3}
+  - {fileID: 21300000, guid: 49352928e4bd2d440965ba02f1da8b27, type: 3}
+  - {fileID: 21300000, guid: bcfe9dbaf77fd384083d7572f30a3e92, type: 3}
+  - {fileID: 21300000, guid: 2df73f5cf1359ee44887c1391ef9e436, type: 3}
+  - {fileID: 21300000, guid: 4856244b3db10bf42a24a6242d4bb293, type: 3}
   sounds:
   - {fileID: 8300000, guid: 033e437c6bc0b2b428fd655c4b0ba3ac, type: 3}
-  - {fileID: 8300000, guid: 033e437c6bc0b2b428fd655c4b0ba3ac, type: 3}
+  - {fileID: 8300000, guid: d232a1b90c7f5b54f8c022a5775328f0, type: 3}
   - {fileID: 8300000, guid: 16f5bb16757e50b41a42e3586deabd81, type: 3}
   - {fileID: 8300000, guid: 7584825c8e04e5a4ba3da77471a6ff77, type: 3}
   - {fileID: 8300000, guid: c4bfd42bd2ba1694aa93b9974ab3bb05, type: 3}
@@ -4182,6 +4187,17 @@ MonoBehaviour:
   - {fileID: 8300000, guid: bafac356d30dd2f42bf9324313bf9b46, type: 3}
   - {fileID: 8300000, guid: eee84dc52f5d4dc4eb4a87840c4b4a2d, type: 3}
   - {fileID: 8300000, guid: b25bb766585ad8348b7b4872a8ba0300, type: 3}
+  - {fileID: 8300000, guid: 033e437c6bc0b2b428fd655c4b0ba3ac, type: 3}
+  - {fileID: 8300000, guid: 033e437c6bc0b2b428fd655c4b0ba3ac, type: 3}
+  - {fileID: 8300000, guid: 033e437c6bc0b2b428fd655c4b0ba3ac, type: 3}
+  - {fileID: 8300000, guid: 033e437c6bc0b2b428fd655c4b0ba3ac, type: 3}
+  - {fileID: 8300000, guid: 033e437c6bc0b2b428fd655c4b0ba3ac, type: 3}
+  roseSprites:
+  - {fileID: 21300000, guid: 85b95b6ea22fdba4396c09d477182825, type: 3}
+  - {fileID: 21300000, guid: b0ebf88381c5ec94fb59cd0ec0b35205, type: 3}
+  cherryBlossomSprites:
+  - {fileID: 21300000, guid: 0151503ba280eef4597337c6f309ba0e, type: 3}
+  - {fileID: 21300000, guid: 8b7ade00972d76b4a8010855337ccc38, type: 3}
 --- !u!1 &7011113496460599073
 GameObject:
   m_ObjectHideFlags: 0
@@ -4545,7 +4561,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 0.1
+  m_PixelsPerUnitMultiplier: 0.05
 --- !u!1 &7011113496510454310
 GameObject:
   m_ObjectHideFlags: 0
@@ -5127,15 +5143,19 @@ MonoBehaviour:
   p1CounterDisps:
   - {fileID: 7011113496026316118}
   - {fileID: 7011113497158811169}
+  - {fileID: 7011113496148775367}
   p1Counters:
   - {fileID: 7011113496277976545}
   - {fileID: 7011113497999062507}
+  - {fileID: 7011113497936965579}
   p2CounterDisps:
   - {fileID: 7011113496198391502}
   - {fileID: 7011113496607750482}
+  - {fileID: 7011113497594809638}
   p2Counters:
   - {fileID: 7011113496751176513}
   - {fileID: 7011113496272539195}
+  - {fileID: 7011113496030533340}
   rootButtons:
   - {fileID: 7011113497445495338}
   - {fileID: 7011113497335785470}
@@ -5170,9 +5190,9 @@ MonoBehaviour:
   validCursor: {fileID: 7011113496387412265}
   invalidCursor: {fileID: 7011113497736779488}
   winnerDisp: {fileID: 7011113497170884571}
-  defeatAnims:
-  - {fileID: 7011113497768805980}
-  - {fileID: 7011113496675062292}
+  plants:
+  - {fileID: 7011113497768805979}
+  - {fileID: 7011113496675062291}
   highlightTile: {fileID: 11400000, guid: 4885a7fae9c91fc43a68cfa23ffa7493, type: 2}
   tornadoWarning: {fileID: 2349946920663651626}
   tornadoSiren: {fileID: 8300000, guid: 0de1b694d1b25e8419565ceb3444b9ec, type: 3}
@@ -5180,6 +5200,7 @@ MonoBehaviour:
   compostSound: {fileID: 8300000, guid: a5f2f7a4be2755e4caf651ba171744f6, type: 3}
   backgroundObj: {fileID: 0}
   rainObj: {fileID: 0}
+  windSound: {fileID: 0}
   tornado: {fileID: 0}
 --- !u!1 &7011113496613964351
 GameObject:
@@ -5628,7 +5649,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7011113496675062291}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.5, y: 5, z: 0}
+  m_LocalPosition: {x: 3.5, y: 4, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5676,8 +5697,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 5
-  m_Sprite: {fileID: 21300000, guid: 85b95b6ea22fdba4396c09d477182825, type: 3}
-  m_Color: {r: 0, g: 0.5, b: 1, a: 1}
+  m_Sprite: {fileID: 21300000, guid: 8b7ade00972d76b4a8010855337ccc38, type: 3}
+  m_Color: {r: 1, g: 1, b: 0.7490196, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -6144,7 +6165,7 @@ GameObject:
   - component: {fileID: 7011113496751176512}
   - component: {fileID: 7011113496751176513}
   m_Layer: 5
-  m_Name: Count
+  m_Name: Worm Count
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6998,8 +7019,8 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 1056450629224240242}
           m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-          m_MethodName: UnsetP1HoverIndex
-          m_Mode: 1
+          m_MethodName: SetP1HoverIndex
+          m_Mode: 3
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
             m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -7312,8 +7333,8 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 1056450629224240242}
           m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-          m_MethodName: UnsetP1HoverIndex
-          m_Mode: 1
+          m_MethodName: SetP1HoverIndex
+          m_Mode: 3
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
             m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -7568,8 +7589,8 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 1056450629224240242}
           m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-          m_MethodName: UnsetP2HoverIndex
-          m_Mode: 1
+          m_MethodName: SetP2HoverIndex
+          m_Mode: 3
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
             m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -8926,8 +8947,8 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 1056450629224240242}
           m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-          m_MethodName: UnsetP1HoverIndex
-          m_Mode: 1
+          m_MethodName: SetP1HoverIndex
+          m_Mode: 3
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
             m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -9653,7 +9674,6 @@ GameObject:
   - component: {fileID: 7011113497335785344}
   - component: {fileID: 7011113497335785345}
   - component: {fileID: 7011113497335785470}
-  - component: {fileID: 3457190172772866607}
   m_Layer: 5
   m_Name: Root Button
   m_TagString: Untagged
@@ -9777,51 +9797,6 @@ MonoBehaviour:
           m_StringArgument: root
           m_BoolArgument: 0
         m_CallState: 2
---- !u!114 &3457190172772866607
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7011113497335785468}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Delegates:
-  - eventID: 0
-    callback:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 1056450629224240242}
-          m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-          m_MethodName: SetP2HoverIndex
-          m_Mode: 3
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: -1
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
-  - eventID: 1
-    callback:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 1056450629224240242}
-          m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-          m_MethodName: UnsetP2HoverIndex
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: -1
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
 --- !u!1 &7011113497336616199
 GameObject:
   m_ObjectHideFlags: 0
@@ -10811,7 +10786,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 0.1
+  m_PixelsPerUnitMultiplier: 0.05
 --- !u!1 &7011113497442092015
 GameObject:
   m_ObjectHideFlags: 0
@@ -10900,7 +10875,6 @@ GameObject:
   - component: {fileID: 7011113497445495340}
   - component: {fileID: 7011113497445495341}
   - component: {fileID: 7011113497445495338}
-  - component: {fileID: 268417410983207027}
   m_Layer: 5
   m_Name: Root Button
   m_TagString: Untagged
@@ -11024,51 +10998,6 @@ MonoBehaviour:
           m_StringArgument: root
           m_BoolArgument: 0
         m_CallState: 2
---- !u!114 &268417410983207027
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7011113497445495336}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Delegates:
-  - eventID: 0
-    callback:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 1056450629224240242}
-          m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-          m_MethodName: SetP1HoverIndex
-          m_Mode: 3
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: -1
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
-  - eventID: 1
-    callback:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 1056450629224240242}
-          m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-          m_MethodName: UnsetP1HoverIndex
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: -1
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
 --- !u!1 &7011113497449668657
 GameObject:
   m_ObjectHideFlags: 0
@@ -11498,7 +11427,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 75a0c0aa463232445bed01401578bfda, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 8b7ade00972d76b4a8010855337ccc38, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -12098,12 +12027,12 @@ GameObject:
   - component: {fileID: 7011113497594809640}
   - component: {fileID: 7011113497594809641}
   m_Layer: 5
-  m_Name: Counter 2
+  m_Name: Festival Counter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &7011113497594809638
 RectTransform:
   m_ObjectHideFlags: 0
@@ -13998,8 +13927,8 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 1056450629224240242}
           m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-          m_MethodName: UnsetP1HoverIndex
-          m_Mode: 1
+          m_MethodName: SetP1HoverIndex
+          m_Mode: 3
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
             m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -14034,7 +13963,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7011113497768805979}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -3.5, y: 5, z: 0}
+  m_LocalPosition: {x: -3.5, y: 4, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -14082,8 +14011,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 5
-  m_Sprite: {fileID: 21300000, guid: 85b95b6ea22fdba4396c09d477182825, type: 3}
-  m_Color: {r: 0.6784, g: 0.4863, b: 0.3647, a: 1}
+  m_Sprite: {fileID: 21300000, guid: 8b7ade00972d76b4a8010855337ccc38, type: 3}
+  m_Color: {r: 1, g: 0.80784315, b: 0.9254902, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -14283,8 +14212,8 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 1056450629224240242}
           m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-          m_MethodName: UnsetP1HoverIndex
-          m_Mode: 1
+          m_MethodName: SetP1HoverIndex
+          m_Mode: 3
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
             m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -14642,8 +14571,8 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 1056450629224240242}
           m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-          m_MethodName: UnsetP2HoverIndex
-          m_Mode: 1
+          m_MethodName: SetP2HoverIndex
+          m_Mode: 3
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
             m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -15122,8 +15051,8 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 1056450629224240242}
           m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-          m_MethodName: UnsetP1HoverIndex
-          m_Mode: 1
+          m_MethodName: SetP1HoverIndex
+          m_Mode: 3
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
             m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -15302,8 +15231,8 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 1056450629224240242}
           m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-          m_MethodName: UnsetP2HoverIndex
-          m_Mode: 1
+          m_MethodName: SetP2HoverIndex
+          m_Mode: 3
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
             m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -15872,8 +15801,8 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 1056450629224240242}
           m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-          m_MethodName: UnsetP2HoverIndex
-          m_Mode: 1
+          m_MethodName: SetP2HoverIndex
+          m_Mode: 3
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
             m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -15972,7 +15901,7 @@ GameObject:
   - component: {fileID: 7011113497936965578}
   - component: {fileID: 7011113497936965579}
   m_Layer: 5
-  m_Name: Count
+  m_Name: Festival Count
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16029,7 +15958,7 @@ MonoBehaviour:
   m_text: 99
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: f200b729e10f75d478cf8df2e879be9c, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 6813373533035268896, guid: f200b729e10f75d478cf8df2e879be9c, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -16575,7 +16504,7 @@ GameObject:
   - component: {fileID: 7011113497999062506}
   - component: {fileID: 7011113497999062507}
   m_Layer: 5
-  m_Name: Count
+  m_Name: Scent Count
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

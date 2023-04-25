@@ -9,16 +9,16 @@ public class MultiMiniMaxAI
     private static int lastTime = (int)Time.time;
     private static int maxMoves = 3;
 
-    public static async void Control(State state, GameManager manager, int turns = 2, int moves = 2)
+    public static async void Control(State state, GameManager manager, int turns = 2, int moves = 2, int delay = 1500)
     {
-        await FastDelay(1000);
+        await FastDelay(delay);
         lastTime = (int)Time.time;
         maxMoves = moves;
         if (state.discardPhase)
         {
             await Task.Run(() => SelectDiscard(state, turns, moves, true));
             lastTime = (int)Time.time;
-            await FastDelay(1000);
+            await FastDelay(delay);
             manager.DiscardCard(true);
         }
         else if (state.tilePhase)
@@ -52,7 +52,7 @@ public class MultiMiniMaxAI
             if (state.cardIndex != 0)
             {
                 lastTime = (int)Time.time;
-                await FastDelay(1000);
+                await FastDelay(delay);
                 manager.PlayCard(true);
             }
         }
@@ -114,13 +114,12 @@ public class MultiMiniMaxAI
     private static void SelectCard(State state, int turns, int moves, bool makeThreads = false)
     {
         Player player = state.players[state.thisPlayer];
-        int card = 0;
+        int card = -1;
         State copy = new State(state);
         if (player.rootMoves > 0)
         {
-            copy.SetCard(0);
+            copy.SetCard(-1);
             copy.tilePhase = true;
-            copy.PlayCard();
         }
         else
         {
@@ -133,13 +132,11 @@ public class MultiMiniMaxAI
         List<Task> tasks = new List<Task>();
         for (int i = 0; i < player.hand.Count; i++)
         {
-            int index = player.hand[i];
-
-            if (State.collection.cards[index].GetCost(state) <= player.water && State.collection.cards[index].AIValidation(state))
+            if (State.collection.cards[player.hand[i]].GetCost(state) <= player.water && State.collection.cards[player.hand[i]].AIValidation(state))
             {
-                cards.Add(index);
+                cards.Add(i);
                 State next = new State(state);
-                next.SetCard(index);
+                next.SetCard(i);
                 next.PlayCard();
                 states.Add(next);
                 if (makeThreads)
@@ -163,7 +160,7 @@ public class MultiMiniMaxAI
             float nextHeuristic = MiniMaxAI.Heuristic(states[i]);
             if (state.thisPlayer == 0)
             {
-                if (nextHeuristic > heuristic)
+                if (nextHeuristic >= heuristic)
                 {
                     card = cards[i];
                     heuristic = nextHeuristic;
@@ -171,7 +168,7 @@ public class MultiMiniMaxAI
             }
             else
             {
-                if (nextHeuristic < heuristic)
+                if (nextHeuristic <= heuristic)
                 {
                     card = cards[i];
                     heuristic = nextHeuristic;
@@ -179,10 +176,10 @@ public class MultiMiniMaxAI
             }
         }
 
-        if (card != 0 || player.rootMoves != 0)
+        if (card != -1 || player.rootMoves != 0)
         {
             state.SetCard(card);
-            if (card == 0)
+            if (card == -1)
             {
                 state.tilePhase = true;
             }
@@ -195,6 +192,7 @@ public class MultiMiniMaxAI
         {
             state.card = null;
             state.cardIndex = -1;
+            state.handIndex = -1;
             state.tilePhase = false;
         }
     }
@@ -214,7 +212,7 @@ public class MultiMiniMaxAI
 
         state.card.UpdateValidAIMoves(state);
 
-        while (Mathf.Pow(state.validAIMoves.Count, state.card.GetNumActions(state)) > 10)
+        while (Mathf.Pow(state.validAIMoves.Count, state.card.GetNumActions(state)) > 5)
         {
             state.validAIMoves.RemoveAt(new System.Random().Next(0, state.validAIMoves.Count));
         }
@@ -268,7 +266,7 @@ public class MultiMiniMaxAI
     private static void SelectDiscard(State state, int turns, int moves, bool makeThreads = false)
     {
         Player player = state.players[state.thisPlayer];
-        int card = -1;
+        int card = 0;
         float heuristic = 0;
         if (state.thisPlayer == 0)
         {
@@ -283,9 +281,8 @@ public class MultiMiniMaxAI
         List<State> states = new List<State>();
         for (int i = 0; i < player.hand.Count; i++)
         {
-            int index = player.hand[i];
             State next = new State(state);
-            next.SetCard(index);
+            next.SetCard(i);
             next.DiscardCard();
             states.Add(next);
             if (makeThreads)
@@ -310,7 +307,7 @@ public class MultiMiniMaxAI
             {
                 if (nextHeuristic > heuristic)
                 {
-                    card = player.hand[i];
+                    card = i;
                     heuristic = nextHeuristic;
                 }
             }
@@ -318,20 +315,12 @@ public class MultiMiniMaxAI
             {
                 if (nextHeuristic < heuristic)
                 {
-                    card = player.hand[i];
+                    card = i;
                     heuristic = nextHeuristic;
                 }
             }
         }
-
-        if (card != -1)
-        {
-            state.SetCard(card);
-        }
-        else
-        {
-            state.SetCard(player.hand[new System.Random().Next(0, player.hand.Count)]);
-        }
+        state.SetCard(card);
     }
 
     private static Task FastDelay(int delay)

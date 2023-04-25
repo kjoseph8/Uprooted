@@ -20,6 +20,7 @@ public class State
     public bool tilePhase = false;
     public Card card = null;
     public int cardIndex = -1;
+    public int handIndex = -1;
     public int tileIndex = -1;
     public int numActions = 0;
     public Player[] players;
@@ -44,7 +45,7 @@ public class State
     public static TileBase weakFireTile;
     public static int stage = 0;
 
-    public State(CardCollection collection, TileBase rootTile, TileBase deadRootTile, TileBase rockTile, TileBase seedTile, TileBase woodShieldTile, TileBase metalShieldTile, TileBase thornTile, TileBase strongFireTile, TileBase weakFireTile)
+    public State(CardCollection collection, TileBase rootTile, TileBase deadRootTile, TileBase rockTile, TileBase seedTile, TileBase woodShieldTile, TileBase metalShieldTile, TileBase thornTile, TileBase strongFireTile, TileBase weakFireTile, SpriteRenderer[] plantSprites)
     {
         absolute = true;
         State.collection = collection;
@@ -67,8 +68,8 @@ public class State
             ai = menuManagerObj.GetComponent<MenuManager>().ai;
         }
         players = new Player[2] {
-            new Player(ai[0], "rose", '1', ',', '[', '!', 'i', 'I', '{', 'T', 'B', 'S', roots1Map),
-            new Player(ai[1], "rose", '2', '.', ']', '@', 'z', 'Z', '}', 't', 'b', 's', roots2Map),
+            new Player(ai[0], "cherry blossom", '1', ',', '[', '!', 'i', 'I', '{', 'T', 'B', 'S', roots1Map, plantSprites[0], collection),
+            new Player(ai[1], "cherry blossom", '2', '.', ']', '@', 'z', 'Z', '}', 't', 'b', 's', roots2Map, plantSprites[1], collection),
         };
         oasisIndexes = new List<int>();
         validAIMoves = new List<int>();
@@ -177,6 +178,7 @@ public class State
         tileIndex = parent.tileIndex;
         card = parent.card;
         cardIndex = parent.cardIndex;
+        handIndex = parent.handIndex;
         numActions = parent.numActions;
         loveCardPartnerIndex = parent.loveCardPartnerIndex;
         players = new Player[2] { new Player(parent.players[0]), new Player(parent.players[1]) };
@@ -228,7 +230,7 @@ public class State
     // 2D to 1D index
     public int CoordToIndex(int x, int y)
     {
-        if (x < 0 || x > boardWidth - 1 || y < 0 || y > boardHeight - 1)
+        if (x < 0 || x >= boardWidth || y < 0 || y >= boardHeight)
         {
             return -1;
         }
@@ -330,7 +332,7 @@ public class State
             {
                 queue.Enqueue(i);
                 int[] coords = IndexToCoord(i);
-                if (output == "rootAI" && CountNeighbors(coords[0], coords[1], new char[] { player.deadRoot, player.deadFortifiedRoot, player.deadInvincibleRoot }) == 0)
+                if ((output == "rootAI" || output == "saplingAI") && !HasNeighbor(coords[0], coords[1], new char[] { player.deadRoot, player.deadFortifiedRoot, player.deadInvincibleRoot }))
                 {
                     dists.Enqueue(dist + 1);
                 }
@@ -342,7 +344,7 @@ public class State
             }
         }
         int count = 0;
-        if (output == "rootAI")
+        if (output == "rootAI" || output == "saplingAI")
         {
             validAIMoves.Clear();
         }
@@ -356,7 +358,7 @@ public class State
                 {
                     return count;
                 }
-                else if (output == "rootAI")
+                else if (output == "rootAI" || output == "saplingAI")
                 {
                     return validAIMoves.Count;
                 }
@@ -375,6 +377,14 @@ public class State
             else if (output == "rootAI")
             {
                 if (collection.cards[0].Validation(this, i))
+                {
+                    timeout = dist;
+                    validAIMoves.Add(i);
+                }
+            }
+            else if (output == "saplingAI")
+            {
+                if (collection.cards[6].Validation(this, i))
                 {
                     timeout = dist;
                     validAIMoves.Add(i);
@@ -418,7 +428,70 @@ public class State
         }
     }
 
-    public void KillRoots(int x, int y, Player player)
+    public void KillRoot(int index, Player player)
+    {
+        int[] coords = IndexToCoord(index);
+        int x = coords[0];
+        int y = coords[1];
+
+        if (board[index] == player.fortifiedRoot)
+        {
+            board[index] = player.root;
+            if (absolute)
+            {
+                State.otherMap.SetTile(new Vector3Int(x, y), null);
+            }
+            return;
+        }
+        else if (board[index] == player.deadFortifiedRoot)
+        {
+            board[index] = player.deadRoot;
+            if (absolute)
+            {
+                State.otherMap.SetTile(new Vector3Int(x, y), null);
+            }
+            return;
+        }
+
+        board[index] = '-';
+        if (absolute)
+        {
+            player.rootMap.SetTile(new Vector3Int(x, y), null);
+        }
+
+        int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
+        for (int i = 0; i < 4; i++)
+        {
+            int dirX = dirs[i, 0];
+            int dirY = dirs[i, 1];
+            int dirI = CoordToIndex(dirX, dirY);
+            List<int> start = new List<int>();
+            start.Add(dirI);
+            if (dirI != -1 && Array.IndexOf(new char[] { player.root, player.fortifiedRoot, player.invincibleRoot }, board[dirI]) != -1
+                && BFS(start, new char[] { player.root, player.fortifiedRoot, player.invincibleRoot }, new char[] { player.baseRoot }) == -1)
+            {
+                if (board[dirI] == player.root)
+                {
+                    board[dirI] = player.deadRoot;
+                }
+                else if (board[dirI] == player.fortifiedRoot)
+                {
+                    board[dirI] = player.deadFortifiedRoot;
+                }
+                else
+                {
+                    board[dirI] = player.deadInvincibleRoot;
+                }
+                if (absolute)
+                {
+                    player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
+                }
+                KillBranch(dirX, dirY, player);
+            }
+        }
+    }
+
+    public void KillBranch(int x, int y, Player player)
     {
         int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
         for (int i = 0; i < 4; i++)
@@ -435,7 +508,7 @@ public class State
                     {
                         player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
                     }
-                    KillRoots(dirX, dirY, player);
+                    KillBranch(dirX, dirY, player);
                 }
                 else if (board[dirI] == player.fortifiedRoot)
                 {
@@ -444,7 +517,7 @@ public class State
                     {
                         player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
                     }
-                    KillRoots(dirX, dirY, player);
+                    KillBranch(dirX, dirY, player);
                 }
                 else if (board[dirI] == player.invincibleRoot)
                 {
@@ -453,13 +526,47 @@ public class State
                     {
                         player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
                     }
-                    KillRoots(dirX, dirY, player);
+                    KillBranch(dirX, dirY, player);
                 }
             }
         }
     }
 
-    public void ResurrectRoots(int x, int y, Player player)
+    public void PlaceRoot(int index, Player player)
+    {
+        int[] coords = IndexToCoord(index);
+        int x = coords[0];
+        int y = coords[1];
+
+        if (board[index] == 'W')
+        {
+            player.water += 2;
+            if (absolute)
+            {
+                State.waterMap.SetTile(new Vector3Int(x, y), null);
+            }
+        }
+
+        if (turn == maxTurns)
+        {
+            board[index] = player.invincibleRoot;
+            if (absolute)
+            {
+                State.otherMap.SetTile(new Vector3Int(x, y), State.metalShieldTile);
+            }
+        }
+        else
+        {
+            board[index] = player.root;
+        }
+        if (absolute)
+        {
+            player.rootMap.SetTile(new Vector3Int(x, y), State.rootTile);
+        }
+        ResurrectBranch(x, y, player);
+    }
+
+    public void ResurrectBranch(int x, int y, Player player)
     {
         int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
         for (int i = 0; i < 4; i++)
@@ -476,7 +583,7 @@ public class State
                     {
                         player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.rootTile);
                     }
-                    ResurrectRoots(dirX, dirY, player);
+                    ResurrectBranch(dirX, dirY, player);
                 }
                 else if (board[dirI] == player.deadFortifiedRoot)
                 {
@@ -485,7 +592,7 @@ public class State
                     {
                         player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.rootTile);
                     }
-                    ResurrectRoots(dirX, dirY, player);
+                    ResurrectBranch(dirX, dirY, player);
                 }
                 else if (board[dirI] == player.deadInvincibleRoot)
                 {
@@ -494,7 +601,7 @@ public class State
                     {
                         player.rootMap.SetTile(new Vector3Int(dirX, dirY), State.rootTile);
                     }
-                    ResurrectRoots(dirX, dirY, player);
+                    ResurrectBranch(dirX, dirY, player);
                 }
             }
         }
@@ -540,17 +647,19 @@ public class State
 
     public void SetCard(int i)
     {
-        if (tilePhase && card != null && cardIndex != 0 && numActions == card.GetNumActions(this))
+        if (i != -1)
         {
-            players[thisPlayer].water += card.GetCost(this);
-            players[thisPlayer].discard.Remove(cardIndex);
-            players[thisPlayer].hand.Add(cardIndex);
-            UpdatePoints();
+            handIndex = i;
+            cardIndex = players[thisPlayer].hand[i];
         }
-        card = collection.cards[i];
-        cardIndex = i;
+        else
+        {
+            handIndex = -1;
+            cardIndex = 0;
+        }
+        card = collection.cards[cardIndex];
         numActions = card.GetNumActions(this);
-        if (i == 0)
+        if (cardIndex == 0)
         {
             tilePhase = true;
         }
@@ -563,16 +672,22 @@ public class State
     public void PlayCard()
     {
         Player player = players[thisPlayer];
-        player.water -= card.GetCost(this);
-        player.hand.Remove(cardIndex);
-        player.discard.Add(cardIndex);
+        if (!player.freeCards.Contains(handIndex))
+        {
+            player.water -= card.GetCost(this);
+        }
+        player.DiscardCard(handIndex);
         if (card.GetNumActions(this) == 0)
         {
+            tilePhase = false;
             numActions = 0;
             card.Action(this, 0);
-            card = null;
-            cardIndex = -1;
-            tilePhase = false;
+            if (!tilePhase || numActions <= 0)
+            {
+                card = null;
+                cardIndex = -1;
+                handIndex = -1;
+            }
         }
         else
         {
@@ -595,17 +710,17 @@ public class State
             tilePhase = false;
             card = null;
             cardIndex = -1;
+            handIndex = -1;
         }
         UpdatePoints();
     }
 
     public void DiscardCard()
     {
-        Player player = players[thisPlayer];
-        player.hand.Remove(cardIndex);
-        player.discard.Add(cardIndex);
+        players[thisPlayer].DiscardCard(handIndex);
         card = null;
         cardIndex = -1;
+        handIndex = -1;
         discardPhase = false;
         UpdatePoints();
     }
@@ -614,6 +729,7 @@ public class State
     {
         card = null;
         cardIndex = -1;
+        handIndex = -1;
         numActions = 0;
         tilePhase = false;
         UpdatePoints();
@@ -623,10 +739,10 @@ public class State
     {
         Player player = players[thisPlayer];
         player.water--;
-        player.hand.Remove(cardIndex);
-        player.discard.Add(cardIndex);
+        player.DiscardCard(handIndex);
         card = null;
         cardIndex = -1;
+        handIndex = -1;
         player.DrawCard();
         UpdatePoints();
     }
@@ -671,6 +787,16 @@ public class State
                     if (absolute)
                     {
                         otherMap.SetTile(new Vector3Int(x, y), metalShieldTile);
+                    }
+                }
+                else if (Array.IndexOf(new char[] { players[0].strongFire, players[0].weakFire, players[1].strongFire, players[1].weakFire }, board[i]) != -1)
+                {
+                    board[i] = '-';
+                    if (absolute)
+                    {
+                        otherMap.SetTile(new Vector3Int(x, y), null);
+                        players[0].rootMap.SetTile(new Vector3Int(x, y), null);
+                        players[1].rootMap.SetTile(new Vector3Int(x, y), null);
                     }
                 }
             }
@@ -762,5 +888,7 @@ public class State
         card = null;
         cardIndex = -1;
         tilePhase = false;
+        players[thisPlayer].rootMoves = 0;
+        players[thisPlayer].freeCards.Clear();
     }
 }

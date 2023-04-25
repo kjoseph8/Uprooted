@@ -64,7 +64,7 @@ public class WarCard : Card
                 int dirI = state.CoordToIndex(dirX, dirY);
                 if (dirI != -1 && Array.IndexOf(new char[] { player.root, player.fortifiedRoot, player.deadRoot, player.deadFortifiedRoot, player.thorn }, state.board[dirI]) != -1)
                 {
-                    ForestFireCard.SpreadFireHelper(state, dirI, '-', null);
+                    state.KillRoot(dirI, player);
                 }
             }
         }

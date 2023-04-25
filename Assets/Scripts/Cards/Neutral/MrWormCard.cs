@@ -59,8 +59,7 @@ public class MrWormCard : Card
         if (potential.Count > 0)
         {
             int index = potential[new System.Random().Next(0, potential.Count)];
-            new RootCard().Action(state, index);
-            player.rootMoves++;
+            state.PlaceRoot(index, player);
         }
     }
 }

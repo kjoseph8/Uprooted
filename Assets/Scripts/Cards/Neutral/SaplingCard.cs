@@ -12,7 +12,7 @@ public class SaplingCard : Card
 
     public override int GetCost(State state)
     {
-        return 4;
+        return 3;
     }
 
     public override int GetNumActions(State state)
@@ -36,61 +36,36 @@ public class SaplingCard : Card
 
     public override void UpdateValidAIMoves(State state)
     {
+        Player player = state.players[state.thisPlayer];
         state.validAIMoves.Clear();
-        List<int> options1 = new List<int>();
-        List<int> options2 = new List<int>();
-        for (int i = 0; i <= state.boardWidth/2; i += state.boardWidth / 2)
+        List<int> priority = new List<int>();
+        List<int> otherTarget = new List<int>();
+        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
         {
-            for (int j = 0; j < state.boardWidth / 2; j++)
+            int[] coords = state.IndexToCoord(i);
+            if ((state.board[i] == '-' || state.board[i] == 'W')
+                && state.HasNeighbor(coords[0], coords[1], new char[] { player.deadRoot, player.deadFortifiedRoot, player.deadInvincibleRoot }))
             {
-                int index = i + j;
-                if (Validation(state, index))
-                {
-                    options1.Add(index);
-                }
-                index = i + j + state.boardWidth * (state.boardHeight - 1);
-                if (Validation(state, index))
-                {
-                    options2.Add(index);
-                }
+                priority.Add(i);
             }
-            if (options1.Count > 0)
+            else if (state.board[i] == 'W' || (state.board[i] == '-' && state.CountAllNeighbors(i, new char[] { 'R' }) > 0))
             {
-                state.validAIMoves.Add(options1[new System.Random().Next(0, options1.Count)]);
+                otherTarget.Add(i);
             }
-            options1.Clear();
-            if (options2.Count > 0)
-            {
-                state.validAIMoves.Add(options2[new System.Random().Next(0, options2.Count)]);
-            }
-            options2.Clear();
         }
-
-        for (int i = 0; i <= 2 * state.boardHeight / 3; i += state.boardHeight / 3)
+        List<int> start = new List<int>();
+        foreach (int i in priority)
         {
-            for (int j = 0; j < state.boardHeight / 3; j++)
-            {
-                int index = state.boardWidth * (i + j);
-                if (Validation(state, index))
-                {
-                    options1.Add(index);
-                }
-                index = state.boardWidth * (i + j) + state.boardWidth - 1;
-                if (Validation(state, index))
-                {
-                    options2.Add(index);
-                }
-            }
-            if (options1.Count > 0)
-            {
-                state.validAIMoves.Add(options1[new System.Random().Next(0, options1.Count)]);
-            }
-            options1.Clear();
-            if (options2.Count > 0)
-            {
-                state.validAIMoves.Add(options2[new System.Random().Next(0, options2.Count)]);
-            }
-            options2.Clear();
+            start.Add(i);
+        }
+        foreach (int i in otherTarget)
+        {
+            start.Add(i);
+        }
+        state.BFS(start, new char[] { '-' }, new char[0], "saplingAI", 7);
+        if (state.validAIMoves.Count == 0)
+        {
+            base.UpdateValidAIMoves(state);
         }
     }
 
@@ -99,14 +74,14 @@ public class SaplingCard : Card
         int[] coords = state.IndexToCoord(index);
         int x = coords[0];
         int y = coords[1];
+        Player player = state.players[state.thisPlayer];
 
-        state.board[index] = state.players[state.thisPlayer].baseRoot;
+        state.PlaceRoot(index, player);
+        state.board[index] = player.baseRoot;
         if (state.absolute)
         {
-            state.players[state.thisPlayer].rootMap.SetTile(new Vector3Int(x, y), State.rootTile);
             State.otherMap.SetTile(new Vector3Int(x, y), State.seedTile);
         }
-        state.ResurrectRoots(x, y, state.players[state.thisPlayer]);
     }
 
     public override float GetVolume(State state)

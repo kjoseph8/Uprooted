@@ -47,38 +47,14 @@ public class ForestFireCard : Card
         int[] coords = state.IndexToCoord(index);
         int x = coords[0];
         int y = coords[1];
+        Player player = state.players[state.otherPlayer];
 
-        state.board[index] = state.players[state.otherPlayer].strongFire;
+        state.KillRoot(index, player);
+        state.board[index] = player.strongFire;
         if (state.absolute)
         {
+            player.rootMap.SetTile(new Vector3Int(x, y), State.rootTile);
             State.otherMap.SetTile(new Vector3Int(x, y), State.strongFireTile);
-        }
-
-        int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
-        for (int i = 0; i < 4; i++)
-        {
-            int dirX = dirs[i, 0];
-            int dirY = dirs[i, 1];
-            int dirI = state.CoordToIndex(dirX, dirY);
-            List<int> start = new List<int>();
-            start.Add(dirI);
-            if (dirI != -1 && (state.board[dirI] == state.players[state.otherPlayer].root || state.board[dirI] == state.players[state.otherPlayer].fortifiedRoot) &&
-                state.BFS(start, new char[] { state.players[state.otherPlayer].root, state.players[state.otherPlayer].fortifiedRoot }, new char[] { state.players[state.otherPlayer].baseRoot }) == -1)
-            {
-                if (state.board[dirI] == state.players[state.otherPlayer].root)
-                {
-                    state.board[dirI] = state.players[state.otherPlayer].deadRoot;
-                }
-                else
-                {
-                    state.board[dirI] = state.players[state.otherPlayer].deadFortifiedRoot;
-                }
-                if (state.absolute)
-                {
-                    state.players[state.otherPlayer].rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
-                }
-                state.KillRoots(dirX, dirY, state.players[state.otherPlayer]);
-            }
         }
     }
 
@@ -118,9 +94,20 @@ public class ForestFireCard : Card
             int dirX = dirs[i, 0];
             int dirY = dirs[i, 1];
             int dirI = state.CoordToIndex(dirX, dirY);
-            if (dirI != -1 && Array.IndexOf(new char[] { state.players[0].root, state.players[1].root, state.players[0].fortifiedRoot, state.players[1].fortifiedRoot, state.players[0].deadRoot, state.players[1].deadRoot, state.players[0].deadFortifiedRoot, state.players[1].deadFortifiedRoot, state.players[0].thorn, state.players[1].thorn }, state.board[dirI]) != -1)
+            if (dirI != -1)
             {
-                SpreadFireHelper(state, dirI, fire, tile);
+                if (Array.IndexOf(new char[] { state.players[0].root, state.players[1].root, state.players[0].deadRoot, state.players[1].deadRoot, state.players[0].thorn, state.players[1].thorn }, state.board[dirI]) != -1)
+                {
+                    SpreadFireHelper(state, dirI, fire, tile);
+                }
+                else if (Array.IndexOf(new char[] { state.players[0].fortifiedRoot, state.players[0].deadFortifiedRoot }, state.board[dirI]) != -1)
+                {
+                    state.KillRoot(dirI, state.players[0]);
+                }
+                else if (Array.IndexOf(new char[] { state.players[1].fortifiedRoot, state.players[1].deadFortifiedRoot }, state.board[dirI]) != -1)
+                {
+                    state.KillRoot(dirI, state.players[1]);
+                }
             }
         }
     }
@@ -128,108 +115,53 @@ public class ForestFireCard : Card
     public static void SpreadFireHelper(State state, int index, char fire, TileBase tile)
     {
         int target = -1;
-        if (state.board[index] == state.players[0].root)
+        bool isThorn = false;
+        if (Array.IndexOf(new char[] { state.players[0].root, state.players[0].deadRoot }, state.board[index]) != -1)
         {
             target = 0;
         }
-        else if (state.board[index] == state.players[1].root)
+        else if (Array.IndexOf(new char[] { state.players[1].root, state.players[1].deadRoot }, state.board[index]) != -1)
         {
             target = 1;
         }
-        int[] coord = state.IndexToCoord(index);
-        int x = coord[0];
-        int y = coord[1];
-
-        if (state.board[index] == state.players[0].fortifiedRoot)
+        else if (state.board[index] == state.players[0].thorn)
         {
-            state.board[index] = state.players[0].root;
-            if (state.absolute)
-            {
-                State.otherMap.SetTile(new Vector3Int(x, y), null);
-            }
-            return;
+            target = 0;
+            isThorn = true;
         }
-        else if (state.board[index] == state.players[1].fortifiedRoot)
+        else if (state.board[index] == state.players[1].thorn)
         {
-            state.board[index] = state.players[1].root;
-            if (state.absolute)
-            {
-                State.otherMap.SetTile(new Vector3Int(x, y), null);
-            }
-            return;
-        }
-        else if (state.board[index] == state.players[0].deadFortifiedRoot)
-        {
-            state.board[index] = state.players[0].deadRoot;
-            if (state.absolute)
-            {
-                State.otherMap.SetTile(new Vector3Int(x, y), null);
-            }
-            return;
-        }
-        else if (state.board[index] == state.players[1].deadFortifiedRoot)
-        {
-            state.board[index] = state.players[1].deadRoot;
-            if (state.absolute)
-            {
-                State.otherMap.SetTile(new Vector3Int(x, y), null);
-            }
-            return;
+            target = 1;
+            isThorn = true;
         }
 
-        state.board[index] = fire;
-        if (state.absolute)
-        {
-            State.otherMap.SetTile(new Vector3Int(x, y), tile);
-        }
-        if (tile == null && state.absolute)
-        {
-            state.players[0].rootMap.SetTile(new Vector3Int(x, y), null);
-            state.players[1].rootMap.SetTile(new Vector3Int(x, y), null);
-        }
         if (target != -1)
         {
-            int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
-            for (int i = 0; i < 4; i++)
+            state.KillRoot(index, state.players[target]);
+
+            int[] coord = state.IndexToCoord(index);
+            int x = coord[0];
+            int y = coord[1];
+
+            if (state.absolute)
             {
-                int dirX = dirs[i, 0];
-                int dirY = dirs[i, 1];
-                int dirI = state.CoordToIndex(dirX, dirY);
-                List<int> start = new List<int>();
-                start.Add(dirI);
-                if (dirI != -1 && target == 0 && (state.board[dirI] == state.players[0].root || state.board[dirI] == state.players[0].fortifiedRoot) &&
-                state.BFS(start, new char[] { state.players[0].root, state.players[0].fortifiedRoot, state.players[0].invincibleRoot }, new char[] { state.players[0].baseRoot }) == -1)
+                if (isThorn)
                 {
-                    if (state.board[dirI] == state.players[0].root)
-                    {
-                        state.board[dirI] = state.players[0].deadRoot;
-                    }
-                    else
-                    {
-                        state.board[dirI] = state.players[0].deadFortifiedRoot;
-                    }
-                    if (state.absolute)
-                    {
-                        state.players[0].rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
-                    }
-                    state.KillRoots(dirX, dirY, state.players[0]);
+                    state.players[target].rootMap.SetTile(new Vector3Int(x, y), State.thornTile);
                 }
-                else if (dirI != -1 && target == 1 && (state.board[dirI] == state.players[1].root || state.board[dirI] == state.players[1].fortifiedRoot) &&
-                state.BFS(start, new char[] { state.players[1].root, state.players[1].fortifiedRoot, state.players[1].invincibleRoot }, new char[] { state.players[1].baseRoot }) == -1)
+                else
                 {
-                    if (state.board[dirI] == state.players[1].root)
-                    {
-                        state.board[dirI] = state.players[1].deadRoot;
-                    }
-                    else
-                    {
-                        state.board[dirI] = state.players[1].deadFortifiedRoot;
-                    }
-                    if (state.absolute)
-                    {
-                        state.players[1].rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
-                    }
-                    state.KillRoots(dirX, dirY, state.players[1]);
+                    state.players[target].rootMap.SetTile(new Vector3Int(x, y), State.rootTile);
+                }
+            }
+
+            state.board[index] = fire;
+            if (state.absolute)
+            {
+                State.otherMap.SetTile(new Vector3Int(x, y), tile);
+                if (tile == null)
+                {
+                    state.players[target].rootMap.SetTile(new Vector3Int(x, y), null);
                 }
             }
         }

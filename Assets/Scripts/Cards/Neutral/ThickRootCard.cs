@@ -49,7 +49,7 @@ public class ThickRootCard : Card
         char[] enemyRoots = new char[] { otherPlayer.root, otherPlayer.fortifiedRoot, otherPlayer.invincibleRoot, otherPlayer.baseRoot};
         char[] fires = new char[] { thisPlayer.strongFire, thisPlayer.weakFire, otherPlayer.strongFire, otherPlayer.weakFire };
         state.validAIMoves.Clear();
-        int minThreats = 0;
+        int maxThreats = 0;
         for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
         {
             int[] coords = state.IndexToCoord(i);
@@ -60,12 +60,12 @@ public class ThickRootCard : Card
                 threats += 2 * state.CountNeighbors(coords[0], coords[1], enemyRoots);
                 threats += 3 * state.CountNeighbors(coords[0], coords[1], new char[] { otherPlayer.thorn });
                 threats += 15 * state.CountNeighbors(coords[0], coords[1], fires);
-                if (threats > minThreats)
+                if (threats > maxThreats)
                 {
                     state.validAIMoves.Clear();
-                    minThreats = threats;
+                    maxThreats = threats;
                 }
-                if (threats == minThreats)
+                if (threats == maxThreats)
                 {
                     state.validAIMoves.Add(i);
                 }

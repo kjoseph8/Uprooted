@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
-using Unity.Services.Core;
-using Unity.Services.Authentication;
-using Unity.Services.CloudCode;
+using Unity.Services.Analytics;
 using TMPro;
 
 public class GameManager : MonoBehaviour
@@ -53,7 +51,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject validCursor;
     [SerializeField] private GameObject invalidCursor;
     [SerializeField] private TextMeshProUGUI winnerDisp;
-    [SerializeField] private Animator[] defeatAnims;
+    [SerializeField] private GameObject[] plants;
     [SerializeField] private Tile highlightTile;
     [SerializeField] private GameObject tornadoWarning;
     [SerializeField] private AudioClip tornadoSiren;
@@ -61,14 +59,15 @@ public class GameManager : MonoBehaviour
     [SerializeField] private AudioClip compostSound;
     [SerializeField] private GameObject backgroundObj;
     [SerializeField] private GameObject rainObj;
+    [SerializeField] private AudioSource windSound;
     [SerializeField] private GameObject tornado;
     [HideInInspector] public State state;
+    private SpriteRenderer[] plantSprites;
+    private Animator[] defeatAnims;
     private SpriteRenderer background;
     private AudioSource backgroundMusic;
     private ParticleSystem rain;
     private AudioSource rainSrc;
-    private Animator tornadoAnim;
-    private AudioSource windSound;
     private Tilemap highlightMap;
     private bool gameEnded = false;
     private int[] hoveredIndexes = new int[] { -1, -1 };
@@ -78,14 +77,22 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        plantSprites = new SpriteRenderer[]
+        {
+            plants[0].GetComponent<SpriteRenderer>(),
+            plants[1].GetComponent<SpriteRenderer>(),
+        };
+        defeatAnims = new Animator[]
+        {
+            plants[0].GetComponent<Animator>(),
+            plants[1].GetComponent<Animator>(),
+        };
         background = backgroundObj.GetComponent<SpriteRenderer>();
         backgroundMusic = backgroundObj.GetComponent<AudioSource>();
         rain = rainObj.GetComponent<ParticleSystem>();
         rainSrc = rainObj.GetComponent<AudioSource>();
-        tornadoAnim = tornado.GetComponent<Animator>();
-        windSound = tornadoAnim.GetComponent<AudioSource>();
         highlightMap = GameObject.FindGameObjectWithTag("Highlights").GetComponent<Tilemap>();
-        state = new State(collection, rootTile, deadRootTile, rockTile, seedTile, woodShieldTile, metalShieldTile, thornTile, strongFireTile, weakFireTile);
+        state = new State(collection, rootTile, deadRootTile, rockTile, seedTile, woodShieldTile, metalShieldTile, thornTile, strongFireTile, weakFireTile, plantSprites);
         ChangeTurn(true);
     }
 
@@ -252,11 +259,19 @@ public class GameManager : MonoBehaviour
                 cardButtons[i].gameObject.SetActive(true);
                 cardButtons[i].interactable = true;
                 cardButtons[i].image.sprite = State.collection.sprites[hand[i]];
-                int cost = State.collection.cards[hand[i]].GetCost(state);
+                int cost = 0;
+                if (!state.players[state.thisPlayer].freeCards.Contains(i))
+                {
+                    cost = State.collection.cards[hand[i]].GetCost(state);
+                }
                 cardCosts[i].text = $"{cost}";
                 if (cost > state.players[state.thisPlayer].water)
                 {
                     cardCosts[i].color = new Color(1, 0.5f, 0.5f, 1);
+                }
+                else if (cost == 0)
+                {
+                    cardCosts[i].color = new Color(0.5f, 1, 0.5f, 1);
                 }
                 else
                 {
@@ -317,38 +332,45 @@ public class GameManager : MonoBehaviour
         {
             phaseDisp.text = state.card.GetName(state);
             playButtons[state.thisPlayer].gameObject.SetActive(true);
-            if (state.card.GetNumActions(state) == 0)
+            bool moveExists = false;
+            for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
             {
-                playButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].water >= state.card.GetCost(state) && state.card.Validation(state, 0);
-            }
-            else
-            {
-                bool moveExists = false;
-                for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
+                if (state.card.Validation(state, i))
                 {
-                    if (state.card.Validation(state, i))
-                    {
-                        moveExists = true;
-                        break;
-                    }
+                    moveExists = true;
+                    break;
                 }
-                playButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].water >= state.card.GetCost(state) && moveExists;
             }
+            int cost = 0;
+            if (!state.players[state.thisPlayer].freeCards.Contains(state.handIndex))
+            {
+                cost = state.card.GetCost(state);
+            }
+            playButtons[state.thisPlayer].interactable = state.players[state.thisPlayer].water >= cost && moveExists;
         }
         else
         {
-            phaseDisp.text = "Select a Card or Place a Root";
+            phaseDisp.text = "Select a Card\nor Place a Root";
             playButtons[state.thisPlayer].gameObject.SetActive(false);
         }
 
         if (hoveredIndexes[state.thisPlayer] != -1)
         {
-            selectedImages[state.thisPlayer].sprite = State.collection.sprites[hoveredIndexes[state.thisPlayer]];
-            int cost = State.collection.cards[hoveredIndexes[state.thisPlayer]].GetCost(state);
+            int cardIndex = state.players[state.thisPlayer].hand[hoveredIndexes[state.thisPlayer]];
+            selectedImages[state.thisPlayer].sprite = State.collection.sprites[cardIndex];
+            int cost = 0;
+            if (!state.players[state.thisPlayer].freeCards.Contains(hoveredIndexes[state.thisPlayer]))
+            {
+                cost = State.collection.cards[cardIndex].GetCost(state);
+            }
             selectedCosts[state.thisPlayer].text = $"{cost}";
             if (cost > state.players[state.thisPlayer].water)
             {
                 selectedCosts[state.thisPlayer].color = new Color(1, 0.5f, 0.5f, 1);
+            }
+            else if (cost == 0)
+            {
+                selectedCosts[state.thisPlayer].color = new Color(0.5f, 1, 0.5f, 1);
             }
             else
             {
@@ -359,11 +381,26 @@ public class GameManager : MonoBehaviour
         else if (state.card != null)
         {
             selectedImages[state.thisPlayer].sprite = State.collection.sprites[state.cardIndex];
-            int cost = State.collection.cards[state.cardIndex].GetCost(state);
-            selectedCosts[state.thisPlayer].text = $"{cost}";
+            int cost = 0;
+            if (!state.players[state.thisPlayer].freeCards.Contains(state.handIndex))
+            {
+                cost = State.collection.cards[state.cardIndex].GetCost(state);
+            }
+            if (state.cardIndex == 0)
+            {
+                selectedCosts[state.thisPlayer].text = "";
+            }
+            else
+            {
+                selectedCosts[state.thisPlayer].text = $"{cost}";
+            }
             if (cost > state.players[state.thisPlayer].water)
             {
                 selectedCosts[state.thisPlayer].color = new Color(1, 0.5f, 0.5f, 1);
+            }
+            else if (cost == 0)
+            {
+                selectedCosts[state.thisPlayer].color = new Color(0.5f, 1, 0.5f, 1);
             }
             else
             {
@@ -378,8 +415,10 @@ public class GameManager : MonoBehaviour
 
         if (hoveredIndexes[state.otherPlayer] != -1)
         {
-            selectedImages[state.otherPlayer].sprite = State.collection.sprites[hoveredIndexes[state.otherPlayer]];
-            int cost = State.collection.cards[hoveredIndexes[state.otherPlayer]].GetCost(state);
+            int cardIndex = state.players[state.otherPlayer].hand[hoveredIndexes[state.otherPlayer]];
+            selectedImages[state.otherPlayer].sprite = State.collection.sprites[cardIndex];
+
+            int cost = State.collection.cards[cardIndex].GetCost(state);
             selectedCosts[state.otherPlayer].text = $"{cost}";
             if (cost > state.players[state.otherPlayer].water)
             {
@@ -396,9 +435,9 @@ public class GameManager : MonoBehaviour
             selectedImages[state.otherPlayer].gameObject.SetActive(false);
         }
 
-        int[] p1Counts = new int[] { state.players[0].wormTurns, state.players[0].scentTurns };
+        int[] p1Counts = new int[] { state.players[0].wormTurns, state.players[0].scentTurns, state.players[0].festivals };
         int p1Offset = 0;
-        int[] p2Counts = new int[] { state.players[1].wormTurns, state.players[1].scentTurns };
+        int[] p2Counts = new int[] { state.players[1].wormTurns, state.players[1].scentTurns, state.players[1].festivals };
         int p2Offset = 0;
         for (int i = 0; i < p1Counters.Length; i++)
         {
@@ -434,14 +473,7 @@ public class GameManager : MonoBehaviour
         Player player = state.players[state.thisPlayer];
         if (!player.ai)
         {
-            if (i >= 0)
-            {
-                state.SetCard(player.hand[i]);
-            }
-            else
-            {
-                state.SetCard(0);
-            }
+            state.SetCard(i);
         }
     }
 
@@ -449,7 +481,7 @@ public class GameManager : MonoBehaviour
     {
         if (ai || !state.players[state.thisPlayer].ai)
         {
-            Log("uprootedPlayCard");
+            Log("playCard");
             if (state.card.GetNumActions(state) == 0)
             {
                 soundSrc.volume = state.card.GetVolume(state);
@@ -462,7 +494,7 @@ public class GameManager : MonoBehaviour
 
     public void PlayTile(int index)
     {
-        Log("uprootedPlayTile", index);
+        Log("playTile", index);
         soundSrc.volume = state.card.GetVolume(state);
         soundSrc.PlayOneShot(State.collection.sounds[state.cardIndex]);
         state.PlayTile(index);
@@ -472,45 +504,8 @@ public class GameManager : MonoBehaviour
     {
         if (ai || !state.players[state.thisPlayer].ai)
         {
-            Log("uprootedDiscard");
+            Log("discard");
             state.DiscardCard();
-        }
-    }
-
-    private async void Log(string service, int index = 0)
-    {
-        try
-        {
-            var arguments = new Dictionary<string, object>();
-            arguments.Add("name", state.card.GetName(state));
-            arguments.Add("turn", state.turn);
-            arguments.Add("ai", state.players[state.thisPlayer].ai);
-            arguments.Add("plant", state.players[state.thisPlayer].plant);
-
-            if (State.stage == 1)
-            {
-                arguments.Add("stage", "garden");
-            }
-            else if (State.stage == 2)
-            {
-                arguments.Add("stage", "desert");
-            }
-            else
-            {
-                arguments.Add("stage", "volcano");
-            }
-
-            if (service == "uprootedPlayTile")
-            {
-                int[] coords = state.IndexToCoord(index);
-                arguments.Add("x", coords[0]);
-                arguments.Add("y", coords[1]);
-            }
-            var response = await CloudCodeService.Instance.CallEndpointAsync(service, arguments);
-        }
-        catch (Exception e)
-        {
-            Debug.LogException(e);
         }
     }
 
@@ -526,52 +521,65 @@ public class GameManager : MonoBehaviour
     {
         if (ai || !state.players[state.thisPlayer].ai)
         {
-            Log("uprootedCompost");
+            Log("compost");
             soundSrc.volume = 1;
             soundSrc.PlayOneShot(compostSound);
             state.CompostCard();
         }
     }
 
-    public void SetP1HoverIndex(int index)
+    private void Log(string service, int index = 0)
     {
-        if (index != -1)
+        var arguments = new Dictionary<string, object>();
+        arguments.Add("cardName", state.card.GetName(state));
+        arguments.Add("turn", state.turn);
+        arguments.Add("ai", state.players[state.thisPlayer].ai);
+        arguments.Add("plant", state.players[state.thisPlayer].plant);
+
+        if (State.stage == 1)
         {
-            hoveredIndexes[0] = state.players[0].hand[index];
+            arguments.Add("stage", "garden");
+        }
+        else if (State.stage == 2)
+        {
+            arguments.Add("stage", "desert");
         }
         else
         {
-            hoveredIndexes[0] = 0;
+            arguments.Add("stage", "volcano");
         }
+
+        if (service == "playTile")
+        {
+            int[] coords = state.IndexToCoord(index);
+            arguments.Add("xTile", coords[0]);
+            arguments.Add("yTile", coords[1]);
+        }
+#if !UNITY_EDITOR
+        AnalyticsService.Instance.CustomData(service, arguments);
+#endif
     }
 
-    public void UnsetP1HoverIndex()
+    public void SetP1HoverIndex(int index)
     {
-        hoveredIndexes[0] = -1;
+        hoveredIndexes[0] = index;
     }
 
     public void SetP2HoverIndex(int index)
     {
-        if (index != -1)
-        {
-            hoveredIndexes[1] = state.players[1].hand[index];
-        }
-        else
-        {
-            hoveredIndexes[1] = 0;
-        }
-    }
-
-    public void UnsetP2HoverIndex()
-    {
-        hoveredIndexes[1] = -1;
+        hoveredIndexes[1] = index;
     }
 
     public void PlayButtonHover(bool activate)
     {
         if (activate && state.card != null && (!playButtons[state.thisPlayer].interactable || state.card.GetWarningMessage(state) != null))
         {
-            if (state.players[state.thisPlayer].water < state.card.GetCost(state))
+            int cost = 0;
+            if (!state.players[state.thisPlayer].freeCards.Contains(state.handIndex))
+            {
+                cost = state.card.GetCost(state);
+            }
+            if (state.players[state.thisPlayer].water < cost)
             {
                 disabledMessages[state.thisPlayer].text = "You don't have enough water to play this card.";
             }
@@ -637,7 +645,7 @@ public class GameManager : MonoBehaviour
             winner = 1;
         }
 
-        tornadoAnim.enabled = true;
+        tornado.SetActive(true);
         if (winner == -1)
         {
             winnerDisp.text = "It's a Draw.";
@@ -656,5 +664,8 @@ public class GameManager : MonoBehaviour
     {
         yield return new WaitForSeconds(5);
         winnerDisp.enabled = true;
+#if !UNITY_EDITOR
+        AnalyticsService.Instance.Flush();
+#endif
     }
 }

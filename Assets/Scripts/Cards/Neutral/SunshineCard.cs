@@ -27,14 +27,14 @@ public class SunshineCard : Card
     public override void Action(State state, int index)
     {
         Player player = state.players[state.thisPlayer];
-        int card = player.discard[new System.Random().Next(0, player.discard.Count - 1)];
-        player.hand.Add(card);
-        player.discard.Remove(card);
+        int cardIndex = new System.Random().Next(0, player.discard.Count - 1);
+        player.hand.Add(player.discard[cardIndex]);
+        player.discard.RemoveAt(cardIndex);
         if (player.discard.Count > 1)
         {
-            card = player.discard[new System.Random().Next(0, player.discard.Count - 1)];
-            player.hand.Add(card);
-            player.discard.Remove(card);
+            cardIndex = new System.Random().Next(0, player.discard.Count - 1);
+            player.hand.Add(player.discard[cardIndex]);
+            player.discard.RemoveAt(cardIndex);
         }
     }
 

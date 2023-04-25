@@ -44,7 +44,7 @@ public class ThornsCard : Card
     {
         Player player = state.players[state.otherPlayer];
         state.validAIMoves.Clear();
-        int minDestructibles = 0;
+        int maxDestructibles = 0;
         for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
         {
             int[] coords = state.IndexToCoord(i);
@@ -53,12 +53,12 @@ public class ThornsCard : Card
             {
                 int destructibles = state.CountNeighbors(coords[0], coords[1], new char[] { player.root, player.fortifiedRoot, player.deadRoot, player.deadFortifiedRoot });
 
-                if (destructibles > minDestructibles)
+                if (destructibles > maxDestructibles)
                 {
                     state.validAIMoves.Clear();
-                    minDestructibles = destructibles;
+                    maxDestructibles = destructibles;
                 }
-                if (destructibles == minDestructibles)
+                if (destructibles == maxDestructibles)
                 {
                     state.validAIMoves.Add(i);
                 }

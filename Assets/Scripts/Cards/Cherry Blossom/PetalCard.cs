@@ -3,28 +3,55 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AphidCard: Card
+public class PetalCard : Card
 {
     public override string GetName(State state)
     {
-        return "Aphid Infestation";
+        if (state.players[state.thisPlayer].bloom)
+        {
+            return "Draw 2 cards that cost 0 this turn";
+        }
+        else if (state.tilePhase)
+        {
+            return "Destroy an opposing root or obstacle";
+        }
+        else
+        {
+            return "Discard your hand and destroy a root for each card";
+        }
     }
 
     public override int GetCost(State state)
     {
-        return 2;
+        return 3;
     }
 
     public override int GetNumActions(State state)
     {
-        return 2;
+        if (state.cardIndex == 17 && state.tilePhase)
+        {
+            return 4;
+        }
+        return 0;
     }
 
     public override bool Validation(State state, int index)
     {
-        Player player = state.players[state.otherPlayer];
+        Player player = state.players[state.thisPlayer];
+        if (player.bloom)
+        {
+            return true;
+        }
+        else if (state.tilePhase)
+        {
+            Player otherPlayer = state.players[state.otherPlayer];
 
-        return index != -1 && Array.IndexOf(new char[] { player.root, player.fortifiedRoot, player.deadRoot, player.deadFortifiedRoot, player.thorn }, state.board[index]) != -1;
+            return index != -1 && Array.IndexOf(new char[] { otherPlayer.root, otherPlayer.fortifiedRoot, otherPlayer.deadRoot, otherPlayer.deadFortifiedRoot, otherPlayer.thorn }, state.board[index]) != -1;
+        }
+        else
+        {
+            return player.hand.Count > 1;
+        }
     }
 
     public override void UpdateValidAIMoves(State state)
@@ -66,16 +93,41 @@ public class AphidCard: Card
 
     public override void Action(State state, int index)
     {
-        state.KillRoot(index, state.players[state.otherPlayer]);
+        Player player = state.players[state.thisPlayer];
+        if (player.bloom)
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                player.freeCards.Add(player.hand.Count);
+                player.DrawCard();
+            }
+        }
+        else if (state.tilePhase)
+        {
+            state.KillRoot(index, state.players[state.otherPlayer]);
+        }
+        else
+        {
+            while (player.hand.Count > 0)
+            {
+                if (player.hand[0] == 18)
+                {
+                    player.rootMoves += 2;
+                }
+                player.DiscardCard(0);
+                state.numActions++;
+            }
+            state.tilePhase = true;
+        }
     }
 
     public override float GetVolume(State state)
     {
-        return 0.7f;
+        return 1;
     }
 
     public override string GetDisabledMessage(State state)
     {
-        return "Your opponent has nothing you can destroy.";
+        return "There are no other cards in your hand to discard.";
     }
 }

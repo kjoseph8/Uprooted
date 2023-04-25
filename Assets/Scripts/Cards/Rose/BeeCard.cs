@@ -30,51 +30,8 @@ public class BeeCard : Card
 
     public override void Action(State state, int index)
     {
-        int[] coords = state.IndexToCoord(index);
-        int x = coords[0];
-        int y = coords[1];
-
-        if (state.turn == state.maxTurns)
-        {
-            state.board[index] = state.players[state.thisPlayer].fortifiedRoot;
-        }
-        else
-        {
-            state.board[index] = state.players[state.thisPlayer].root;
-        }
-        if (state.absolute)
-        {
-            state.players[state.otherPlayer].rootMap.SetTile(new Vector3Int(x, y), null);
-            state.players[state.thisPlayer].rootMap.SetTile(new Vector3Int(x, y), State.rootTile);
-        }
-        state.ResurrectRoots(x, y, state.players[state.thisPlayer]);
-
-        int[,] dirs = { { x - 1, y }, { x + 1, y }, { x, y - 1 }, { x, y + 1 } };
-        for (int i = 0; i < 4; i++)
-        {
-            int dirX = dirs[i, 0];
-            int dirY = dirs[i, 1];
-            int dirI = state.CoordToIndex(dirX, dirY);
-            List<int> start = new List<int>();
-            start.Add(dirI);
-            if (dirI != -1 && (state.board[dirI] == state.players[state.otherPlayer].root || state.board[dirI] == state.players[state.otherPlayer].fortifiedRoot) &&
-                state.BFS(start, new char[] { state.players[state.otherPlayer].root, state.players[state.otherPlayer].fortifiedRoot }, new char[] { state.players[state.otherPlayer].baseRoot }) == -1)
-            {
-                if (state.board[dirI] == state.players[state.otherPlayer].root)
-                {
-                    state.board[dirI] = state.players[state.otherPlayer].deadRoot;
-                }
-                else
-                {
-                    state.board[dirI] = state.players[state.otherPlayer].deadFortifiedRoot;
-                }
-                if (state.absolute)
-                {
-                    state.players[state.otherPlayer].rootMap.SetTile(new Vector3Int(dirX, dirY), State.deadRootTile);
-                }
-                state.KillRoots(dirX, dirY, state.players[state.otherPlayer]);
-            }
-        }
+        state.KillRoot(index, state.players[state.otherPlayer]);
+        state.PlaceRoot(index, state.players[state.thisPlayer]);
     }
 
     public override float GetVolume(State state)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,7 +12,7 @@ public class LoveCard : Card
 
     public override int GetCost(State state)
     {
-        return 2;
+        return 3;
     }
 
     public override int GetNumActions(State state)
@@ -52,12 +53,13 @@ public class LoveCard : Card
                 return false;
             }
         }
-        else if (state.CountNeighbors(x, y, new char[] { state.players[state.thisPlayer].root }) == 0)
+        else if (state.CountNeighbors(x, y, new char[] { '-', 'W' }) == 0)
         {
             return false;
         }
 
-        return state.board[index] == state.players[state.thisPlayer].root;
+        Player player = state.players[state.thisPlayer];
+        return Array.IndexOf(new char[] { '-', 'W' }, state.board[index]) != -1 && state.HasNeighbor(x, y, new char[] { player.root, player.fortifiedRoot, player.invincibleRoot, player.baseRoot }); ;
     }
 
     public override bool AIValidation(State state)
@@ -105,23 +107,23 @@ public class LoveCard : Card
             Player otherPlayer = state.players[state.otherPlayer];
             char[] enemyRoots = new char[] { otherPlayer.root, otherPlayer.fortifiedRoot, otherPlayer.invincibleRoot, otherPlayer.baseRoot };
             char[] fires = new char[] { thisPlayer.strongFire, thisPlayer.weakFire, otherPlayer.strongFire, otherPlayer.weakFire };
-            int minThreats = 0;
+            int maxThreats = 0;
             for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
             {
                 int[] coords = state.IndexToCoord(i);
 
                 if (Validation(state, i))
                 {
-                    int threats = state.CountAllNeighbors(i, new char[] { 'R' });
-                    threats += 2 * state.CountNeighbors(coords[0], coords[1], enemyRoots);
-                    threats += 3 * state.CountNeighbors(coords[0], coords[1], new char[] { otherPlayer.thorn });
-                    threats += 15 * state.CountNeighbors(coords[0], coords[1], fires);
-                    if (threats > minThreats)
+                    int threats = 5 * state.CountAllNeighbors(i, new char[] { 'R' });
+                    threats += state.CountNeighbors(coords[0], coords[1], enemyRoots);
+                    threats += state.CountNeighbors(coords[0], coords[1], new char[] { otherPlayer.thorn });
+                    threats += state.CountNeighbors(coords[0], coords[1], fires);
+                    if (threats > maxThreats)
                     {
                         state.validAIMoves.Clear();
-                        minThreats = threats;
+                        maxThreats = threats;
                     }
-                    if (threats == minThreats)
+                    if (threats == maxThreats)
                     {
                         state.validAIMoves.Add(i);
                     }
@@ -132,15 +134,18 @@ public class LoveCard : Card
 
     public override void Action(State state, int index)
     {
-        state.board[index] = state.players[state.thisPlayer].fortifiedRoot;
-        state.loveCardPartnerIndex = index;
-        int[] coords = state.IndexToCoord(index);
-        int x = coords[0];
-        int y = coords[1];
-        if (state.absolute)
+        Player player = state.players[state.thisPlayer];
+        state.PlaceRoot(index, player);
+        if (state.turn < state.maxTurns)
         {
-            State.otherMap.SetTile(new Vector3Int(x, y), State.woodShieldTile);
+            state.board[index] = player.fortifiedRoot;
+            if (state.absolute)
+            {
+                int[] coords = state.IndexToCoord(index);
+                State.otherMap.SetTile(new Vector3Int(coords[0], coords[1]), State.woodShieldTile);
+            }
         }
+        state.loveCardPartnerIndex = index;
     }
 
     public override float GetVolume(State state)

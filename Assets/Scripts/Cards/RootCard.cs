@@ -63,7 +63,18 @@ public class RootCard: Card
         {
             start.Add(i);
         }
-        state.BFS(start, new char[] { '-' }, new char[0], "rootAI", 7);
+        if (state.rootAITimeout < player.rootMoves)
+        {
+            state.rootAITimeout = player.rootMoves;
+        }
+        if (state.BFS(start, new char[] { '-' }, new char[0], "rootAI", state.rootAITimeout) <= 1)
+        {
+            state.rootAITimeout = 7;
+        }
+        else
+        {
+            state.rootAITimeout--;
+        }
         if (state.validAIMoves.Count == 0)
         {
             base.UpdateValidAIMoves(state);

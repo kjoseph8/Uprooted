@@ -38,10 +38,10 @@ public class Player
     public Sprite dormantSprite;
     public Sprite bloomSprite;
 
-    public Player(bool ai, string plant, char root, char fortifiedRoot, char invincibleRoot, char baseRoot, char deadRoot, char deadFortifiedRoot, char deadInvincibleRoot, char thorn, char strongFire, char weakFire, Tilemap rootMap, SpriteRenderer plantSprite, CardCollection collection)
+    public Player(bool ai,int plant, int color, char root, char fortifiedRoot, char invincibleRoot, char baseRoot, char deadRoot, char deadFortifiedRoot, char deadInvincibleRoot, char thorn, char strongFire, char weakFire, Tilemap rootMap, SpriteRenderer plantSprite, CardCollection collection)
     {
         this.ai = ai;
-        this.plant = plant;
+        this.plant = PlantConfigs.plantNames[plant];
         this.root = root;
         this.fortifiedRoot = fortifiedRoot;
         this.invincibleRoot = invincibleRoot;
@@ -55,7 +55,7 @@ public class Player
         this.rootMap = rootMap;
         this.plantSprite = plantSprite;
         int[] deck = null;
-        if (plant == "cherry blossom")
+        if (plant == 1)
         {
             deck = CardCollection.cherryBlossom;
             dormantSprite = collection.cherryBlossomSprites[0];
@@ -68,6 +68,8 @@ public class Player
             bloomSprite = collection.roseSprites[1];
         }
         plantSprite.sprite = dormantSprite;
+        plantSprite.color = PlantConfigs.plantColors[plant][color];
+        rootMap.color = PlantConfigs.plantColors[plant][color];
         for (int i = 0; i < deck.Length; i++)
         {
             draw.Add(deck[i]);

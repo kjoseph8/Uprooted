@@ -27,6 +27,7 @@ public class State
     public List<int> oasisIndexes;
     public int loveCardPartnerIndex = -1;
     public List<int> validAIMoves;
+    public int rootAITimeout = 7;
     public static CardCollection collection;
     public static Tilemap outlineMap;
     public static Tilemap waterMap;
@@ -45,7 +46,7 @@ public class State
     public static TileBase weakFireTile;
     public static int stage = 0;
 
-    public State(CardCollection collection, TileBase rootTile, TileBase deadRootTile, TileBase rockTile, TileBase seedTile, TileBase woodShieldTile, TileBase metalShieldTile, TileBase thornTile, TileBase strongFireTile, TileBase weakFireTile, SpriteRenderer[] plantSprites)
+    public State(CardCollection collection, TileBase rootTile, TileBase deadRootTile, TileBase rockTile, TileBase seedTile, TileBase woodShieldTile, TileBase metalShieldTile, TileBase thornTile, TileBase strongFireTile, TileBase weakFireTile, SpriteRenderer[] plantSprites, TextMeshProUGUI[] plantNames)
     {
         absolute = true;
         State.collection = collection;
@@ -62,15 +63,24 @@ public class State
         Tilemap roots1Map = GameObject.FindGameObjectWithTag("Roots1").GetComponent<Tilemap>();
         Tilemap roots2Map = GameObject.FindGameObjectWithTag("Roots2").GetComponent<Tilemap>();
         GameObject menuManagerObj = GameObject.FindGameObjectWithTag("MenuManager");
+
         bool[] ai = new bool[] { false, false };
+        int[] plant = new int[] { 0, 0 };
+        int[] color = new int[] { 0, 1 };
         if (menuManagerObj != null)
         {
-            ai = menuManagerObj.GetComponent<MenuManager>().ai;
+            MenuManager menuManager = menuManagerObj.GetComponent<MenuManager>();
+            ai = menuManager.ai;
+            plant = menuManager.plant;
+            color = menuManager.color;
         }
+        plantNames[0].text = $"{PlantConfigs.plantNames[plant[0]]}";
+        plantNames[1].text = $"{PlantConfigs.plantNames[plant[1]]}";
         players = new Player[2] {
-            new Player(ai[0], "cherry blossom", '1', ',', '[', '!', 'i', 'I', '{', 'T', 'B', 'S', roots1Map, plantSprites[0], collection),
-            new Player(ai[1], "cherry blossom", '2', '.', ']', '@', 'z', 'Z', '}', 't', 'b', 's', roots2Map, plantSprites[1], collection),
+            new Player(ai[0], plant[0], color[0], '1', ',', '[', '!', 'i', 'I', '{', 'T', 'B', 'S', roots1Map, plantSprites[0], collection),
+            new Player(ai[1], plant[1], color[1], '2', '.', ']', '@', 'z', 'Z', '}', 't', 'b', 's', roots2Map, plantSprites[1], collection),
         };
+
         oasisIndexes = new List<int>();
         validAIMoves = new List<int>();
         outlineMap = GameObject.FindGameObjectWithTag("Outline").GetComponent<Tilemap>();
@@ -183,6 +193,7 @@ public class State
         loveCardPartnerIndex = parent.loveCardPartnerIndex;
         players = new Player[2] { new Player(parent.players[0]), new Player(parent.players[1]) };
         validAIMoves = new List<int>();
+        rootAITimeout = parent.rootAITimeout;
         board = new char[parent.board.Length];
         for (int i = 0; i < board.Length; i++)
         {
@@ -360,7 +371,7 @@ public class State
                 }
                 else if (output == "rootAI" || output == "saplingAI")
                 {
-                    return validAIMoves.Count;
+                    return timeout;
                 }
                 else
                 {
@@ -801,6 +812,8 @@ public class State
                 }
             }
         }
+
+        rootAITimeout = 7;
 
         Player player = players[thisPlayer];
 

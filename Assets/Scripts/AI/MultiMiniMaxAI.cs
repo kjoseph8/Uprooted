@@ -120,6 +120,7 @@ public class MultiMiniMaxAI
         {
             copy.SetCard(-1);
             copy.tilePhase = true;
+            ControlHelper(copy, turns, moves);
         }
         else
         {

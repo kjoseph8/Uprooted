@@ -129,6 +129,7 @@ public class MiniMaxAI: MonoBehaviour
         {
             next.SetCard(-1);
             next.tilePhase = true;
+            yield return StartCoroutine(ControlHelper(next, moves));
         }
         else
         {

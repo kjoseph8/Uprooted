@@ -52,6 +52,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject invalidCursor;
     [SerializeField] private TextMeshProUGUI winnerDisp;
     [SerializeField] private GameObject[] plants;
+    [SerializeField] private TextMeshProUGUI[] plantNames;
     [SerializeField] private Tile highlightTile;
     [SerializeField] private GameObject tornadoWarning;
     [SerializeField] private AudioClip tornadoSiren;
@@ -92,7 +93,7 @@ public class GameManager : MonoBehaviour
         rain = rainObj.GetComponent<ParticleSystem>();
         rainSrc = rainObj.GetComponent<AudioSource>();
         highlightMap = GameObject.FindGameObjectWithTag("Highlights").GetComponent<Tilemap>();
-        state = new State(collection, rootTile, deadRootTile, rockTile, seedTile, woodShieldTile, metalShieldTile, thornTile, strongFireTile, weakFireTile, plantSprites);
+        state = new State(collection, rootTile, deadRootTile, rockTile, seedTile, woodShieldTile, metalShieldTile, thornTile, strongFireTile, weakFireTile, plantSprites, plantNames);
         ChangeTurn(true);
     }
 

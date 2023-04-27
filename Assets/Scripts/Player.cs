@@ -69,7 +69,7 @@ public class Player
         }
         plantSprite.sprite = dormantSprite;
         plantSprite.color = PlantConfigs.plantColors[plant][color];
-        rootMap.color = PlantConfigs.plantColors[plant][color];
+        rootMap.color = PlantConfigs.rootColors[plant][color];
         for (int i = 0; i < deck.Length; i++)
         {
             draw.Add(deck[i]);

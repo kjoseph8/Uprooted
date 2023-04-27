@@ -36,4 +36,18 @@ public class PlantConfigs
             new Color(1, 1, 0.75f)
         }
     };
+
+    public static Color[][] rootColors = new Color[][]
+    {
+        new Color[]
+        {
+            new Color(0.0941f, 0.4863f, 0.2431f),
+            new Color(0.024478f, 0.4862745f, 0.4522256f)
+        },
+        new Color[]
+        {
+            new Color(0.3607843f, 0.2431373f, 0.1490196f),
+            new Color(0.3607843f, 0.3098039f, 0.1137255f)
+        }
+    };
 }

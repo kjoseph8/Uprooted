@@ -123,11 +123,16 @@ public class PetalCard : Card
 
     public override float GetVolume(State state)
     {
-        return 1;
+        return 0.4f;
     }
 
     public override string GetDisabledMessage(State state)
     {
         return "There are no other cards in your hand to discard.";
+    }
+
+    public override string GetCardTips(State state)
+    {
+        return "Play Dormant to enter Dormant Stance.\n\nPlay Bloom to enter Bloom Stance.";
     }
 }

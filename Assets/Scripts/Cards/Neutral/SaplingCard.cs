@@ -93,4 +93,9 @@ public class SaplingCard : Card
     {
         return "There are no empty tiles at the border of the map to place a new sapling.";
     }
+
+    public override string GetCardTips(State state)
+    {
+        return "Sapling: An indestructible base that you can place roots from.";
+    }
 }

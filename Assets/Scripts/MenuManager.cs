@@ -20,10 +20,15 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private GameObject[] p2CharacterPreviews;
     [SerializeField] private Image[] p1Sprites;
     [SerializeField] private Image[] p2Sprites;
+    [SerializeField] private GameObject howToPlayScreen;
+    [SerializeField] private GameObject[] howToPlayPages;
+    [SerializeField] private GameObject howToPlayBack;
+    [SerializeField] private GameObject howToPlayNext;
     [HideInInspector] public int stage;
     [HideInInspector] public bool[] ai;
     [HideInInspector] public int[] plant;
     [HideInInspector] public int[] color;
+    private int pageIndex = 0;
 
     async void Awake()
     {
@@ -51,6 +56,7 @@ public class MenuManager : MonoBehaviour
     {
         stageSelectScreen.SetActive(false);
         characterSelectScreen.SetActive(false);
+        howToPlayScreen.SetActive(false);
     }
 
     public void LoadStageSelect()
@@ -95,9 +101,9 @@ public class MenuManager : MonoBehaviour
         {
             p1ColorButtons[i].GetComponent<Image>().color = PlantConfigs.buttonColors[plantIndex][i];
         }
-        for (int i = 0; i < p1CharacterPreviews.Length; i++)
+        foreach (GameObject preview in p1CharacterPreviews)
         {
-            p1CharacterPreviews[i].SetActive(false);
+            preview.SetActive(false);
         }
         p1CharacterPreviews[plantIndex].SetActive(true);
 
@@ -134,9 +140,9 @@ public class MenuManager : MonoBehaviour
         {
             p2ColorButtons[i].GetComponent<Image>().color = PlantConfigs.buttonColors[plantIndex][i];
         }
-        for (int i = 0; i < p2CharacterPreviews.Length; i++)
+        foreach (GameObject preview in p2CharacterPreviews)
         {
-            p2CharacterPreviews[i].SetActive(false);
+            preview.SetActive(false);
         }
         p2CharacterPreviews[plantIndex].SetActive(true);
 
@@ -170,16 +176,101 @@ public class MenuManager : MonoBehaviour
     {
         color[0] = colorIndex;
         p1Sprites[plant[0]].color = PlantConfigs.plantColors[plant[0]][colorIndex];
+        if (plant[1] == plant[0])
+        {
+            foreach (Button button in p2ColorButtons)
+            {
+                button.interactable = true;
+            }
+            p2ColorButtons[colorIndex].interactable = false;
+        }
     }
 
     public void SetP2Color(int colorIndex)
     {
         color[1] = colorIndex;
         p2Sprites[plant[1]].color = PlantConfigs.plantColors[plant[1]][colorIndex];
+        if (plant[0] == plant[1])
+        {
+            foreach (Button button in p1ColorButtons)
+            {
+                button.interactable = true;
+            }
+            p1ColorButtons[colorIndex].interactable = false;
+        }
     }
 
     public void PlayGame()
     {
         SceneManager.LoadScene(stage);
+    }
+
+    public void LoadHowToPlay()
+    {
+        howToPlayScreen.SetActive(true);
+        if (pageIndex == 0)
+        {
+            howToPlayBack.SetActive(false);
+        }
+        else
+        {
+            howToPlayBack.SetActive(true);
+        }
+        if (pageIndex == howToPlayPages.Length - 1)
+        {
+            howToPlayNext.SetActive(false);
+        }
+        else
+        {
+            howToPlayNext.SetActive(true);
+        }
+    }
+
+    public void PreviousPage()
+    {
+        howToPlayPages[pageIndex].SetActive(false);
+        pageIndex--;
+        howToPlayPages[pageIndex].SetActive(true);
+
+        if (pageIndex == 0)
+        {
+            howToPlayBack.SetActive(false);
+        }
+        else
+        {
+            howToPlayBack.SetActive(true);
+        }
+        if (pageIndex == howToPlayPages.Length - 1)
+        {
+            howToPlayNext.SetActive(false);
+        }
+        else
+        {
+            howToPlayNext.SetActive(true);
+        }
+    }
+
+    public void NextPage()
+    {
+        howToPlayPages[pageIndex].SetActive(false);
+        pageIndex++;
+        howToPlayPages[pageIndex].SetActive(true);
+
+        if (pageIndex == 0)
+        {
+            howToPlayBack.SetActive(false);
+        }
+        else
+        {
+            howToPlayBack.SetActive(true);
+        }
+        if (pageIndex == howToPlayPages.Length - 1)
+        {
+            howToPlayNext.SetActive(false);
+        }
+        else
+        {
+            howToPlayNext.SetActive(true);
+        }
     }
 }

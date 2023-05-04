@@ -38,4 +38,9 @@ public class ScentCard : Card
     {
         return "You already smelled enough roses to last till the end of the game.";
     }
+
+    public override string GetCardTips(State state)
+    {
+        return "If Pleasant Scent is already in play, playing this will extend the duration.";
+    }
 }

@@ -47,6 +47,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI[] selectedCosts;
     [SerializeField] private GameObject[] disabledMsgBackgrounds;
     [SerializeField] private TextMeshProUGUI[] disabledMessages;
+    [SerializeField] private GameObject[] compostMessages;
+    [SerializeField] private GameObject[] cardTipBackgrounds;
+    [SerializeField] private TextMeshProUGUI[] cardTips;
     [SerializeField] private Sprite rootCardSprite;
     [SerializeField] private GameObject validCursor;
     [SerializeField] private GameObject invalidCursor;
@@ -54,8 +57,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject[] plants;
     [SerializeField] private TextMeshProUGUI[] plantNames;
     [SerializeField] private Tile highlightTile;
-    [SerializeField] private GameObject tornadoWarning;
+    [SerializeField] private GameObject[] fiveTurnWarnings;
     [SerializeField] private AudioClip tornadoSiren;
+    [SerializeField] private GameObject finalTurnWarning;
     [SerializeField] private AudioSource soundSrc;
     [SerializeField] private AudioClip compostSound;
     [SerializeField] private GameObject backgroundObj;
@@ -72,7 +76,7 @@ public class GameManager : MonoBehaviour
     private Tilemap highlightMap;
     private bool gameEnded = false;
     private int[] hoveredIndexes = new int[] { -1, -1 };
-    private float turnFactor = 0;
+    private float turnFactor = 1;
     private float factorSpeed = 0.01f;
 
     // Start is called before the first frame update
@@ -122,7 +126,7 @@ public class GameManager : MonoBehaviour
         rainSrc.volume = .2f + .5f * turnFactor;
         if (state.turn > state.maxTurns - 5)
         {
-            windSound.volume = 0.2f + 0.4f * turnFactor;
+            windSound.volume = 0.1f + 0.3f * turnFactor;
         }
         UpdateCards();
         UpdateHighlights();
@@ -177,10 +181,18 @@ public class GameManager : MonoBehaviour
             {
                 if (state.thisPlayer == 0 && state.turn == state.maxTurns - 4)
                 {
-                    tornadoWarning.SetActive(true);
-                    StartCoroutine(RemoveTornadoSiren());
-                    soundSrc.volume = 0.4f;
+                    foreach (GameObject warning in fiveTurnWarnings)
+                    {
+                        warning.SetActive(true);
+                    }
+                    soundSrc.volume = 1;
                     soundSrc.PlayOneShot(tornadoSiren);
+                    StartCoroutine(DisableFiveTurnWarning());
+                }
+                else if (state.thisPlayer == 0 && state.turn == state.maxTurns)
+                {
+                    finalTurnWarning.SetActive(true);
+                    StartCoroutine(DisableFinalTurnWarning());
                 }
                 else
                 {
@@ -199,10 +211,19 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    IEnumerator RemoveTornadoSiren()
+    IEnumerator DisableFiveTurnWarning()
     {
-        yield return new WaitForSeconds(4);
-        tornadoWarning.SetActive(false);
+        yield return new WaitForSeconds(13);
+        foreach (GameObject warning in fiveTurnWarnings)
+        {
+            warning.SetActive(false);
+        }
+    }
+
+    IEnumerator DisableFinalTurnWarning()
+    {
+        yield return new WaitForSeconds(5);
+        finalTurnWarning.SetActive(false);
     }
 
     private void UpdateCards()
@@ -355,7 +376,7 @@ public class GameManager : MonoBehaviour
             playButtons[state.thisPlayer].gameObject.SetActive(false);
         }
 
-        if (hoveredIndexes[state.thisPlayer] != -1)
+        if (hoveredIndexes[state.thisPlayer] != -1 && hoveredIndexes[state.thisPlayer] < state.players[state.thisPlayer].hand.Count)
         {
             int cardIndex = state.players[state.thisPlayer].hand[hoveredIndexes[state.thisPlayer]];
             selectedImages[state.thisPlayer].sprite = State.collection.sprites[cardIndex];
@@ -414,7 +435,7 @@ public class GameManager : MonoBehaviour
             selectedImages[state.thisPlayer].gameObject.SetActive(false);
         }
 
-        if (hoveredIndexes[state.otherPlayer] != -1)
+        if (hoveredIndexes[state.otherPlayer] != -1 && hoveredIndexes[state.otherPlayer] < state.players[state.otherPlayer].hand.Count)
         {
             int cardIndex = state.players[state.otherPlayer].hand[hoveredIndexes[state.otherPlayer]];
             selectedImages[state.otherPlayer].sprite = State.collection.sprites[cardIndex];
@@ -483,13 +504,12 @@ public class GameManager : MonoBehaviour
         if (ai || !state.players[state.thisPlayer].ai)
         {
             Log("playCard");
-            if (state.card.GetNumActions(state) == 0)
-            {
-                soundSrc.volume = state.card.GetVolume(state);
-                soundSrc.PlayOneShot(State.collection.sounds[state.cardIndex]);
-            }
+            soundSrc.volume = state.card.GetVolume(state);
+            soundSrc.PlayOneShot(State.collection.sounds[state.cardIndex]);
             state.PlayCard();
             disabledMsgBackgrounds[state.thisPlayer].SetActive(false);
+            compostMessages[state.thisPlayer].SetActive(false);
+            cardTipBackgrounds[state.thisPlayer].SetActive(false);
         }
     }
 
@@ -507,6 +527,9 @@ public class GameManager : MonoBehaviour
         {
             Log("discard");
             state.DiscardCard();
+            disabledMsgBackgrounds[state.thisPlayer].SetActive(false);
+            compostMessages[state.thisPlayer].SetActive(false);
+            cardTipBackgrounds[state.thisPlayer].SetActive(false);
         }
     }
 
@@ -526,6 +549,9 @@ public class GameManager : MonoBehaviour
             soundSrc.volume = 1;
             soundSrc.PlayOneShot(compostSound);
             state.CompostCard();
+            disabledMsgBackgrounds[state.thisPlayer].SetActive(false);
+            compostMessages[state.thisPlayer].SetActive(false);
+            cardTipBackgrounds[state.thisPlayer].SetActive(false);
         }
     }
 
@@ -564,11 +590,45 @@ public class GameManager : MonoBehaviour
     public void SetP1HoverIndex(int index)
     {
         hoveredIndexes[0] = index;
+        if (index != -1)
+        {
+            string tip = State.collection.cards[state.players[0].hand[index]].GetCardTips(state);
+            if (tip != null)
+            {
+                cardTips[0].text = tip;
+                cardTipBackgrounds[0].SetActive(true);
+            }
+            else
+            {
+                cardTipBackgrounds[0].SetActive(false);
+            }
+        }
+        else
+        {
+            cardTipBackgrounds[0].SetActive(false);
+        }
     }
 
     public void SetP2HoverIndex(int index)
     {
         hoveredIndexes[1] = index;
+        if (index != -1)
+        {
+            string tip = State.collection.cards[state.players[1].hand[index]].GetCardTips(state);
+            if (tip != null)
+            {
+                cardTips[1].text = tip;
+                cardTipBackgrounds[1].SetActive(true);
+            }
+            else
+            {
+                cardTipBackgrounds[1].SetActive(false);
+            }
+        }
+        else
+        {
+            cardTipBackgrounds[1].SetActive(false);
+        }
     }
 
     public void PlayButtonHover(bool activate)
@@ -598,6 +658,11 @@ public class GameManager : MonoBehaviour
         {
             disabledMsgBackgrounds[state.thisPlayer].SetActive(false);
         }
+    }
+
+    public void CompostButtonHover(bool activate)
+    {
+        compostMessages[state.thisPlayer].SetActive(activate);
     }
 
     private void UpdateHighlights()

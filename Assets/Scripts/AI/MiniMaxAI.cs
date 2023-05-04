@@ -47,6 +47,11 @@ public class MiniMaxAI: MonoBehaviour
                 manager.PlayTile(state.tileIndex);
             }
         }
+        else if (state.players[state.thisPlayer].rootMoves == 0)
+        {
+            manager.ChangeTurn(true);
+            finished = true;
+        }
         else
         {
             yield return StartCoroutine(SelectCard(state, moves));
@@ -96,6 +101,11 @@ public class MiniMaxAI: MonoBehaviour
                 state.PlayTile(state.tileIndex);
             }
         }
+        else if (state.players[state.thisPlayer].rootMoves == 0)
+        {
+            state.ChangeTurn();
+            finished = true;
+        }
         else
         {
             moves--;
@@ -125,16 +135,9 @@ public class MiniMaxAI: MonoBehaviour
         Player player = state.players[state.thisPlayer];
         int card = -1;
         State next = new State(state);
-        if (player.rootMoves > 0)
-        {
-            next.SetCard(-1);
-            next.tilePhase = true;
-            yield return StartCoroutine(ControlHelper(next, moves));
-        }
-        else
-        {
-            next.ChangeTurn();
-        }
+        next.SetCard(-1);
+        next.tilePhase = true;
+        yield return StartCoroutine(ControlHelper(next, moves));
         float heuristic = Heuristic(next);
 
         for (int i = 0; i < player.hand.Count; i++)
@@ -165,23 +168,13 @@ public class MiniMaxAI: MonoBehaviour
             }
         }
 
-        if (card != -1 || player.rootMoves != 0)
+        state.SetCard(card);
+        if (card == -1)
         {
-            state.SetCard(card);
-            if (card == -1)
-            {
-                state.tilePhase = true;
-            }
-            else
-            {
-                state.tilePhase = false;
-            }
+            state.tilePhase = true;
         }
         else
         {
-            state.card = null;
-            state.cardIndex = -1;
-            state.handIndex = -1;
             state.tilePhase = false;
         }
     }
@@ -206,26 +199,33 @@ public class MiniMaxAI: MonoBehaviour
             state.validAIMoves.RemoveAt(new System.Random().Next(0, state.validAIMoves.Count));
         }
 
-        foreach (int index in state.validAIMoves)
+        if (state.validAIMoves.Count == 1)
         {
-            State next = new State(state);
-            next.PlayTile(index);
-            yield return StartCoroutine(ControlHelper(next, moves));
-            float nextHeuristic = Heuristic(next);
-            if (state.thisPlayer == 0)
+            move = state.validAIMoves[0];
+        }
+        else
+        {
+            foreach (int index in state.validAIMoves)
             {
-                if (nextHeuristic > heuristic)
+                State next = new State(state);
+                next.PlayTile(index);
+                yield return StartCoroutine(ControlHelper(next, moves));
+                float nextHeuristic = Heuristic(next);
+                if (state.thisPlayer == 0)
                 {
-                    move = index;
-                    heuristic = nextHeuristic;
+                    if (nextHeuristic > heuristic)
+                    {
+                        move = index;
+                        heuristic = nextHeuristic;
+                    }
                 }
-            }
-            else
-            {
-                if (nextHeuristic < heuristic)
+                else
                 {
-                    move = index;
-                    heuristic = nextHeuristic;
+                    if (nextHeuristic < heuristic)
+                    {
+                        move = index;
+                        heuristic = nextHeuristic;
+                    }
                 }
             }
         }
@@ -329,15 +329,15 @@ public class MiniMaxAI: MonoBehaviour
                 }
                 else if (state.board[i] == state.players[0].fortifiedRoot)
                 {
-                    points += 0.25f;
+                    points += 0.5f;
                 }
                 else if (state.board[i] == state.players[1].fortifiedRoot)
                 {
-                    points -= 0.25f;
+                    points -= 0.5f;
                 }
                 else if (state.board[i] == state.players[0].baseRoot)
                 {
-                    points += 0.5f;
+                    points += 1;
                     List<int> start = new List<int>();
                     start.Add(i);
                     Player player = state.players[0];
@@ -348,7 +348,7 @@ public class MiniMaxAI: MonoBehaviour
                 }
                 else if (state.board[i] == state.players[1].baseRoot)
                 {
-                    points -= 0.5f;
+                    points -= 1;
                     List<int> start = new List<int>();
                     start.Add(i);
                     Player player = state.players[1];

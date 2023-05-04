@@ -92,4 +92,9 @@ public class ThickRootCard : Card
     {
         return "You have no pairs of unfortified roots to fortify.";
     }
+
+    public override string GetCardTips(State state)
+    {
+        return "Fortify: Prevents a root from being destroyed once.";
+    }
 }

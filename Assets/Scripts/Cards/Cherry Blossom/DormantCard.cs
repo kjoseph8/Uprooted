@@ -67,7 +67,7 @@ public class DormantCard : Card
 
     public override float GetVolume(State state)
     {
-        return 1;
+        return 0.7f;
     }
 
     public override string GetDisabledMessage(State state)
@@ -90,5 +90,10 @@ public class DormantCard : Card
             }
         }
         return null;
+    }
+
+    public override string GetCardTips(State state)
+    {
+        return "Play Bloom to enter Bloom Stance.";
     }
 }

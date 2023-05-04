@@ -54,4 +54,9 @@ public abstract class Card
     {
         return null;
     }
+
+    public virtual string GetCardTips(State state)
+    {
+        return null;
+    }
 }

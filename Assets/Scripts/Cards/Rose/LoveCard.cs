@@ -62,44 +62,12 @@ public class LoveCard : Card
         return Array.IndexOf(new char[] { '-', 'W' }, state.board[index]) != -1 && state.HasNeighbor(x, y, new char[] { player.root, player.fortifiedRoot, player.invincibleRoot, player.baseRoot }); ;
     }
 
-    public override bool AIValidation(State state)
-    {
-        Player thisPlayer = state.players[state.thisPlayer];
-        Player otherPlayer = state.players[state.otherPlayer];
-        char[] critical = new char[] { thisPlayer.strongFire, thisPlayer.weakFire, otherPlayer.strongFire, otherPlayer.weakFire, otherPlayer.thorn, otherPlayer.root, otherPlayer.fortifiedRoot, otherPlayer.invincibleRoot, otherPlayer.baseRoot, 'R' };
-
-        for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
-        {
-            if (!Validation(state, i))
-            {
-                continue;
-            }
-            if (state.numActions != GetNumActions(state))
-            {
-                return true;
-            }
-
-            int[] coords = state.IndexToCoord(i);
-            if (state.CountNeighbors(coords[0], coords[1], critical) > 0)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public override void UpdateValidAIMoves(State state)
     {
         state.validAIMoves.Clear();
         if (state.numActions != GetNumActions(state))
         {
-            for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
-            {
-                if (Validation(state, i))
-                {
-                    state.validAIMoves.Add(i);
-                }
-            }
+            base.UpdateValidAIMoves(state);
         }
         else
         {
@@ -156,5 +124,10 @@ public class LoveCard : Card
     public override string GetDisabledMessage(State state)
     {
         return "You have no pairs of unfortified roots to fortify.";
+    }
+
+    public override string GetCardTips(State state)
+    {
+        return "Fortify: Prevents a root from being destroyed once.";
     }
 }

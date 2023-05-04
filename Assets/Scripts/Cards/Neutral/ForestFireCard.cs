@@ -176,4 +176,9 @@ public class ForestFireCard : Card
     {
         return "Your opponent has no end roots to ignite.";
     }
+
+    public override string GetCardTips(State state)
+    {
+        return "CAUTION: Fire may spread to your own roots!";
+    }
 }

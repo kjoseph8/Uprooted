@@ -62,4 +62,9 @@ public class MrWormCard : Card
             state.PlaceRoot(index, player);
         }
     }
+
+    public override string GetCardTips(State state)
+    {
+        return "If Mr Worm is already in play, playing this will extend the duration.";
+    }
 }

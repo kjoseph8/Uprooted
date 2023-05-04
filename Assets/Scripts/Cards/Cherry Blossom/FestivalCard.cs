@@ -32,6 +32,11 @@ public class FestivalCard : Card
 
     public override float GetVolume(State state)
     {
-        return 1;
+        return 0.5f;
+    }
+
+    public override string GetCardTips(State state)
+    {
+        return "Play Dormant to enter Dormant Stance.\n\nPlay Bloom to enter Bloom Stance.";
     }
 }

@@ -88,4 +88,9 @@ public class ThornsCard : Card
     {
         return "I don't know how you did it, but there are no empty spaces on the board to place a thorn block.";
     }
+
+    public override string GetCardTips(State state)
+    {
+        return "You can use War of The Roses to have your thorns destroy adjacent opposing roots.";
+    }
 }

@@ -41,6 +41,11 @@ public class MultiMiniMaxAI
                 manager.PlayTile(state.tileIndex);
             }
         }
+        else if (state.players[state.thisPlayer].rootMoves == 0)
+        {
+            manager.ChangeTurn(true);
+            return;
+        }
         else
         {
             await Task.Run(() => SelectCard(state, turns, moves, true));
@@ -87,6 +92,12 @@ public class MultiMiniMaxAI
                 state.PlayTile(state.tileIndex);
             }
         }
+        else if (state.players[state.thisPlayer].rootMoves == 0)
+        {
+            state.ChangeTurn();
+            turns--;
+            moves = maxMoves;
+        }
         else
         {
             moves--;
@@ -116,16 +127,9 @@ public class MultiMiniMaxAI
         Player player = state.players[state.thisPlayer];
         int card = -1;
         State copy = new State(state);
-        if (player.rootMoves > 0)
-        {
-            copy.SetCard(-1);
-            copy.tilePhase = true;
-            ControlHelper(copy, turns, moves);
-        }
-        else
-        {
-            copy.ChangeTurn();
-        }
+        copy.SetCard(-1);
+        copy.tilePhase = true;
+        ControlHelper(copy, turns, moves);
         float heuristic = MiniMaxAI.Heuristic(copy);
 
         List<int> cards = new List<int>();
@@ -177,23 +181,13 @@ public class MultiMiniMaxAI
             }
         }
 
-        if (card != -1 || player.rootMoves != 0)
+        state.SetCard(card);
+        if (card == -1)
         {
-            state.SetCard(card);
-            if (card == -1)
-            {
-                state.tilePhase = true;
-            }
-            else
-            {
-                state.tilePhase = false;
-            }
+            state.tilePhase = true;
         }
         else
         {
-            state.card = null;
-            state.cardIndex = -1;
-            state.handIndex = -1;
             state.tilePhase = false;
         }
     }
@@ -216,6 +210,12 @@ public class MultiMiniMaxAI
         while (Mathf.Pow(state.validAIMoves.Count, state.card.GetNumActions(state)) > 5)
         {
             state.validAIMoves.RemoveAt(new System.Random().Next(0, state.validAIMoves.Count));
+        }
+
+        if (state.validAIMoves.Count == 1)
+        {
+            state.tileIndex = state.validAIMoves[0];
+            return;
         }
 
         List<Task> tasks = new List<Task>();

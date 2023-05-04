@@ -101,11 +101,16 @@ public class SeasonCard : Card
 
     public override float GetVolume(State state)
     {
-        return 1;
+        return 0.4f;
     }
 
     public override string GetDisabledMessage(State state)
     {
         return "You have no roots that you can destroy.";
+    }
+
+    public override string GetCardTips(State state)
+    {
+        return "Play Dormant to enter Dormant Stance.\n\nPlay Bloom to enter Bloom Stance.";
     }
 }

@@ -122,11 +122,16 @@ public class BloomCard : Card
 
     public override float GetVolume(State state)
     {
-        return 1;
+        return 0.5f;
     }
 
     public override string GetDisabledMessage(State state)
     {
         return "You have no roots to destroy that are next to unfortified roots.";
+    }
+
+    public override string GetCardTips(State state)
+    {
+        return "Fortify: Prevents a root from being destroyed once.\n\nPlay Dormant to enter Dormant Stance.";
     }
 }

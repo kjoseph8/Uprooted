@@ -89,4 +89,9 @@ public class WarCard : Card
         Player otherPlayer = state.players[state.otherPlayer];
         return index != -1 && Array.IndexOf(new char[] { otherPlayer.root, otherPlayer.fortifiedRoot, otherPlayer.deadRoot, otherPlayer.deadFortifiedRoot, otherPlayer.thorn }, state.board[index]) != -1 && state.CountNeighbors(x, y, new char[] { thisPlayer.thorn }) > 0;
     }
+
+    public override string GetCardTips(State state)
+    {
+        return "Place thorns by playing Every Rose Has Its Thorns";
+    }
 }

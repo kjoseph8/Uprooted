@@ -9,6 +9,11 @@ public class SunshineCard : Card
         return "Ray of Sunshine";
     }
 
+    public override string GetDescription(State state)
+    {
+        return "Draw 2 cards from your discard pile";
+    }
+
     public override int GetCost(State state)
     {
         return 1;

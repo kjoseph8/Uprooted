@@ -9,6 +9,11 @@ public class ScentCard : Card
         return "Pleasant Scent";
     }
 
+    public override string GetDescription(State state)
+    {
+        return "Gain an extra water at the start of your next 3 turns";
+    }
+
     public override int GetCost(State state)
     {
         return 1;

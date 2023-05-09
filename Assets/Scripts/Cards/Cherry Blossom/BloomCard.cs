@@ -7,6 +7,11 @@ public class BloomCard : Card
 {
     public override string GetName(State state)
     {
+        return "Bloom";
+    }
+
+    public override string GetDescription(State state)
+    {
         if (state.players[state.thisPlayer].bloom)
         {
             return "Select a root to destroy to fortify its neighbors";

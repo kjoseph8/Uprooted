@@ -7,6 +7,11 @@ public class SeasonCard : Card
 {
     public override string GetName(State state)
     {
+        return "A Seasonal Cycle";
+    }
+
+    public override string GetDescription(State state)
+    {
         if (state.players[state.thisPlayer].bloom)
         {
             return "Select roots to destroy to gain 2 roots";

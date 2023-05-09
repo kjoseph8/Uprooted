@@ -9,6 +9,11 @@ public class FertilizerCard: Card
         return "Fertilizer";
     }
 
+    public override string GetDescription(State state)
+    {
+        return "Gain an extra root to place this turn";
+    }
+
     public override int GetCost(State state)
     {
         return 1;

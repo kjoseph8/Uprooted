@@ -10,6 +10,11 @@ public class MrWormCard : Card
         return "Mr Worm!";
     }
 
+    public override string GetDescription(State state)
+    {
+        return "Randomly grow a root for the next 3 turns";
+    }
+
     public override int GetCost(State state)
     {
         return 1;

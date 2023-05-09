@@ -6,6 +6,8 @@ public abstract class Card
 {
     public abstract string GetName(State state);
 
+    public abstract string GetDescription(State state);
+
     public abstract int GetCost(State state);
 
     public abstract int GetNumActions(State state);

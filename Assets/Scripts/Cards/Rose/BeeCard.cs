@@ -9,6 +9,11 @@ public class BeeCard : Card
         return "A Sym-Bee-Otic Relationship";
     }
 
+    public override string GetDescription(State state)
+    {
+        return "Steal one of your opponent's roots";
+    }
+
     public override int GetCost(State state)
     {
         return 2;

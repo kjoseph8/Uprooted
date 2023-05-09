@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using Unity.Services.Analytics;
 using TMPro;
 
@@ -54,6 +55,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject validCursor;
     [SerializeField] private GameObject invalidCursor;
     [SerializeField] private TextMeshProUGUI winnerDisp;
+    [SerializeField] private GameObject homeButton;
     [SerializeField] private GameObject[] plants;
     [SerializeField] private TextMeshProUGUI[] plantNames;
     [SerializeField] private Tile highlightTile;
@@ -62,11 +64,13 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject finalTurnWarning;
     [SerializeField] private AudioSource soundSrc;
     [SerializeField] private AudioClip compostSound;
+    [SerializeField] private GameObject menu;
     [SerializeField] private GameObject backgroundObj;
     [SerializeField] private GameObject rainObj;
     [SerializeField] private AudioSource windSound;
     [SerializeField] private GameObject tornado;
     [HideInInspector] public State state;
+    [HideInInspector] public bool paused = false;
     private SpriteRenderer[] plantSprites;
     private Animator[] defeatAnims;
     private SpriteRenderer background;
@@ -169,6 +173,18 @@ public class GameManager : MonoBehaviour
     public void PrintDebug()
     {
         Debug.Log(state.StateToString());
+    }
+
+    public void ToggleMenu(bool active)
+    {
+        paused = active;
+        menu.SetActive(active);
+    }
+
+    public void QuitGame()
+    {
+        Destroy(GameObject.FindGameObjectWithTag("MenuManager"));
+        SceneManager.LoadScene(0);
     }
 
     public void ChangeTurn(bool ai)
@@ -342,7 +358,7 @@ public class GameManager : MonoBehaviour
         {
             if (state.card != null)
             {
-                phaseDisp.text = state.card.GetName(state);
+                phaseDisp.text = state.card.GetDescription(state);
             }
             else
             {
@@ -352,7 +368,7 @@ public class GameManager : MonoBehaviour
         }
         else if (state.card != null)
         {
-            phaseDisp.text = state.card.GetName(state);
+            phaseDisp.text = state.card.GetDescription(state);
             playButtons[state.thisPlayer].gameObject.SetActive(true);
             bool moveExists = false;
             for (int i = 0; i < state.boardHeight * state.boardWidth; i++)
@@ -730,6 +746,7 @@ public class GameManager : MonoBehaviour
     {
         yield return new WaitForSeconds(5);
         winnerDisp.enabled = true;
+        homeButton.SetActive(true);
 #if !UNITY_EDITOR
         AnalyticsService.Instance.Flush();
 #endif

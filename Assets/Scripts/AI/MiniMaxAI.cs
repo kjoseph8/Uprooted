@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MiniMaxAI: MonoBehaviour
 {
@@ -25,6 +26,10 @@ public class MiniMaxAI: MonoBehaviour
         {
             yield return StartCoroutine(SelectDiscard(state, moves));
             yield return new WaitForSeconds(delay / 1000.0f);
+            while(manager.paused)
+            {
+                yield return null;
+            }
             manager.DiscardCard(true);
         }
         else if (state.tilePhase)
@@ -34,6 +39,10 @@ public class MiniMaxAI: MonoBehaviour
             {
                 if (state.cardIndex == 0)
                 {
+                    while (manager.paused)
+                    {
+                        yield return null;
+                    }
                     manager.ChangeTurn(true);
                     finished = true;
                 }
@@ -44,11 +53,19 @@ public class MiniMaxAI: MonoBehaviour
             }
             else
             {
+                while (manager.paused)
+                {
+                    yield return null;
+                }
                 manager.PlayTile(state.tileIndex);
             }
         }
         else if (state.players[state.thisPlayer].rootMoves == 0)
         {
+            while (manager.paused)
+            {
+                yield return null;
+            }
             manager.ChangeTurn(true);
             finished = true;
         }
@@ -57,6 +74,10 @@ public class MiniMaxAI: MonoBehaviour
             yield return StartCoroutine(SelectCard(state, moves));
             if (state.card == null || state.cardIndex == -1)
             {
+                while (manager.paused)
+                {
+                    yield return null;
+                }
                 manager.ChangeTurn(true);
                 finished = true;
             }
@@ -64,6 +85,10 @@ public class MiniMaxAI: MonoBehaviour
             {
                 lastTime = (int)Time.time;
                 yield return new WaitForSeconds(delay / 1000.0f);
+                while (manager.paused)
+                {
+                    yield return null;
+                }
                 manager.PlayCard(true);
             }
         }

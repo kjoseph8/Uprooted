@@ -7,7 +7,12 @@ public class FestivalCard : Card
 {
     public override string GetName(State state)
     {
-        return "Enjoy the Cherry Blossom Festival!";
+        return "Festival";
+    }
+
+    public override string GetDescription(State state)
+    {
+        return "Gain an extra water each time you change stances";
     }
 
     public override int GetCost(State state)

@@ -10,6 +10,11 @@ public class SaplingCard : Card
         return "Sapling";
     }
 
+    public override string GetDescription(State state)
+    {
+        return "Place a sapling at the edge of the board";
+    }
+
     public override int GetCost(State state)
     {
         return 3;

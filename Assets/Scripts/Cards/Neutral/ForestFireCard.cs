@@ -11,6 +11,11 @@ public class ForestFireCard : Card
         return "Forest Fire";
     }
 
+    public override string GetDescription(State state)
+    {
+        return "Set one of your opponent's end roots on fire";
+    }
+
     public override int GetCost(State state)
     {
         return 3;

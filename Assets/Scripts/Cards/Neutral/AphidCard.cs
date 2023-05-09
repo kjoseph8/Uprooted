@@ -10,6 +10,11 @@ public class AphidCard: Card
         return "Aphid Infestation";
     }
 
+    public override string GetDescription(State state)
+    {
+        return "Destroy 2 of your opponent's roots or obstacles";
+    }
+
     public override int GetCost(State state)
     {
         return 2;

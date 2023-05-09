@@ -7,6 +7,11 @@ public class PetalCard : Card
 {
     public override string GetName(State state)
     {
+        return "Petal Swarm";
+    }
+
+    public override string GetDescription(State state)
+    {
         if (state.players[state.thisPlayer].bloom)
         {
             return "Draw 2 cards that cost 0 this turn";
@@ -17,7 +22,7 @@ public class PetalCard : Card
         }
         else
         {
-            return "Discard your hand and destroy a root for each card";
+            return "Discard your hand and destroy an opposing root for each card";
         }
     }
 

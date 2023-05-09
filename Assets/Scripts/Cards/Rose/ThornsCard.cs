@@ -9,6 +9,11 @@ public class ThornsCard : Card
         return "Every Rose has its Thorn";
     }
 
+    public override string GetDescription(State state)
+    {
+        return "Place a thorn block";
+    }
+
     public override int GetCost(State state)
     {
         return 1;

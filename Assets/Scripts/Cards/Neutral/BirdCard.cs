@@ -9,6 +9,11 @@ public class BirdCard : Card
         return "Eek! A Bird!";
     }
 
+    public override string GetDescription(State state)
+    {
+        return "Drain 2 of your opponent's water";
+    }
+
     public override int GetCost(State state)
     {
         return 1;

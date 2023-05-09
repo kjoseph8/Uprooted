@@ -10,6 +10,11 @@ public class LoveCard : Card
         return "A Symbol of Love";
     }
 
+    public override string GetDescription(State state)
+    {
+        return "Place 2 fortified roots next to each other";
+    }
+
     public override int GetCost(State state)
     {
         return 3;

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Threading.Tasks;
 
 public class MultiMiniMaxAI
@@ -19,6 +20,14 @@ public class MultiMiniMaxAI
             await Task.Run(() => SelectDiscard(state, turns, moves, true));
             lastTime = (int)Time.time;
             await FastDelay(delay);
+            while (manager.paused)
+            {
+                await Task.Yield();
+                if (SceneManager.GetActiveScene().buildIndex == 0)
+                {
+                    return;
+                }
+            }
             manager.DiscardCard(true);
         }
         else if (state.tilePhase)
@@ -28,6 +37,14 @@ public class MultiMiniMaxAI
             {
                 if (state.cardIndex == 0)
                 {
+                    while (manager.paused)
+                    {
+                        await Task.Yield();
+                        if (SceneManager.GetActiveScene().buildIndex == 0)
+                        {
+                            return;
+                        }
+                    }
                     manager.ChangeTurn(true);
                     return;
                 }
@@ -38,11 +55,27 @@ public class MultiMiniMaxAI
             }
             else
             {
+                while (manager.paused)
+                {
+                    await Task.Yield();
+                    if (SceneManager.GetActiveScene().buildIndex == 0)
+                    {
+                        return;
+                    }
+                }
                 manager.PlayTile(state.tileIndex);
             }
         }
         else if (state.players[state.thisPlayer].rootMoves == 0)
         {
+            while (manager.paused)
+            {
+                await Task.Yield();
+                if (SceneManager.GetActiveScene().buildIndex == 0)
+                {
+                    return;
+                }
+            }
             manager.ChangeTurn(true);
             return;
         }
@@ -51,6 +84,14 @@ public class MultiMiniMaxAI
             await Task.Run(() => SelectCard(state, turns, moves, true));
             if (state.card == null || state.cardIndex == -1)
             {
+                while (manager.paused)
+                {
+                    await Task.Yield();
+                    if (SceneManager.GetActiveScene().buildIndex == 0)
+                    {
+                        return;
+                    }
+                }
                 manager.ChangeTurn(true);
                 return;
             }
@@ -58,6 +99,14 @@ public class MultiMiniMaxAI
             {
                 lastTime = (int)Time.time;
                 await FastDelay(delay);
+                while (manager.paused)
+                {
+                    await Task.Yield();
+                    if (SceneManager.GetActiveScene().buildIndex == 0)
+                    {
+                        return;
+                    }
+                }
                 manager.PlayCard(true);
             }
         }

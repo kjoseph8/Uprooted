@@ -9,6 +9,11 @@ public class ThickRootCard : Card
         return "Thick Root";
     }
 
+    public override string GetDescription(State state)
+    {
+        return "Fortify one of your roots";
+    }
+
     public override int GetCost(State state)
     {
         return 1;

@@ -10,6 +10,11 @@ public class WarCard : Card
         return "War of the Roses";
     }
 
+    public override string GetDescription(State state)
+    {
+        return "Attack all opposing tiles neighboring your thorn blocks";
+    }
+
     public override int GetCost(State state)
     {
         return 4;

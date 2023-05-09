@@ -7,6 +7,11 @@ public class DormantCard : Card
 {
     public override string GetName(State state)
     {
+        return "Dormant";
+    }
+
+    public override string GetDescription(State state)
+    {
         if (state.players[state.thisPlayer].bloom)
         {
             return "Switch to Dormant stance";

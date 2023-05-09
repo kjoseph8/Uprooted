@@ -7,6 +7,11 @@ public class RootCard: Card
 {
     public override string GetName(State state)
     {
+        return "Root";
+    }
+
+    public override string GetDescription(State state)
+    {
         return "Place a Root";
     }
 

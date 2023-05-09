@@ -24,6 +24,7 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private GameObject[] howToPlayPages;
     [SerializeField] private GameObject howToPlayBack;
     [SerializeField] private GameObject howToPlayNext;
+    [SerializeField] private GameObject exitButton;
     [HideInInspector] public int stage;
     [HideInInspector] public bool[] ai;
     [HideInInspector] public int[] plant;
@@ -40,7 +41,7 @@ public class MenuManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogException(e);
+            
         }
     }
 
@@ -50,6 +51,14 @@ public class MenuManager : MonoBehaviour
         ai = new bool[] { false, true };
         plant = new int[] { 0, 1 };
         color = new int[] { 0, 0 };
+#if !UNITY_WEBGL
+        exitButton.SetActive(true);
+#endif
+    }
+
+    public void CloseGame()
+    {
+        Application.Quit();
     }
 
     public void ReturnToTitle()
